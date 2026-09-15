@@ -130,7 +130,6 @@ function renderHome(){
   const profile=getProfile();
   $('#profileInitial').textContent=profile ? profile.name.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase() : 'SB';
   $('#heroWelcome').textContent=profile ? `Olá, ${profile.name.split(' ')[0]}. Que bom ter você por aqui.` : '';
-  renderHomeServices();
 
   const wrap=$('#nextAppointmentWrap');
   const next=futureBookings()[0];
@@ -167,6 +166,9 @@ function renderHome(){
   } else {
     wrap.innerHTML='';
   }
+  $$('[data-action="start-booking"]').forEach(btn=>{
+    btn.onclick=()=>startBooking();
+  });
 }
 
 function resetBooking(){

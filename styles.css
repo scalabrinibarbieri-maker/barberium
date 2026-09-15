@@ -50,22 +50,13 @@ img{display:block;max-width:100%}
 .welcome-back{margin-top:22px;border:1px solid rgba(255,255,255,.06);background:#0b1b12;border-radius:20px;padding:20px}
 .welcome-back h3{font-family:var(--serif);font-size:25px;font-weight:500;margin:6px 0}.welcome-back p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 15px}
 
-.home-services{display:grid;gap:11px}
-.service-home-card{display:grid;grid-template-columns:104px 1fr;min-height:104px;background:linear-gradient(135deg,#102319,#0c1c13);border:1px solid rgba(231,195,114,.13);border-radius:18px;overflow:hidden;color:var(--cream);text-align:left;padding:0}
-.service-home-card:active{transform:scale(.995)}
-.service-home-card img{width:104px;height:100%;object-fit:cover}
-.service-home-info{padding:12px 13px;display:flex;flex-direction:column;justify-content:center;min-width:0}
-.service-home-info strong{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1.06}
-.service-meta{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
-.service-meta span{font-size:11px;color:#d8c9ac}.service-meta .price{color:var(--gold2);font-weight:850}
-.service-meta .duration:before{content:"◷ ";color:#958d7c}
+.services-summary-card{border:1px solid rgba(231,195,114,.13);background:linear-gradient(135deg,#102319,#0c1c13);border-radius:22px;padding:18px 17px;box-shadow:var(--shadow)}
+.services-summary-card p{margin:0;color:#d9d1c1;font-size:13px;line-height:1.6}
+.services-summary-card p strong{color:var(--gold2)}
+.services-summary-list{margin:14px 0 0;padding-left:18px;display:grid;gap:8px;color:#bfb6a5;font-size:12px;line-height:1.5}
+.services-summary-list li::marker{color:var(--gold)}
+.inline-book-button{width:100%;margin-top:16px}
 
-.professional-showcase{display:grid;gap:16px}
-.professional-editorial{border-radius:22px;overflow:hidden;position:relative;background:#0b1b12;border:1px solid rgba(231,195,114,.13);box-shadow:var(--shadow)}
-.professional-editorial img{width:100%;height:390px;object-fit:cover;object-position:center 28%;filter:saturate(.88) contrast(1.02)}
-.professional-editorial:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(3,11,7,.9))}
-.professional-name{position:absolute;z-index:2;left:18px;right:18px;bottom:17px;display:flex;align-items:end;justify-content:space-between}
-.professional-name span{font-size:10px;color:var(--gold);letter-spacing:.16em}.professional-name strong{font-family:var(--serif);font-size:27px;font-weight:500}
 
 .unit-card{margin:42px 0 26px;padding:25px 20px;border:1px solid rgba(221,179,84,.22);border-radius:24px;background:radial-gradient(circle at 100% 0,rgba(196,143,49,.12),transparent 42%),#0d2016;position:relative;overflow:hidden}
 .unit-logo-wrap{position:absolute;right:-28px;top:-30px;width:150px;height:150px;opacity:.11}.unit-logo-wrap img{width:100%;height:100%;object-fit:contain}
@@ -90,7 +81,7 @@ img{display:block;max-width:100%}
 .radio-mark{width:19px;height:19px;border:2px solid #857d6f;border-radius:50%;position:relative}.selected .radio-mark{border-color:var(--gold2)}.selected .radio-mark:after{content:"";position:absolute;inset:3px;background:var(--gold2);border-radius:50%}
 
 .pro-choice{display:flex;align-items:center;gap:13px;width:100%;padding:12px;border:1px solid rgba(255,255,255,.07);background:#0b1a12;border-radius:16px;color:var(--cream);text-align:left}.pro-choice.selected{border-color:rgba(226,186,99,.65);background:#102319}
-.pro-choice img{width:58px;height:58px;object-fit:cover;border-radius:12px}.pro-choice strong{font-family:var(--serif);font-size:19px;font-weight:550}.pro-choice .radio-mark{margin-left:auto}
+.pro-choice img{width:58px;height:58px;object-fit:cover;object-position:center 24%;border-radius:12px}.pro-choice[data-pro="vinicius"] img{object-position:center 17%;transform:scale(1.08)}.pro-choice strong{font-family:var(--serif);font-size:19px;font-weight:550}.pro-choice .radio-mark{margin-left:auto}
 
 .calendar-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:15px}
 .day-button{padding:11px 4px;border:1px solid rgba(255,255,255,.07);background:#0b1a12;color:#cac2b3;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px}.day-button small{font-size:8px;text-transform:uppercase;color:#7f7a70}.day-button strong{font-size:16px}.day-button span{font-size:9px}.day-button.selected{background:#c89b45;color:#102016;border-color:#dcb55e}.day-button.selected small{color:#54401e}
