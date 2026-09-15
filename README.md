@@ -1,28 +1,38 @@
-# Barberium
+# Barberium — Scalabrini Barbieri (Cliente v2)
 
-MVP da área do cliente da **Scalabrini Barbieri**, construída como primeira barbearia de teste do SaaS Barberium.
+Segunda versão da área do cliente da **Scalabrini Barbieri — II Unidade, Bragança Paulista**.
 
-## Nesta primeira versão
+## Incluído nesta versão
 
-- Home mobile-first
-- Catálogo inicial de serviços
-- Fluxo de agendamento
-- Seleção de profissional, dia e horário
-- Persistência local dos agendamentos
-- Tela “Meus horários”
-- Cancelamento e reagendamento
-- PWA básica / cache offline
-- Estrutura separada em HTML, CSS e JavaScript
+- Identidade visual premium verde / dourado
+- Foto real da unidade na hero
+- Logo oficial SB
+- Todos os 11 serviços com artes, valores e duração
+- Profissionais: Vinicius Nunes e Jean Dalarmi
+- Fluxo completo de agendamento
+- Agenda inteligente local, respeitando duração do serviço e conflitos do mesmo aparelho
+- Dados do cliente sem login e sem senha
+- Reconhecimento do cliente no mesmo aparelho
+- Próximo agendamento na Home
+- Meus horários: próximos e histórico
+- Reagendamento com alteração de serviço/profissional/data/hora
+- Cancelamento com confirmação
+- "Agendar novamente" pelo histórico
+- Meu perfil / edição de nome e aniversário
+- WhatsApp e Google Maps
+- PWA / cache offline
 
-## Próximas etapas
+## Importante: protótipo estático atual
 
-1. Autenticação real
-2. Banco de dados multiempresa
-3. Painel da barbearia
-4. Cadastro de funcionários e serviços
-5. Agenda com bloqueios e disponibilidade real
-6. Clientes
-7. Notificações
-8. Pagamentos / assinatura do Barberium
+Esta versão ainda roda apenas no navegador/GitHub Pages e usa `localStorage`.
 
-> MVP inicial. Ainda não usa backend nem banco compartilhado.
+Por isso, ainda precisam de backend real:
+- agenda compartilhada entre todos os clientes;
+- banco de dados multiempresa;
+- sincronização entre aparelhos;
+- recuperação por código no WhatsApp;
+- validação de alteração do número;
+- painel administrativo e suas configurações;
+- regras de cancelamento/antecedência definidas pelo ADM.
+
+A interface já foi preparada para esses recursos sem exigir login tradicional do cliente.
