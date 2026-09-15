@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#11100e" />
+  <meta name="description" content="Agendamento online da Scalabrini Barbieri, powered by Barberium." />
+  <link rel="icon" href="./barberium.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./site.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>Scalabrini Barbieri • Barberium</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <img class="brand-icon" src="./barberium.svg" alt="Barberium" />
+        <div>
+          <span class="eyebrow">SCALABRINI</span>
+          <strong>Barbieri</strong>
+        </div>
+      </div>
+      <button class="avatar" type="button" aria-label="Abrir perfil" data-go="account">V</button>
+    </header>
+
+    <main id="app" class="content" aria-live="polite">
+      <section class="view active" data-view="home">
+        <div class="hero-copy">
+          <span class="pill">Seu horário, sem complicação</span>
+          <h1>Seu visual começa <em>aqui.</em></h1>
+          <p>Escolha o serviço, o profissional e o melhor horário em poucos segundos.</p>
+        </div>
+
+        <button class="primary-cta" type="button" data-go="booking">
+          <span>
+            <small>NOVO AGENDAMENTO</small>
+            <strong>Agendar horário</strong>
+          </span>
+          <span class="cta-arrow">→</span>
+        </button>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">SERVIÇOS</span>
+              <h2>Mais pedidos</h2>
+            </div>
+          </div>
+
+          <div class="service-list">
+            <button class="service-card" type="button" data-service="Corte">
+              <span class="service-icon">✦</span>
+              <span class="service-info"><strong>Corte</strong><small>45 min</small></span>
+              <span class="service-price">R$ 90</span>
+            </button>
+            <button class="service-card" type="button" data-service="Barba">
+              <span class="service-icon">◇</span>
+              <span class="service-info"><strong>Barba</strong><small>Consulte o valor</small></span>
+              <span class="service-price">Ver</span>
+            </button>
+            <button class="service-card" type="button" data-service="Corte + Barba">
+              <span class="service-icon">✣</span>
+              <span class="service-info"><strong>Corte + Barba</strong><small>Pacote completo</small></span>
+              <span class="service-price">Ver</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="next-booking empty-state" id="homeBookingCard">
+          <span class="eyebrow">PRÓXIMO HORÁRIO</span>
+          <h3>Nada marcado ainda</h3>
+          <p>Quando você agendar, seu próximo horário aparece aqui.</p>
+        </section>
+
+        <div class="powered">powered by <strong>Barberium</strong></div>
+      </section>
+
+      <section class="view" data-view="booking">
+        <button class="back-button" type="button" data-go="home">← Voltar</button>
+        <div class="page-heading">
+          <span class="eyebrow">AGENDAMENTO</span>
+          <h1>Escolha seu horário</h1>
+          <p>Você pode alterar qualquer etapa antes de confirmar.</p>
+        </div>
+
+        <form id="bookingForm" class="booking-form">
+          <fieldset>
+            <legend>1. Serviço</legend>
+            <div class="choice-grid" id="serviceChoices">
+              <label class="choice-card">
+                <input type="radio" name="service" value="Corte" data-price="90" checked />
+                <span><strong>Corte</strong><small>45 min • R$ 90</small></span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="service" value="Barba" data-price="0" />
+                <span><strong>Barba</strong><small>Valor na barbearia</small></span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="service" value="Corte + Barba" data-price="0" />
+                <span><strong>Corte + Barba</strong><small>Pacote completo</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>2. Profissional</legend>
+            <label class="select-wrap">
+              <span>Barbeiro</span>
+              <select name="professional" required>
+                <option value="Primeiro disponível">Primeiro disponível</option>
+                <option value="Vinicius">Vinicius</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>3. Dia</legend>
+            <div class="date-strip" id="dateStrip"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>4. Horário</legend>
+            <div class="time-grid" id="timeGrid"></div>
+          </fieldset>
+
+          <button class="confirm-button" type="submit">
+            <span>Confirmar agendamento</span>
+            <span>→</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="view" data-view="appointments">
+        <div class="page-heading compact">
+          <span class="eyebrow">AGENDA</span>
+          <h1>Meus horários</h1>
+        </div>
+        <div id="appointmentsList" class="appointments-list"></div>
+      </section>
+
+      <section class="view" data-view="account">
+        <div class="page-heading compact">
+          <span class="eyebrow">CONTA</span>
+          <h1>Seu perfil</h1>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar">V</div>
+          <div><strong>Cliente Scalabrini</strong><small>Conta de demonstração</small></div>
+        </div>
+        <div class="settings-list">
+          <button type="button"><span>Dados pessoais</span><span>›</span></button>
+          <button type="button"><span>Notificações</span><span>›</span></button>
+          <button type="button"><span>Ajuda</span><span>›</span></button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item active" type="button" data-go="home"><span>⌂</span><small>Início</small></button>
+      <button class="nav-item" type="button" data-go="booking"><span>＋</span><small>Agendar</small></button>
+      <button class="nav-item" type="button" data-go="appointments"><span>▣</span><small>Horários</small></button>
+      <button class="nav-item" type="button" data-go="account"><span>○</span><small>Conta</small></button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Scalabrini Barbieri",
+  "short_name": "Scalabrini",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0b0a",
+  "theme_color": "#11100e",
+  "icons": [
+    {
+      "src": "./barberium.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
