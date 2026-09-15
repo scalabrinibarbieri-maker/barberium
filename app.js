@@ -12,6 +12,25 @@ const SERVICES = [
   {id:'cabeca-raspada', name:'Cabeça Raspada', price:60, durationLabel:'30–60 min', duration:60, image:'./assets/cabeca-raspada.webp'}
 ];
 
+const ADDONS = {
+  sobrancelha: {id:'sobrancelha', name:'Sobrancelha', price:15, regularPrice:20, duration:10, durationLabel:'10 min', image:'./assets/sobrancelha.webp'},
+  pezinho: {id:'pezinho-detalhes', name:'Pezinho Detalhes', price:25, regularPrice:25, duration:10, durationLabel:'10 min', image:'./assets/pezinho-detalhes.webp'}
+};
+
+const ADDON_RULES = {
+  'corte': ['sobrancelha'],
+  'barba-tradizionale': ['sobrancelha','pezinho'],
+  'combo-corte-barba': ['sobrancelha'],
+  'barboterapia': ['sobrancelha','pezinho'],
+  'combo-corte-barboterapia': ['sobrancelha'],
+  'corte-barba-sobrancelha': [],
+  'barba-express': ['sobrancelha','pezinho'],
+  'corte-barba-express': ['sobrancelha'],
+  'sobrancelha': [],
+  'pezinho-detalhes': [],
+  'cabeca-raspada': ['sobrancelha']
+};
+
 const PROFESSIONALS = [
   {id:'vinicius', name:'Vinicius Nunes', image:'./assets/vinicius-nunes.webp'},
   {id:'jean', name:'Jean Dalarmi', image:'./assets/jean-dalarmi.webp'}
@@ -39,7 +58,7 @@ const state = {
   bookingStep:1,
   bookingMode:'new',
   editingBookingId:null,
-  booking:{serviceId:null, professionalId:null, date:null, time:null, customer:null},
+  booking:{serviceId:null, addons:[], professionalId:null, date:null, time:null, customer:null},
   appointmentsTab:'upcoming'
 };
 
@@ -52,6 +71,17 @@ const getBookings = () => JSON.parse(localStorage.getItem(LS.bookings)||'[]');
 const saveBookings = b => localStorage.setItem(LS.bookings,JSON.stringify(b));
 const serviceById = id => SERVICES.find(s=>s.id===id);
 const proById = id => PROFESSIONALS.find(p=>p.id===id);
+const addonById = id => Object.values(ADDONS).find(a=>a.id===id);
+const selectedAddons = () => (state.booking.addons||[]).map(addonById).filter(Boolean);
+const selectedPrice = () => (serviceById(state.booking.serviceId)?.price||0) + selectedAddons().reduce((sum,a)=>sum+a.price,0);
+const selectedDuration = () => (serviceById(state.booking.serviceId)?.duration||0) + selectedAddons().reduce((sum,a)=>sum+a.duration,0);
+const bookingDuration = b => (serviceById(b.serviceId)?.duration||0) + (b.addons||[]).map(addonById).filter(Boolean).reduce((sum,a)=>sum+a.duration,0);
+const bookingPrice = b => (serviceById(b.serviceId)?.price||0) + (b.addons||[]).map(addonById).filter(Boolean).reduce((sum,a)=>sum+a.price,0);
+const bookingServiceLabel = b => {
+  const base=serviceById(b.serviceId)?.name||'';
+  const adds=(b.addons||[]).map(addonById).filter(Boolean).map(a=>a.name);
+  return adds.length ? `${base} + ${adds.join(' + ')}` : base;
+};
 const pad = n => String(n).padStart(2,'0');
 
 function localDateISO(d){
@@ -138,14 +168,14 @@ function renderHome(){
     wrap.innerHTML=`
       <section class="next-card ${isToday(next.date)?'today':''}">
         <div class="next-head">
-          <div><span class="kicker">${isToday(next.date)?'Seu horário é hoje':'Seu próximo horário'}</span><h3>${s.name}</h3></div>
+          <div><span class="kicker">${isToday(next.date)?'Seu horário é hoje':'Seu próximo horário'}</span><h3>${bookingServiceLabel(next)}</h3></div>
           <span class="next-badge">${next.time}</span>
         </div>
         <div class="next-details">
           <div class="detail-box"><small>Data</small><strong>${humanDate(next.date,false)}</strong></div>
           <div class="detail-box"><small>Profissional</small><strong>${p.name}</strong></div>
-          <div class="detail-box"><small>Duração</small><strong>${s.durationLabel}</strong></div>
-          <div class="detail-box"><small>Valor</small><strong>${money(s.price)}</strong></div>
+          <div class="detail-box"><small>Duração</small><strong>${bookingDuration(next)} min</strong></div>
+          <div class="detail-box"><small>Valor</small><strong>${money(bookingPrice(next))}</strong></div>
         </div>
         <div class="card-actions">
           <button class="secondary-button" type="button" data-home-reschedule="${next.id}">Reagendar</button>
@@ -173,7 +203,7 @@ function renderHome(){
 
 function resetBooking(){
   state.bookingStep=1; state.bookingMode='new'; state.editingBookingId=null;
-  state.booking={serviceId:null,professionalId:null,date:null,time:null,customer:getProfile()};
+  state.booking={serviceId:null,addons:[],professionalId:null,date:null,time:null,customer:getProfile()};
 }
 function startBooking(opts={}){
   resetBooking();
@@ -184,13 +214,13 @@ function startBooking(opts={}){
 function startReschedule(id){
   const b=getBookings().find(x=>x.id===id); if(!b)return;
   state.bookingMode='reschedule'; state.editingBookingId=id;
-  state.booking={serviceId:b.serviceId,professionalId:b.professionalId,date:b.date,time:b.time,customer:getProfile()};
+  state.booking={serviceId:b.serviceId,addons:[...(b.addons||[])],professionalId:b.professionalId,date:b.date,time:b.time,customer:getProfile()};
   state.bookingStep=1;
   showView('booking'); renderBooking();
 }
 function startRepeat(id){
   const b=getBookings().find(x=>x.id===id); if(!b)return;
-  resetBooking(); state.booking.serviceId=b.serviceId; state.booking.professionalId=b.professionalId; state.bookingStep=1;
+  resetBooking(); state.booking.serviceId=b.serviceId; state.booking.addons=[...(b.addons||[])]; state.booking.professionalId=b.professionalId; state.bookingStep=1;
   showView('booking'); renderBooking();
 }
 
@@ -220,17 +250,41 @@ function stepBack(){
 
 function bookingServices(){
   const stage=$('#bookingStage');
+  const service=serviceById(state.booking.serviceId);
+  const suggestedIds=state.booking.serviceId ? (ADDON_RULES[state.booking.serviceId]||[]) : [];
+  const suggestions=suggestedIds.map(id=>ADDONS[id==='sobrancelha'?'sobrancelha':'pezinho']).filter(Boolean);
+  const addonHTML = service && suggestions.length ? `
+    <section class="addon-section">
+      <div class="addon-heading"><span class="kicker">Complete seu atendimento</span><h3>Que tal adicionar?</h3><p>Opcional. Você pode continuar sem nenhum adicional.</p></div>
+      <div class="addon-list">${suggestions.map(a=>{
+        const selected=(state.booking.addons||[]).includes(a.id);
+        const discounted=a.price<a.regularPrice;
+        return `<button class="addon-card ${selected?'selected':''}" type="button" data-addon="${a.id}">
+          <img src="${a.image}" alt="${a.name}">
+          <span class="addon-info"><strong>${a.name}</strong><small>${a.durationLabel}</small><span class="addon-price">${discounted?`<del>${money(a.regularPrice)}</del> `:''}<b>+ ${money(a.price)}</b></span></span>
+          <span class="addon-action">${selected?'✓':'+'}</span>
+        </button>`;
+      }).join('')}</div>
+    </section>` : '';
   stage.innerHTML=`<div class="booking-list">${SERVICES.map(s=>`
     <button class="choice-service ${state.booking.serviceId===s.id?'selected':''}" type="button" data-service="${s.id}">
       <img src="${s.image}" alt="">
       <span><h3>${s.name}</h3><p><strong>${money(s.price)}</strong> · ${s.durationLabel}</p></span>
       <span class="radio-mark"></span>
     </button>`).join('')}</div>
-    ${state.booking.serviceId?'<button class="gold-button continue-btn" id="serviceNext" type="button">Continuar →</button>':''}`;
+    ${addonHTML}
+    ${state.booking.serviceId?`<div class="booking-total-mini"><span>Total selecionado</span><strong>${money(selectedPrice())}</strong></div><button class="gold-button continue-btn" id="serviceNext" type="button">Continuar →</button>`:''}`;
   $$('[data-service]',stage).forEach(b=>b.addEventListener('click',()=>{
+    const changing=state.booking.serviceId!==b.dataset.service;
     state.booking.serviceId=b.dataset.service;
+    if(changing) state.booking.addons=[];
     state.booking.date=null; state.booking.time=null;
     bookingServices();
+  }));
+  $$('[data-addon]',stage).forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.addon; const set=new Set(state.booking.addons||[]);
+    set.has(id)?set.delete(id):set.add(id);
+    state.booking.addons=[...set]; state.booking.date=null; state.booking.time=null; bookingServices();
   }));
   $('#serviceNext')?.addEventListener('click',stepNext);
 }
@@ -279,7 +333,7 @@ function bookingDates(){
 function minutesFromTime(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
 function timeFromMinutes(v){ return `${pad(Math.floor(v/60))}:${pad(v%60)}`; }
 function overlaps(start,duration,b){
-  const a1=start, a2=start+duration, b1=minutesFromTime(b.time), bs=serviceById(b.serviceId), b2=b1+(bs?.duration||0);
+  const a1=start, a2=start+duration, b1=minutesFromTime(b.time), b2=b1+bookingDuration(b);
   return a1<b2 && a2>b1;
 }
 function availableTimes(){
@@ -288,10 +342,11 @@ function availableTimes(){
   const open=AGENDA_CONFIG.openHour*60, close=AGENDA_CONFIG.closeHour*60, now=new Date();
   const list=[];
   for(let start=open; start<close; start+=AGENDA_CONFIG.slotMinutes){
-    if(AGENDA_CONFIG.mustFinishByClose && start+service.duration>close) continue;
+    const totalDuration=selectedDuration();
+    if(AGENDA_CONFIG.mustFinishByClose && start+totalDuration>close) continue;
     const slotDate=new Date(`${state.booking.date}T${timeFromMinutes(start)}:00`);
     if(slotDate.getTime() < now.getTime()+AGENDA_CONFIG.minAdvanceMinutes*60000) continue;
-    if(bookings.some(b=>overlaps(start,service.duration,b))) continue;
+    if(bookings.some(b=>overlaps(start,totalDuration,b))) continue;
     list.push(timeFromMinutes(start));
   }
   return list;
@@ -343,12 +398,14 @@ function bookingCustomer(){
 function bookingReview(){
   const stage=$('#bookingStage'), s=serviceById(state.booking.serviceId), p=proById(state.booking.professionalId), c=state.booking.customer;
   stage.innerHTML=`<div class="review-card">
-    <div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(s.price)}</p></div></div>
+    <div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(selectedPrice())}</p></div></div>
     <div class="review-lines">
       <div class="review-line"><span>Profissional</span><strong>${p.name}</strong></div>
       <div class="review-line"><span>Data</span><strong>${humanDate(state.booking.date)}</strong></div>
       <div class="review-line"><span>Horário</span><strong>${state.booking.time}</strong></div>
-      <div class="review-line"><span>Duração</span><strong>${s.durationLabel}</strong></div>
+      ${selectedAddons().map(a=>`<div class="review-line"><span>Adicional</span><strong>${a.name} · + ${money(a.price)}</strong></div>`).join('')}
+      <div class="review-line"><span>Duração total</span><strong>${selectedDuration()} min</strong></div>
+      <div class="review-line"><span>Total</span><strong>${money(selectedPrice())}</strong></div>
       <div class="review-line"><span>Cliente</span><strong>${c.name}</strong></div>
     </div>
   </div>
@@ -366,6 +423,7 @@ function commitBooking(){
   const payload={
     id:state.bookingMode==='reschedule'?state.editingBookingId:uid(),
     serviceId:state.booking.serviceId,
+    addons:[...(state.booking.addons||[])],
     professionalId:state.booking.professionalId,
     date:state.booking.date,time:state.booking.time,
     status:'confirmed',createdAt:new Date().toISOString()
@@ -384,11 +442,11 @@ function bookingConfirmation(){
     <h2>Horário confirmado.</h2>
     <p>Esperamos você na Scalabrini Barbieri — II Unidade, Bragança Paulista.</p>
     <div class="review-card">
-      <div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(s.price)}</p></div></div>
+      <div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(selectedPrice())}</p></div></div>
       <div class="review-lines">
         <div class="review-line"><span>Profissional</span><strong>${p.name}</strong></div>
         <div class="review-line"><span>Data</span><strong>${humanDate(state.booking.date)}</strong></div>
-        <div class="review-line"><span>Horário</span><strong>${state.booking.time}</strong></div>
+        <div class="review-line"><span>Horário</span><strong>${state.booking.time}</strong></div>${selectedAddons().map(a=>`<div class="review-line"><span>Adicional</span><strong>${a.name}</strong></div>`).join('')}
       </div>
     </div>
     <div class="stage-actions">
@@ -414,7 +472,7 @@ function renderAppointments(){
   root.innerHTML=list.map((b,i)=>{
     const s=serviceById(b.serviceId),p=proById(b.professionalId), upcoming=state.appointmentsTab==='upcoming';
     return `<article class="appointment-card ${upcoming&&i===0?'featured':''}">
-      <div class="appt-top"><div><h3>${s.name}</h3><p>${humanDate(b.date)} • ${b.time} • ${s.durationLabel}</p></div><span class="appt-price">${money(s.price)}</span></div>
+      <div class="appt-top"><div><h3>${bookingServiceLabel(b)}</h3><p>${humanDate(b.date)} • ${b.time} • ${bookingDuration(b)} min</p></div><span class="appt-price">${money(bookingPrice(b))}</span></div>
       <div class="appt-pro"><img src="${p.image}" alt=""><strong>${p.name}</strong></div>
       <div class="appt-actions">
         ${upcoming?`<button class="secondary-button" type="button" data-reschedule="${b.id}">Reagendar</button><button class="danger-button" type="button" data-cancel="${b.id}">Cancelar</button>`:
@@ -429,7 +487,7 @@ function renderAppointments(){
 function askCancel(id){
   const b=getBookings().find(x=>x.id===id); if(!b)return;
   const s=serviceById(b.serviceId);
-  modal(`<h3>Cancelar agendamento?</h3><p>Você está prestes a cancelar <strong>${s.name}</strong>, ${humanDate(b.date)} às ${b.time}.</p>
+  modal(`<h3>Cancelar agendamento?</h3><p>Você está prestes a cancelar <strong>${bookingServiceLabel(b)}</strong>, ${humanDate(b.date)} às ${b.time}.</p>
     <div class="modal-actions"><button class="secondary-button" data-modal-close type="button">Manter agendamento</button><button class="danger-button" id="confirmCancel" type="button">Sim, cancelar</button></div>`);
   $('#confirmCancel').addEventListener('click',()=>{
     const list=getBookings(); const idx=list.findIndex(x=>x.id===id); if(idx>=0) list[idx].status='cancelled'; saveBookings(list);
