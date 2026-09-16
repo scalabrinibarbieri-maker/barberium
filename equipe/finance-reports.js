@@ -94,7 +94,7 @@ async function generateFinanceReport(e){
 }
 
 function summaryRows(data){const o=data.overview||{};return [
-  ['Receita bruta',money(o.gross_cents)],['Reembolsos',money(o.refunds_cents)],['Taxas',money(o.fees_cents)],['Receita líquida',money(o.net_received_cents)],['Comissões',money(o.commissions_cents)],['Despesas pagas',money(o.expenses_cents)],['Resultado operacional',money(o.operating_result_cents)],['Contas a receber',money(o.receivables_cents)]
+  ['Receita bruta',money(o.gross_cents)],['Reembolsos',money(o.refunds_cents)],['Taxas',money(o.fees_cents)],['Receita líquida',money(o.net_received_cents)],['Comissões',money(o.commissions_cents)],['Custo dos produtos vendidos',money(o.product_cost_cents||0)],['Despesas pagas',money(o.expenses_cents)],['Resultado operacional',money(o.operating_result_cents)],['Contas a receber',money(o.receivables_cents)]
 ]}
 function revenueRows(data){
   if(data.meta?.basis==='accrual')return (data.accrual_revenue||[]).map(r=>[dateTimeBR(r.date),r.unit||'',r.customer||'',r.service||'',r.professional||'',money(r.amount_cents)]);

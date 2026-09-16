@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=12.2">
+  <link rel="stylesheet" href="./team.css?v=12.3">
   <link rel="stylesheet" href="./settings.css?v=12">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
@@ -258,13 +258,15 @@
         <div id="settingsContent" class="settings-content"><div class="settings-loading">Abra as configurações para carregar.</div></div>
       </section>
 
+      <section id="productsPanel" class="team-panel hidden"><div class="performance-head"><span class="role-pill">VENDA INTERNA</span><h1>Produtos</h1><p>Catálogo, estoque e vendas da barbearia.</p></div><div id="productsContent"></div></section>
       <footer class="dash-footer">Barberium • acesso protegido</footer>
 
       <nav id="teamBottomNav" class="team-bottom-nav" aria-label="Navegação da equipe">
         <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
-        <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+        <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Resumo</small></button>
         <button id="clientsNav" class="hidden" data-team-panel="clients" type="button"><span>♙</span><small>Clientes</small></button>
         <button id="financeNav" class="hidden" data-team-panel="finance" type="button"><span>◈</span><small>Financeiro</small></button>
+        <button id="productsNav" class="hidden" data-team-panel="products" type="button"><span>▣</span><small>Produtos</small></button>
         <button id="teamNav" class="hidden" data-team-panel="team" type="button"><span>⚙</span><small>Equipe</small></button>
       </nav>
     </section>
@@ -281,8 +283,8 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=12.2"></script>
-  <script type="module" src="./finance-reports.js?v=11.2"></script>
+  <script type="module" src="./team.js?v=12.3"></script>
+  <script type="module" src="./finance-reports.js?v=12.3"></script>
   <script type="module" src="./settings.js?v=12.1"></script>
 </body>
 </html>
