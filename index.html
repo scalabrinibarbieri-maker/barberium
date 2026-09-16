@@ -8,6 +8,7 @@
   <link rel="icon" href="./assets/logo-sb.webp">
   <link rel="manifest" href="./site.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=7">
+  <link rel="stylesheet" href="./membership.css?v=11">
   <title>Scalabrini Barbieri • Bragança Paulista</title>
 </head>
 <body>
@@ -15,18 +16,12 @@
     <header class="topbar" id="topbar">
       <button class="brand-button" type="button" data-nav="home" aria-label="Ir para o início">
         <img src="./assets/logo-sb.webp" alt="" class="mini-logo">
-        <span>
-          <strong>Scalabrini Barbieri</strong>
-          <small>II Unidade • Bragança Paulista</small>
-        </span>
+        <span><strong>Scalabrini Barbieri</strong><small>II Unidade • Bragança Paulista</small></span>
       </button>
-      <button class="top-profile" type="button" data-nav="profile" aria-label="Meu perfil">
-        <span id="profileInitial">SB</span>
-      </button>
+      <button class="top-profile" type="button" data-nav="profile" aria-label="Meu perfil"><span id="profileInitial">SB</span></button>
     </header>
 
     <main id="main">
-      <!-- HOME -->
       <section class="view active" data-view="home">
         <section class="hero">
           <img class="hero-bg" src="./assets/barbearia.webp" alt="Interior da Scalabrini Barbieri" fetchpriority="high">
@@ -36,122 +31,62 @@
             <p class="hero-unit">II Unidade — Bragança Paulista</p>
             <h1>Agende seu horário.</h1>
             <p class="hero-welcome" id="heroWelcome"></p>
-            <button class="gold-button hero-cta" type="button" data-action="start-booking">
-              <span>Agendar agora</span><span aria-hidden="true">→</span>
-            </button>
+            <button class="gold-button hero-cta" type="button" data-action="start-booking"><span>Agendar agora</span><span aria-hidden="true">→</span></button>
           </div>
         </section>
-
         <div class="page-pad home-content">
           <section id="nextAppointmentWrap"></section>
-
           <section class="home-section">
-            <header class="section-title">
-              <span>Experiências</span>
-              <h2>Nossos serviços</h2>
-            </header>
+            <header class="section-title"><span>Experiências</span><h2>Nossos serviços</h2></header>
             <div class="services-summary-card">
-              <p>
-                Trabalhamos com uma seleção premium de atendimentos para manter sua experiência mais prática e elegante.
-                Ao tocar em <strong>Agendar agora</strong>, você verá todos os serviços disponíveis com seus respectivos valores e duração.
-              </p>
-              <ul class="services-summary-list">
-                <li>Cortes, barba tradicional e barba express</li>
-                <li>Combos completos com barba, sobrancelha e barboterapia</li>
-                <li>Barboterapia, sobrancelha, pezinho detalhes e cabeça raspada</li>
-              </ul>
+              <p>Trabalhamos com uma seleção premium de atendimentos para manter sua experiência mais prática e elegante. Ao tocar em <strong>Agendar agora</strong>, você verá todos os serviços disponíveis com seus respectivos valores e duração.</p>
+              <ul class="services-summary-list"><li>Cortes, barba tradicional e barba express</li><li>Combos completos com barba, sobrancelha e barboterapia</li><li>Barboterapia, sobrancelha, pezinho detalhes e cabeça raspada</li></ul>
               <button class="gold-button inline-book-button" type="button" data-action="start-booking">Ver serviços e agendar →</button>
             </div>
           </section>
-
           <section class="home-section unit-card">
             <div class="unit-logo-wrap"><img src="./assets/logo-sb.webp" alt=""></div>
-            <span class="kicker">Nossa unidade</span>
-            <h2>II Unidade — Bragança Paulista</h2>
-            <div class="unit-info">
-              <div><span class="info-icon">◷</span><p><small>Horário</small><strong>Segunda a sábado<br>10:00 — 20:00</strong></p></div>
-              <div><span class="info-icon">✆</span><p><small>WhatsApp</small><strong>+55 11 94524-6544</strong></p></div>
-            </div>
-            <div class="unit-actions">
-              <a class="outline-button" href="https://wa.me/5511945246544" target="_blank" rel="noopener">
-                <span class="button-icon">✆</span> WhatsApp
-              </a>
-              <a class="outline-button" href="https://maps.app.goo.gl/ztpb7NShYtjQES897?g_st=ac" target="_blank" rel="noopener">
-                <span class="button-icon">⌖</span> Ver no Google Maps
-              </a>
-            </div>
+            <span class="kicker">Nossa unidade</span><h2>II Unidade — Bragança Paulista</h2>
+            <div class="unit-info"><div><span class="info-icon">◷</span><p><small>Horário</small><strong>Segunda a sábado<br>10:00 — 20:00</strong></p></div><div><span class="info-icon">✆</span><p><small>WhatsApp</small><strong>+55 11 94524-6544</strong></p></div></div>
+            <div class="unit-actions"><a class="outline-button" href="https://wa.me/5511945246544" target="_blank" rel="noopener"><span class="button-icon">✆</span> WhatsApp</a><a class="outline-button" href="https://maps.app.goo.gl/ztpb7NShYtjQES897?g_st=ac" target="_blank" rel="noopener"><span class="button-icon">⌖</span> Ver no Google Maps</a></div>
           </section>
-
-          <p class="powered">Experiência digital por <strong>Barberium</strong></p>
-          <p class="team-entry"><a href="./equipe/">Área da Equipe</a></p>
+          <p class="powered">Experiência digital por <strong>Barberium</strong></p><p class="team-entry"><a href="./equipe/">Área da Equipe</a></p>
         </div>
       </section>
 
-      <!-- BOOKING -->
       <section class="view" data-view="booking">
         <div class="page-pad booking-page">
-          <header class="booking-header">
-            <button class="icon-button" id="bookingBack" type="button" aria-label="Voltar">←</button>
-            <div>
-              <span class="kicker" id="bookingModeLabel">Novo agendamento</span>
-              <h1 id="bookingStepTitle">Escolha o serviço</h1>
-            </div>
-            <span class="step-counter" id="stepCounter">1/6</span>
-          </header>
-          <div class="progress-track"><div id="bookingProgress"></div></div>
-          <div id="bookingStage" class="booking-stage"></div>
+          <header class="booking-header"><button class="icon-button" id="bookingBack" type="button" aria-label="Voltar">←</button><div><span class="kicker" id="bookingModeLabel">Novo agendamento</span><h1 id="bookingStepTitle">Escolha o serviço</h1></div><span class="step-counter" id="stepCounter">1/6</span></header>
+          <div class="progress-track"><div id="bookingProgress"></div></div><div id="bookingStage" class="booking-stage"></div>
         </div>
       </section>
 
-      <!-- APPOINTMENTS -->
       <section class="view" data-view="appointments">
         <div class="page-pad standard-page">
-          <header class="page-heading">
-            <span class="kicker">Sua agenda</span>
-            <h1>Meus horários</h1>
-          </header>
-          <div class="tabs" role="tablist">
-            <button class="tab active" type="button" data-tab="upcoming">Próximos</button>
-            <button class="tab" type="button" data-tab="history">Histórico</button>
-          </div>
+          <header class="page-heading"><span class="kicker">Sua agenda</span><h1>Meus horários</h1></header>
+          <div class="tabs" role="tablist"><button class="tab active" type="button" data-tab="upcoming">Próximos</button><button class="tab" type="button" data-tab="history">Histórico</button></div>
           <div id="appointmentsContent"></div>
         </div>
       </section>
 
-      <!-- PROFILE -->
       <section class="view" data-view="profile">
         <div class="page-pad standard-page">
-          <header class="page-heading">
-            <span class="kicker">Seus dados</span>
-            <h1 id="profileGreeting">Meu perfil</h1>
-            <p>Os dados usados nos seus agendamentos da Scalabrini Barbieri.</p>
-          </header>
+          <header class="page-heading"><span class="kicker">Seus dados</span><h1 id="profileGreeting">Meu perfil</h1><p>Os dados usados nos seus agendamentos da Scalabrini Barbieri.</p></header>
           <div id="profileContent"></div>
         </div>
       </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Navegação principal">
-      <button class="nav-item active" type="button" data-nav="home">
-        <span class="nav-glyph">⌂</span><small>Início</small>
-      </button>
-      <button class="nav-item" type="button" data-nav="booking">
-        <span class="nav-glyph">＋</span><small>Agendar</small>
-      </button>
-      <button class="nav-item" type="button" data-nav="appointments">
-        <span class="nav-glyph">▣</span><small>Horários</small>
-      </button>
-      <button class="nav-item" type="button" data-nav="profile">
-        <span class="nav-glyph">○</span><small>Meu perfil</small>
-      </button>
+      <button class="nav-item active" type="button" data-nav="home"><span class="nav-glyph">⌂</span><small>Início</small></button>
+      <button class="nav-item" type="button" data-nav="booking"><span class="nav-glyph">＋</span><small>Agendar</small></button>
+      <button class="nav-item" type="button" data-nav="appointments"><span class="nav-glyph">▣</span><small>Horários</small></button>
+      <button class="nav-item" type="button" data-nav="profile"><span class="nav-glyph">○</span><small>Meu perfil</small></button>
     </nav>
   </div>
-
-  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-    <div class="modal" id="modalBox" role="dialog" aria-modal="true"></div>
-  </div>
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
   <div class="toast" id="toast" role="status"></div>
-
   <script type="module" src="./app.js?v=7"></script>
+  <script src="./membership.js?v=11" defer></script>
 </body>
 </html>
