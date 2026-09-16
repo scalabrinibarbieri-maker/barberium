@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=1">
+  <link rel="stylesheet" href="./team.css?v=2">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
 <body>
@@ -43,32 +43,63 @@
         <button id="logoutButton" class="icon-btn" type="button">Sair</button>
       </header>
 
-      <div class="welcome-line">
-        <div><span id="roleLabel" class="role-pill">Equipe</span><h1 id="welcomeName">Agenda</h1></div>
-        <p id="scopeLabel"></p>
-      </div>
+      <section id="agendaPanel" class="team-panel">
+        <div class="welcome-line">
+          <div><span id="roleLabel" class="role-pill">Equipe</span><h1 id="welcomeName">Agenda</h1></div>
+          <p id="scopeLabel"></p>
+        </div>
 
-      <section class="date-card">
-        <button id="prevDay" type="button" aria-label="Dia anterior">‹</button>
-        <button id="dateButton" type="button"><small>Agenda de</small><strong id="dateLabel"></strong></button>
-        <button id="nextDay" type="button" aria-label="Próximo dia">›</button>
-        <input id="dateInput" type="date" aria-label="Escolher data">
+        <section class="date-card">
+          <button id="prevDay" type="button" aria-label="Dia anterior">‹</button>
+          <button id="dateButton" type="button"><small>Agenda de</small><strong id="dateLabel"></strong></button>
+          <button id="nextDay" type="button" aria-label="Próximo dia">›</button>
+          <input id="dateInput" type="date" aria-label="Escolher data">
+        </section>
+
+        <section id="summary" class="summary-grid"></section>
+
+        <section class="agenda-section">
+          <div class="section-head">
+            <div><small>HORÁRIOS</small><h2>Agenda do dia</h2></div>
+            <button id="todayButton" class="soft-btn" type="button">Hoje</button>
+          </div>
+          <div id="agendaList" class="agenda-list"><div class="loading">Carregando agenda…</div></div>
+        </section>
       </section>
 
-      <section id="summary" class="summary-grid"></section>
-
-      <section class="agenda-section">
-        <div class="section-head">
-          <div><small>HORÁRIOS</small><h2>Agenda do dia</h2></div>
-          <button id="todayButton" class="soft-btn" type="button">Hoje</button>
+      <section id="performancePanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill" id="performanceRole">Equipe</span>
+          <h1 id="performanceTitle">Desempenho</h1>
+          <p id="performanceScope"></p>
         </div>
-        <div id="agendaList" class="agenda-list"><div class="loading">Carregando agenda…</div></div>
+
+        <div class="period-tabs" id="periodTabs">
+          <button class="active" data-period="today" type="button">Hoje</button>
+          <button data-period="week" type="button">Semana</button>
+          <button data-period="month" type="button">Mês</button>
+        </div>
+
+        <p id="periodLabel" class="period-label"></p>
+        <section id="performanceCards" class="performance-grid"></section>
+
+        <section class="services-performance">
+          <div class="section-head">
+            <div><small>SERVIÇOS</small><h2>Resumo do período</h2></div>
+          </div>
+          <div id="servicesPerformance" class="service-stats"><div class="loading">Carregando desempenho…</div></div>
+        </section>
       </section>
 
       <footer class="dash-footer">Barberium • acesso protegido</footer>
+
+      <nav class="team-bottom-nav" aria-label="Navegação da equipe">
+        <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
+        <button data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+      </nav>
     </section>
   </main>
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=1"></script>
+  <script type="module" src="./team.js?v=2"></script>
 </body>
 </html>
