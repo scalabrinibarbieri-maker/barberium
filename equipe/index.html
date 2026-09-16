@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=9">
+  <link rel="stylesheet" href="./team.css?v=10">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
 <body>
@@ -96,6 +96,85 @@
         </section>
       </section>
 
+
+      <section id="clientsPanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill">ADM</span>
+          <h1>Clientes</h1>
+          <p>Base completa da barbearia, relatórios e campanhas.</p>
+        </div>
+
+        <div class="client-tabs" id="clientTabs">
+          <button class="active" data-client-tab="base" type="button">Base</button>
+          <button data-client-tab="reports" type="button">Relatórios</button>
+          <button data-client-tab="campaigns" type="button">Campanhas</button>
+        </div>
+
+        <section id="clientBaseTab" class="client-tab-panel">
+          <div class="client-toolbar">
+            <button id="importClientsButton" class="soft-btn" type="button">Importar</button>
+            <button id="exportClientsButton" class="soft-btn" type="button">Exportar</button>
+          </div>
+          <div class="client-subtabs">
+            <button class="active" data-client-base-filter="all" type="button">Todos</button>
+            <button data-client-base-filter="without_phone" type="button">Sem telefone</button>
+          </div>
+          <div class="field client-search"><label>Buscar cliente</label><input id="clientSearch" placeholder="Digite o nome ou WhatsApp"></div>
+          <div id="clientList" class="client-list"><div class="loading">Carregando clientes…</div></div>
+        </section>
+
+        <section id="clientReportsTab" class="client-tab-panel hidden">
+          <div id="clientReportSummary" class="summary-grid"></div>
+          <section class="report-section">
+            <div class="section-head"><div><small>ANIVERSÁRIOS</small><h2>Aniversariantes</h2></div></div>
+            <div class="client-subtabs" id="birthdayTabs">
+              <button class="active" data-birthday-period="today" type="button">Hoje</button>
+              <button data-birthday-period="week" type="button">Semana</button>
+              <button data-birthday-period="month" type="button">Mês</button>
+            </div>
+            <div id="birthdayList" class="client-list"></div>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>EVOLUÇÃO</small><h2>Comparativo evolutivo</h2></div></div>
+            <div id="evolutionList" class="report-list"></div>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>PROFISSIONAL</small><h2>Comparativo individual</h2></div></div>
+            <div class="field"><label>Profissional</label><select id="reportProfessional"></select></div>
+            <div id="professionalComparison" class="report-list"></div>
+          </section>
+        </section>
+
+        <section id="clientCampaignsTab" class="client-tab-panel hidden">
+          <section class="campaign-builder">
+            <div class="field"><label>Público</label><select id="campaignAudience">
+              <option value="absent_10_20">Ausentes 10–20 dias</option>
+              <option value="absent_20_30">Ausentes 20–30 dias</option>
+              <option value="absent_30_60">Ausentes 30–60 dias</option>
+              <option value="absent_60_100">Ausentes 60–100 dias</option>
+              <option value="absent_100_plus">Ausentes +100 dias</option>
+              <option value="birthday_today">Aniversariantes de hoje</option>
+              <option value="birthday_week">Aniversariantes da semana</option>
+              <option value="birthday_month">Aniversariantes do mês</option>
+            </select></div>
+            <button id="loadCampaignAudience" class="soft-btn" type="button">Carregar clientes</button>
+            <div id="campaignSelection" class="campaign-selection"><div class="empty">Escolha um público para montar a campanha.</div></div>
+            <div class="field"><label>Nome da campanha</label><input id="campaignTitle" placeholder="Ex.: Clientes ausentes — Setembro"></div>
+            <div class="field"><label>Modo da mensagem</label><select id="campaignMessageMode"><option value="single">Mensagem única</option><option value="personalized">Personalizada</option></select></div>
+            <div class="field"><label>Modelo salvo</label><select id="campaignTemplate"><option value="">Nenhum modelo</option></select></div>
+            <div class="field"><label>Mensagem</label><textarea id="campaignMessage" placeholder="Escreva a mensagem da campanha"></textarea><small class="field-help">Na personalizada, use {nome}, {dias_sem_vir} e {unidade}.</small></div>
+            <div class="action-row"><button id="saveCampaignTemplate" class="soft-btn" type="button">Salvar como modelo</button><button id="previewCampaign" class="soft-btn" type="button">Prévia</button></div>
+            <div class="field"><label>Agendar para (opcional)</label><input id="campaignSchedule" type="datetime-local"></div>
+            <div class="action-row"><button id="sendCampaignNow" class="gold-btn" type="button">Enviar agora</button><button id="scheduleCampaign" class="soft-btn" type="button">Agendar envio</button></div>
+            <p class="campaign-help">A lista de clientes fica congelada ao confirmar a campanha. O envio automático pelo WhatsApp será conectado na integração; nesta versão, campanhas prontas abrem cada conversa com a mensagem preenchida.</p>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>HISTÓRICO</small><h2>Campanhas</h2></div></div>
+            <div id="campaignHistory" class="campaign-history"><div class="loading">Carregando campanhas…</div></div>
+          </section>
+        </section>
+      </section>
+
       <section id="teamPanel" class="team-panel hidden">
         <div class="performance-head">
           <span class="role-pill">ADM</span>
@@ -110,6 +189,7 @@
       <nav id="teamBottomNav" class="team-bottom-nav" aria-label="Navegação da equipe">
         <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
         <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+        <button id="clientsNav" class="hidden" data-team-panel="clients" type="button"><span>♙</span><small>Clientes</small></button>
         <button id="teamNav" class="hidden" data-team-panel="team" type="button"><span>⚙</span><small>Equipe</small></button>
       </nav>
     </section>
@@ -126,6 +206,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=9"></script>
+  <script type="module" src="./team.js?v=10"></script>
 </body>
 </html>

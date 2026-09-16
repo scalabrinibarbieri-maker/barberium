@@ -69,10 +69,11 @@ async function showDashboard(){
   $('#performanceScope').textContent=isManager()?'Resumo financeiro e operacional da equipe.':'Somente seus atendimentos entram nestes números.';
   $('#professionalFilterWrap').classList.toggle('hidden',!isManager());
   $('#teamNav').classList.toggle('hidden',!isManager());
+  $('#clientsNav').classList.toggle('hidden',!isManager());
   $('#performanceNav').classList.toggle('hidden',!can('view_own_revenue'));
   $('#newAppointmentButton').classList.toggle('hidden',!can('create_appointment'));
   $('#newBlockButton').classList.toggle('hidden',!(can('create_block')||can('create_recurring_block')));
-  const visibleNav=$$('#teamBottomNav button:not(.hidden)').length;$('#teamBottomNav').classList.toggle('two',visibleNav===2);$('#teamBottomNav').classList.toggle('one',visibleNav===1);
+  const visibleNav=$$('#teamBottomNav button:not(.hidden)').length;$('#teamBottomNav').classList.toggle('four',visibleNav===4);$('#teamBottomNav').classList.toggle('two',visibleNav===2);$('#teamBottomNav').classList.toggle('one',visibleNav===1);
   filterProfessionalId=null;renderProfessionalFilter();renderDate();await loadAgenda();
 }
 function renderProfessionalFilter(){if(!isManager())return;$('#professionalFilter').innerHTML=[`<button class="chip ${filterProfessionalId===null?'active':''}" data-filter-prof="">Todos</button>`,...catalog.professionals.map(p=>`<button class="chip ${filterProfessionalId===p.id?'active':''}" data-filter-prof="${p.id}">${esc(p.name.split(' ')[0])}</button>`)].join('');$$('[data-filter-prof]').forEach(b=>b.onclick=()=>{filterProfessionalId=b.dataset.filterProf||null;renderProfessionalFilter();loadAgenda()})}
@@ -211,7 +212,7 @@ function bindBookingForm(st){
 }
 async function searchCustomers(st){
   const q=$('#customerSearch').value.trim();$('#customerResults').innerHTML='<div class="loading">Buscando…</div>';
-  try{const rows=await rpc('barberium_staff_search_customers',{p_query:q});$('#customerResults').innerHTML=rows.length?rows.map(c=>`<button type="button" class="customer-result" data-customer-id="${c.id}"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):'Cliente cadastrado'}</small></button>`).join(''):'<div class="empty">Nenhum cliente encontrado.</div>';$$('[data-customer-id]').forEach(b=>b.onclick=()=>{const c=rows.find(x=>x.id===b.dataset.customerId);st.customer=c;st.newCustomer=false;$('#selectedCustomerWrap').innerHTML=`<div class="selected-customer"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):'Cliente selecionado'}</small></div>`;$('#customerResults').innerHTML='';$('#newCustomerFields').classList.add('hidden')})}catch(e){$('#customerResults').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
+  try{const rows=await rpc('barberium_staff_search_customers',{p_query:q});$('#customerResults').innerHTML=rows.length?rows.map(c=>`<button type="button" class="customer-result" data-customer-id="${c.id}"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):(c.has_phone?'WhatsApp já cadastrado ✓':'Sem WhatsApp cadastrado')}</small></button>`).join(''):'<div class="empty">Nenhum cliente encontrado.</div>';$$('[data-customer-id]').forEach(b=>b.onclick=()=>{const c=rows.find(x=>x.id===b.dataset.customerId);st.customer=c;st.newCustomer=false;$('#selectedCustomerWrap').innerHTML=`<div class="selected-customer"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):(c.has_phone?'WhatsApp já cadastrado ✓':'Sem WhatsApp cadastrado')}</small></div>`;$('#customerResults').innerHTML='';$('#newCustomerFields').classList.add('hidden')})}catch(e){$('#customerResults').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
 }
 async function refreshBookingDynamic(st,initial=false){renderAddonOptions(st);syncPrice(st,!initial);await refreshSlots(st)}
 function renderAddonOptions(st){const s=serviceById(st.serviceId);const wrap=$('#addonOptions');if(!wrap)return;wrap.innerHTML=s?.addons?.length?s.addons.map(a=>`<label class="check-row"><input type="checkbox" value="${a.service_id}" ${st.addonIds.includes(a.service_id)?'checked':''} ${st.edit&&!isManager()&&!can('edit_addons')?'disabled':''}><span>${esc(a.name)} · +${moneyCents(a.price_cents)}</span></label>`).join(''):'<div class="empty">Este serviço não possui adicionais.</div>';$$('#addonOptions input').forEach(i=>i.onchange=()=>{st.addonIds=$$('#addonOptions input:checked').map(x=>x.value);syncPrice(st,true);refreshSlots(st)})}
@@ -254,12 +255,164 @@ async function loadTeam(){if(!isManager())return;$('#teamList').innerHTML='<div 
 function openPermissions(p){openModal('PERMISSÕES',p.name,`<div class="permission-groups"><section class="permission-group"><h3>Ações</h3><div class="permission-list">${ACTION_PERMISSIONS.map(([k,l])=>permRow(k,l,p.permissions?.[k])).join('')}</div></section><section class="permission-group"><h3>Visualização</h3><div class="permission-list">${VIEW_PERMISSIONS.map(([k,l])=>permRow(k,l,p.permissions?.[k])).join('')}</div></section><button id="savePermissions" class="gold-btn">Salvar permissões</button></div>`);$('#savePermissions').onclick=async()=>{const btn=$('#savePermissions');btn.disabled=true;btn.textContent='Salvando…';const perms={};$$('[data-perm]').forEach(i=>perms[i.dataset.perm]=i.checked);try{await rpc('barberium_staff_set_permissions',{p_professional_id:p.professional_id,p_permissions:perms});toast('Permissões atualizadas.');closeModal();loadTeam()}catch(e){toast(friendlyError(e));btn.disabled=false;btn.textContent='Salvar permissões'}}}
 function permRow(k,label,on){return `<label class="permission-item"><span>${esc(label)}</span><input data-perm="${k}" type="checkbox" ${on?'checked':''}></label>`}
 
-function switchPanel(panel){currentPanel=panel;$('#agendaPanel').classList.toggle('hidden',panel!=='agenda');$('#performancePanel').classList.toggle('hidden',panel!=='performance');$('#teamPanel').classList.toggle('hidden',panel!=='team');$$('[data-team-panel]').forEach(b=>b.classList.toggle('active',b.dataset.teamPanel===panel));if(panel==='performance')loadPerformance();if(panel==='team')loadTeam();window.scrollTo({top:0,behavior:'smooth'})}
+
+/* =========================
+   CLIENTES · v10
+========================= */
+let currentClientTab='base';
+let clientBaseFilter='all';
+let clientsCache=[];
+let clientReportsCache=null;
+let birthdayPeriod='today';
+let campaignAudienceRows=[];
+let campaignTemplatesCache=[];
+
+function brDateOnly(v){if(!v)return'—';const s=String(v).slice(0,10);const [y,m,d]=s.split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
+function monthLabel(v){if(!v)return'';return new Intl.DateTimeFormat('pt-BR',{month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T12:00:00`)).replace(/\./g,'')}
+function phoneLabel(c){return c.phone?c.phone:(c.has_phone?'WhatsApp já cadastrado ✓':'Sem telefone')}
+
+function switchClientTab(tab){
+  currentClientTab=tab;
+  $$('[data-client-tab]').forEach(b=>b.classList.toggle('active',b.dataset.clientTab===tab));
+  $('#clientBaseTab').classList.toggle('hidden',tab!=='base');
+  $('#clientReportsTab').classList.toggle('hidden',tab!=='reports');
+  $('#clientCampaignsTab').classList.toggle('hidden',tab!=='campaigns');
+  if(tab==='base')loadClients();
+  if(tab==='reports')loadClientReports();
+  if(tab==='campaigns'){loadCampaignTemplates();loadCampaignHistory()}
+}
+
+async function loadClients(){
+  if(!isManager())return;
+  const q=$('#clientSearch')?.value?.trim()||'';
+  $('#clientList').innerHTML='<div class="loading">Carregando clientes…</div>';
+  try{
+    clientsCache=await rpc('barberium_staff_customers',{p_query:q,p_without_phone:clientBaseFilter==='without_phone'});
+    renderClientList();
+  }catch(e){$('#clientList').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
+}
+function renderClientList(){
+  if(!clientsCache.length){$('#clientList').innerHTML='<div class="empty">Nenhum cliente encontrado.</div>';return}
+  $('#clientList').innerHTML=clientsCache.map(c=>`<button class="client-card ${c.phone?'':'missing-phone'}" data-client-id="${c.id}" type="button"><h3>${esc(c.name)}</h3><p>${c.phone?esc(c.phone):'Sem telefone'}${c.main_unit?` • ${esc(c.main_unit)}`:''}</p><div class="client-meta"><span>Último atendimento: ${c.last_visit?dateTimeBR(c.last_visit):'—'}</span>${c.completed?`<span>${c.completed} concluído${c.completed===1?'':'s'}</span>`:''}</div></button>`).join('');
+  $$('[data-client-id]').forEach(b=>b.onclick=()=>openClientDetail(b.dataset.clientId));
+}
+
+async function openClientDetail(id){
+  openModal('CLIENTE','Carregando…','<div class="loading">Buscando ficha…</div>');
+  try{const d=await rpc('barberium_staff_customer_detail',{p_customer_id:id});renderClientDetail(d)}catch(e){$('#modalBody').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
+}
+function renderClientDetail(d){
+  $('#modalTitle').textContent=d.name;
+  const s=d.stats||{};
+  const history=(d.history||[]).map(h=>`<article class="customer-history-item"><strong>${esc(h.service)} • ${esc(h.professional)}</strong><p>${dateTimeBR(h.starts_at)} • ${esc(h.unit||'')} • ${moneyCents(h.total_price_cents)}</p><span class="status ${h.status}">${statusLabel(h.status)}</span></article>`).join('')||'<div class="empty">Nenhum atendimento registrado.</div>';
+  const units=(d.visits_by_unit||[]).map(u=>`<div class="unit-breakdown-row"><span>${esc(u.unit)}</span><strong>${u.visits} visitas • ${moneyCents(u.spent_cents)}</strong></div>`).join('')||'<div class="empty">Sem visitas concluídas.</div>';
+  $('#modalBody').innerHTML=`
+    <div class="detail-grid">
+      <div class="detail-box wide"><small>WhatsApp</small><strong>${d.phone?esc(d.phone):'Sem telefone'}</strong></div>
+      <div class="detail-box"><small>Aniversário</small><strong>${d.birthday?brDateOnly(d.birthday):'—'}</strong></div>
+      <div class="detail-box"><small>Unidade principal</small><strong>${esc(d.main_unit||'Automática')}</strong></div>
+      <div class="detail-box"><small>Primeira unidade</small><strong>${esc(d.first_unit||'—')}</strong></div>
+      <div class="detail-box"><small>Última unidade</small><strong>${esc(d.last_unit||'—')}</strong></div>
+    </div>
+    ${d.persistent_note?`<div class="detail-note"><small>OBSERVAÇÃO DO CLIENTE</small><p>${esc(d.persistent_note)}</p></div>`:''}
+    <div class="detail-grid">
+      <div class="detail-box"><small>Atendimentos</small><strong>${s.appointments||0}</strong></div>
+      <div class="detail-box"><small>Concluídos</small><strong>${s.completed||0}</strong></div>
+      <div class="detail-box"><small>Cancelamentos</small><strong>${s.cancelled||0}</strong></div>
+      <div class="detail-box"><small>Faltas</small><strong>${s.no_show||0}</strong></div>
+      <div class="detail-box"><small>Total gasto</small><strong>${moneyCents(s.spent_cents)}</strong></div>
+      <div class="detail-box"><small>Ticket médio</small><strong>${moneyCents(s.average_ticket_cents)}</strong></div>
+      <div class="detail-box"><small>Última visita</small><strong>${s.last_visit?dateTimeBR(s.last_visit):'—'}</strong></div>
+      <div class="detail-box"><small>Próximo horário</small><strong>${s.next_visit?dateTimeBR(s.next_visit):'—'}</strong></div>
+    </div>
+    <div class="action-row">${d.phone?`<a class="soft-btn" href="https://wa.me/${String(d.phone).replace(/\D/g,'')}" target="_blank" rel="noopener">Abrir WhatsApp</a>`:''}<button id="editClientButton" class="soft-btn" type="button">Editar cliente</button></div>
+    <h3 class="section-mini-title">Por unidade</h3><div class="unit-breakdown">${units}</div>
+    <h3 class="section-mini-title">Histórico de atendimentos</h3><div class="customer-history">${history}</div>`;
+  $('#editClientButton').onclick=()=>openEditClient(d);
+}
+function openEditClient(d){
+  const units=[`<option value="">Automática</option>`,...(catalog.units||[]).map(u=>`<option value="${u.id}" ${u.id===d.preferred_unit_id?'selected':''}>${esc(u.name)}</option>`)].join('');
+  openModal('EDITAR CLIENTE',d.name,`<form id="editClientForm" class="form-grid"><div class="field"><label>Nome completo</label><input id="editClientName" value="${esc(d.name)}" required></div><div class="field"><label>WhatsApp</label><input id="editClientPhone" inputmode="tel" value="${esc(d.phone||'')}" placeholder="(11) 99999-9999"></div><div class="field"><label>Aniversário</label><input id="editClientBirthday" type="date" value="${esc(d.birthday||'')}"></div><div class="field"><label>Unidade principal</label><select id="editClientUnit">${units}</select></div><div class="field"><label>Observação permanente</label><textarea id="editClientNote" placeholder="Preferências e informações internas">${esc(d.persistent_note||'')}</textarea></div><button id="saveClientButton" class="gold-btn" type="submit">Salvar cliente</button></form>`);
+  $('#editClientForm').onsubmit=async e=>{e.preventDefault();const btn=$('#saveClientButton');btn.disabled=true;btn.textContent='Salvando…';try{const r=await rpc('barberium_staff_update_customer',{p_customer_id:d.id,p_full_name:$('#editClientName').value.trim(),p_phone:$('#editClientPhone').value.trim(),p_birthday:$('#editClientBirthday').value||null,p_preferred_unit_id:$('#editClientUnit').value||null,p_persistent_note:$('#editClientNote').value.trim()||null});toast(r.merged?'Cadastros mesclados e atualizados.':'Cliente atualizado.');closeModal();await loadClients()}catch(err){toast(friendlyError(err));btn.disabled=false;btn.textContent='Salvar cliente'}};
+}
+
+async function loadClientReports(){
+  if(!isManager())return;
+  $('#clientReportSummary').innerHTML='<div class="loading" style="grid-column:1/-1">Carregando relatórios…</div>';
+  try{clientReportsCache=await rpc('barberium_staff_client_reports',{p_months:6});renderClientReports()}catch(e){$('#clientReportSummary').innerHTML=`<div class="empty" style="grid-column:1/-1">${esc(friendlyError(e))}</div>`}
+}
+function renderClientReports(){
+  const d=clientReportsCache||{},s=d.summary||{};
+  $('#clientReportSummary').innerHTML=`<article class="summary-card"><small>Clientes</small><strong>${s.customers||0}</strong></article><article class="summary-card gold"><small>Ticket médio</small><strong>${moneyCents(s.average_ticket_cents)}</strong></article><article class="summary-card"><small>Faturamento histórico</small><strong>${moneyCents(s.spent_cents)}</strong></article>`;
+  renderBirthdays();
+  $('#evolutionList').innerHTML=(d.evolution||[]).map(x=>`<article class="report-row"><div><h3>${esc(monthLabel(x.month))}</h3><p>Base ${x.customers_total} • +${x.new_customers} novos • ${x.completed} concluídos</p></div><div><strong>${moneyCents(x.revenue_cents)}</strong><div class="report-values"><span>Ticket ${moneyCents(x.ticket_cents)}</span></div></div></article>`).join('')||'<div class="empty">Sem dados.</div>';
+  $('#reportProfessional').innerHTML=(catalog.professionals||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  $('#reportProfessional').onchange=renderProfessionalComparison;
+  renderProfessionalComparison();
+}
+function renderBirthdays(){
+  const rows=clientReportsCache?.birthdays?.[birthdayPeriod]||[];
+  $('#birthdayList').innerHTML=rows.length?rows.map(c=>`<article class="client-card birthday-card"><div><strong>${esc(c.name)}</strong><small>${c.birthday?` • ${brDateOnly(c.birthday)}`:''}</small></div><a href="https://wa.me/${String(c.phone).replace(/\D/g,'')}" target="_blank" rel="noopener">WhatsApp</a></article>`).join(''):'<div class="empty">Nenhum aniversariante neste período.</div>';
+}
+function renderProfessionalComparison(){
+  const id=$('#reportProfessional')?.value||catalog.professionals?.[0]?.id;const rows=(clientReportsCache?.professionals||[]).filter(x=>x.professional_id===id);
+  $('#professionalComparison').innerHTML=rows.length?rows.map(x=>{const denom=(x.new_clients||0)+(x.returning_clients||0),rate=denom?Math.round((x.returning_clients||0)*100/denom):0;return `<article class="report-row"><div><h3>${esc(monthLabel(x.month))}</h3><p>${x.completed} concluídos • ${x.customers} clientes • ${x.new_clients} novos • ${x.returning_clients} retornos • retorno ${rate}%</p><p>${x.cancelled} cancelamentos • ${x.no_show} faltas</p></div><div><strong>${moneyCents(x.revenue_cents)}</strong><div class="report-values"><span>Ticket ${moneyCents(x.ticket_cents)}</span></div></div></article>`}).join(''):'<div class="empty">Sem dados para este profissional.</div>';
+}
+
+async function loadCampaignAudience(){
+  $('#campaignSelection').innerHTML='<div class="loading">Carregando clientes…</div>';
+  try{campaignAudienceRows=await rpc('barberium_staff_campaign_audience',{p_audience:$('#campaignAudience').value});renderCampaignSelection()}catch(e){$('#campaignSelection').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
+}
+function renderCampaignSelection(){
+  if(!campaignAudienceRows.length){$('#campaignSelection').innerHTML='<div class="empty">Nenhum cliente neste público.</div>';return}
+  $('#campaignSelection').innerHTML=`<div class="campaign-select-head"><small>${campaignAudienceRows.length} cliente${campaignAudienceRows.length===1?'':'s'}</small><button id="toggleAllCampaign" class="soft-btn" type="button">Desmarcar todos</button></div>${campaignAudienceRows.map(c=>`<label class="campaign-person"><input data-campaign-customer type="checkbox" value="${c.id}" checked><div><strong>${esc(c.name)}</strong><small>${c.days_absent!=null?`${c.days_absent} dias sem vir`:c.birthday?`Aniversário ${brDateOnly(c.birthday)}`:''}${c.unit?` • ${esc(c.unit)}`:''}</small></div></label>`).join('')}`;
+  $('#toggleAllCampaign').onclick=()=>{const boxes=$$('[data-campaign-customer]');const anyUnchecked=boxes.some(x=>!x.checked);boxes.forEach(x=>x.checked=anyUnchecked);$('#toggleAllCampaign').textContent=anyUnchecked?'Desmarcar todos':'Selecionar todos'};
+}
+function selectedCampaignIds(){return $$('[data-campaign-customer]:checked').map(x=>x.value)}
+function campaignPreviewMessage(c){let msg=$('#campaignMessage').value||'';if($('#campaignMessageMode').value==='personalized'){msg=msg.replaceAll('{nome}',(c.name||'').split(' ')[0]).replaceAll('{dias_sem_vir}',c.days_absent??'').replaceAll('{unidade}',c.unit||'')}return msg}
+function previewCampaign(){const ids=selectedCampaignIds();if(!ids.length){toast('Selecione ao menos um cliente.');return}const rows=campaignAudienceRows.filter(c=>ids.includes(c.id)).slice(0,3);openModal('PRÉVIA DA CAMPANHA','Como ficará',rows.map(c=>`<article class="campaign-recipient"><strong>${esc(c.name)}</strong><p>${esc(campaignPreviewMessage(c))}</p></article>`).join(''))}
+async function loadCampaignTemplates(){if(!isManager())return;try{campaignTemplatesCache=await rpc('barberium_staff_campaign_templates');$('#campaignTemplate').innerHTML='<option value="">Nenhum modelo</option>'+campaignTemplatesCache.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}catch(e){console.error(e)}}
+async function saveCampaignTemplate(){const message=$('#campaignMessage').value.trim();if(!message){toast('Escreva a mensagem primeiro.');return}const name=prompt('Nome deste modelo:');if(!name)return;try{await rpc('barberium_staff_save_campaign_template',{p_name:name,p_message:message});toast('Modelo salvo.');await loadCampaignTemplates()}catch(e){toast(friendlyError(e))}}
+async function createCampaign(schedule){
+  const ids=selectedCampaignIds(),message=$('#campaignMessage').value.trim();if(!ids.length){toast('Selecione ao menos um cliente.');return}if(!message){toast('Escreva a mensagem.');return}
+  let scheduledAt=null;if(schedule){const v=$('#campaignSchedule').value;if(!v){toast('Escolha data e horário do envio.');return}scheduledAt=new Date(v).toISOString()}
+  try{const r=await rpc('barberium_staff_create_campaign',{p_title:$('#campaignTitle').value.trim()||'Campanha',p_audience:$('#campaignAudience').value,p_message_mode:$('#campaignMessageMode').value,p_message_template:message,p_scheduled_at:scheduledAt,p_customer_ids:ids});toast(schedule?'Campanha agendada.':'Campanha preparada.');await loadCampaignHistory();await openCampaignDetail(r.campaign_id)}catch(e){toast(friendlyError(e))}
+}
+async function loadCampaignHistory(){if(!isManager())return;$('#campaignHistory').innerHTML='<div class="loading">Carregando campanhas…</div>';try{const rows=await rpc('barberium_staff_campaigns');$('#campaignHistory').innerHTML=rows.length?rows.map(c=>`<button class="campaign-card" data-campaign-id="${c.id}" type="button"><h3>${esc(c.title)}</h3><p>${c.recipients} destinatário${c.recipients===1?'':'s'} • ${c.scheduled_at?`Agendada: ${dateTimeBR(c.scheduled_at)}`:`Criada: ${dateTimeBR(c.created_at)}`}</p><div class="client-meta"><span class="status-${c.status}">${c.status==='scheduled'?'Agendada':c.status==='ready'?'Pronta':'Concluída'}</span></div></button>`).join(''):'<div class="empty">Nenhuma campanha criada.</div>';$$('[data-campaign-id]').forEach(b=>b.onclick=()=>openCampaignDetail(b.dataset.campaignId))}catch(e){$('#campaignHistory').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}}
+async function openCampaignDetail(id){openModal('CAMPANHA','Carregando…','<div class="loading">Buscando campanha…</div>');try{const d=await rpc('barberium_staff_campaign_detail',{p_campaign_id:id});$('#modalTitle').textContent=d.title;$('#modalBody').innerHTML=`<div class="detail-grid"><div class="detail-box"><small>Status</small><strong>${d.status==='scheduled'?'Agendada':'Pronta'}</strong></div><div class="detail-box"><small>Destinatários</small><strong>${d.recipients?.length||0}</strong></div>${d.scheduled_at?`<div class="detail-box wide"><small>Programada para</small><strong>${dateTimeBR(d.scheduled_at)}</strong></div>`:''}</div><div class="detail-note"><small>MENSAGEM BASE</small><p>${esc(d.message_template)}</p></div><h3 class="section-mini-title">Destinatários</h3>${(d.recipients||[]).map(r=>`<article class="campaign-recipient ${r.returned?'returned':''}"><strong>${esc(r.name)}${r.returned?'<span class="returned-flag">Já retornou</span>':''}</strong><p>${esc(r.message)}</p><a href="https://wa.me/${String(r.phone).replace(/\D/g,'')}?text=${encodeURIComponent(r.message)}" target="_blank" rel="noopener">Abrir WhatsApp</a></article>`).join('')||'<div class="empty">Sem destinatários.</div>'}`;}catch(e){$('#modalBody').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}}
+
+function downloadBlob(content,type,name){const blob=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function csvCell(v){const s=String(v??'');return `"${s.replaceAll('"','""')}"`}
+async function openExportClients(){openModal('EXPORTAR CLIENTES','Escolha o formato','<div class="export-options"><button class="soft-btn" data-export="csv">CSV</button><button class="soft-btn" data-export="txt">TXT</button><button class="soft-btn" data-export="pdf">PDF</button></div><p class="campaign-help">A exportação inclui toda a base de clientes da barbearia.</p>');$$('[data-export]').forEach(b=>b.onclick=()=>exportClients(b.dataset.export))}
+async function exportClients(kind){try{const rows=await rpc('barberium_staff_customers',{p_query:'',p_without_phone:false});if(kind==='csv'){const head=['Nome','WhatsApp','Aniversário','Unidade principal','Último atendimento','Atendimentos','Concluídos','Total gasto','Observação'];const lines=[head,...rows.map(c=>[c.name,c.phone||'',c.birthday||'',c.main_unit||'',c.last_visit?dateTimeBR(c.last_visit):'',c.appointments||0,c.completed||0,(Number(c.spent_cents||0)/100).toFixed(2),c.persistent_note||''])].map(r=>r.map(csvCell).join(';'));downloadBlob('\ufeff'+lines.join('\n'),'text/csv;charset=utf-8','clientes-barberium.csv');toast('CSV gerado.')}else if(kind==='txt'){const text=rows.map(c=>`${c.name} | ${c.phone||'Sem telefone'} | ${c.birthday?brDateOnly(c.birthday):'Sem aniversário'} | ${c.main_unit||'Sem unidade'} | Total gasto: ${moneyCents(c.spent_cents)}`).join('\n');downloadBlob(text,'text/plain;charset=utf-8','clientes-barberium.txt');toast('TXT gerado.')}else{await exportClientsPdf(rows)}}catch(e){toast(friendlyError(e))}}
+async function exportClientsPdf(rows){try{const mod=await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm');const {jsPDF}=mod;const doc=new jsPDF({unit:'mm',format:'a4'});let y=16;doc.setFontSize(16);doc.text('Scalabrini Barbieri — Base de clientes',14,y);y+=8;doc.setFontSize(9);doc.text(`Exportado em ${new Date().toLocaleString('pt-BR')} • ${rows.length} clientes`,14,y);y+=9;for(const c of rows){const line=`${c.name} | ${c.phone||'Sem telefone'} | ${c.main_unit||'Sem unidade'} | ${moneyCents(c.spent_cents)}`;const parts=doc.splitTextToSize(line,180);if(y+parts.length*5>286){doc.addPage();y=16}doc.text(parts,14,y);y+=parts.length*5+2}doc.save('clientes-barberium.pdf');toast('PDF gerado.')}catch(e){toast('Não foi possível gerar o PDF agora. Tente novamente com internet ativa.')}}
+
+function normalizeHeader(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function parseCsvLine(line,delim){const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(ch===delim&&!q){out.push(cur.trim());cur=''}else cur+=ch}out.push(cur.trim());return out}
+function dateImport(v){const s=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);return m?`${m[3]}-${pad(m[2])}-${pad(m[1])}`:''}
+function rowsFromDelimited(text){const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return[];const candidates=[';',',','\t'];const delim=candidates.sort((a,b)=>(lines[0].split(b).length-lines[0].split(a).length))[0];if(lines[0].split(delim).length<2)return lines.map(parseLooseLine).filter(x=>x.name);const raw=lines.map(l=>parseCsvLine(l,delim));const heads=raw[0].map(normalizeHeader);const aliases={name:['nome','cliente','nome completo','name','customer'],phone:['telefone','celular','whatsapp','fone','phone'],birthday:['aniversario','nascimento','data nascimento','birthday','data de nascimento'],note:['observacao','observacoes','nota','note']};const idx={};for(const [k,arr] of Object.entries(aliases)){idx[k]=heads.findIndex(h=>arr.some(a=>h===a||h.includes(a)))}if(idx.name<0)idx.name=0;return raw.slice(1).map(r=>({name:r[idx.name]||'',phone:idx.phone>=0?r[idx.phone]||'':'',birthday:idx.birthday>=0?dateImport(r[idx.birthday]):'',note:idx.note>=0?r[idx.note]||'':''})).filter(x=>x.name)}
+function parseLooseLine(line){const phone=(line.match(/(?:\+?55\s*)?(?:\(?\d{2}\)?\s*)?9?\d{4}[-\s]?\d{4}/)||[])[0]||'';const birth=(line.match(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{4}\b/)||[])[0]||'';let name=line.replace(phone,'').replace(birth,'').replace(/[|;,\t]+/g,' ').replace(/\s{2,}/g,' ').trim();return{name,phone,birthday:dateImport(birth),note:''}}
+async function pdfToLines(file){const pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';const data=new Uint8Array(await file.arrayBuffer());const pdf=await pdfjs.getDocument({data}).promise;const lines=[];for(let p=1;p<=pdf.numPages;p++){const page=await pdf.getPage(p);const tc=await page.getTextContent();const groups=new Map();for(const it of tc.items){const y=Math.round(it.transform?.[5]||0);if(!groups.has(y))groups.set(y,[]);groups.get(y).push({x:it.transform?.[4]||0,s:it.str})}for(const [,items] of [...groups.entries()].sort((a,b)=>b[0]-a[0]))lines.push(items.sort((a,b)=>a.x-b.x).map(x=>x.s).join(' ').trim())}return lines.filter(Boolean)}
+async function parseImportFile(file){const ext=(file.name.split('.').pop()||'').toLowerCase();if(ext==='pdf'){const lines=await pdfToLines(file);const maybe=rowsFromDelimited(lines.join('\n'));return maybe.length?maybe:lines.map(parseLooseLine).filter(x=>x.name)}const text=await file.text();return rowsFromDelimited(text)}
+function openImportClients(){openModal('IMPORTAR CLIENTES','Trazer base de outro sistema','<div class="file-drop"><strong>CSV, TXT ou PDF</strong><input id="importClientFile" type="file" accept=".csv,.txt,.pdf,text/csv,text/plain,application/pdf"><small class="field-help">O Barberium identifica nome, WhatsApp e aniversário. Clientes sem telefone entram em “Sem telefone”.</small><button id="downloadImportModel" class="soft-btn" type="button">Baixar modelo CSV</button></div><div id="importPreview"></div>');$('#downloadImportModel').onclick=()=>downloadBlob('Nome;WhatsApp;Aniversário;Observação\nJoão Silva;(11) 99999-9999;1990-05-20;Cliente antigo','text/csv;charset=utf-8','modelo-clientes-barberium.csv');$('#importClientFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;$('#importPreview').innerHTML='<div class="loading">Lendo arquivo…</div>';try{const rows=await parseImportFile(file);if(!rows.length)throw new Error('Nenhum cliente reconhecido no arquivo.');window.__barberiumImport={rows,fileName:file.name};$('#importPreview').innerHTML=`<p class="campaign-help">${rows.length} registros encontrados. Confira a prévia antes de importar.</p><div class="import-preview"><div class="import-row header"><span>Nome</span><span>WhatsApp</span><span>Aniversário</span></div>${rows.slice(0,12).map(r=>`<div class="import-row"><span>${esc(r.name)}</span><span>${esc(r.phone||'Sem telefone')}</span><span>${esc(r.birthday?brDateOnly(r.birthday):'—')}</span></div>`).join('')}</div><button id="confirmImportClients" class="gold-btn" type="button">Importar ${rows.length} clientes</button>`;$('#confirmImportClients').onclick=confirmImportClients}catch(err){$('#importPreview').innerHTML=`<div class="empty">${esc(friendlyError(err))}</div>`}}}
+async function confirmImportClients(){const data=window.__barberiumImport;if(!data)return;const btn=$('#confirmImportClients');btn.disabled=true;btn.textContent='Importando…';try{const r=await rpc('barberium_staff_import_customers',{p_rows:data.rows,p_source:data.fileName});toast(`${r.inserted} novos • ${r.updated} atualizados • ${r.without_phone} sem telefone`);closeModal();clientBaseFilter='all';$$('[data-client-base-filter]').forEach(x=>x.classList.toggle('active',x.dataset.clientBaseFilter==='all'));await loadClients()}catch(e){toast(friendlyError(e));btn.disabled=false;btn.textContent='Tentar novamente'}}
+
+
+function switchPanel(panel){currentPanel=panel;$('#agendaPanel').classList.toggle('hidden',panel!=='agenda');$('#performancePanel').classList.toggle('hidden',panel!=='performance');$('#clientsPanel').classList.toggle('hidden',panel!=='clients');$('#teamPanel').classList.toggle('hidden',panel!=='team');$$('[data-team-panel]').forEach(b=>b.classList.toggle('active',b.dataset.teamPanel===panel));if(panel==='performance')loadPerformance();if(panel==='clients'){currentClientTab='base';$$('[data-client-tab]').forEach(x=>x.classList.toggle('active',x.dataset.clientTab==='base'));$('#clientBaseTab').classList.remove('hidden');$('#clientReportsTab').classList.add('hidden');$('#clientCampaignsTab').classList.add('hidden');loadClients()}if(panel==='team')loadTeam();window.scrollTo({top:0,behavior:'smooth'})}
 
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#loginButton');btn.disabled=true;btn.textContent='Entrando…';$('#loginError').textContent='';try{await login($('#email').value.trim(),$('#password').value);await showDashboard()}catch(err){$('#loginError').textContent=err.message}finally{btn.disabled=false;btn.textContent='Entrar'}});
 $('#togglePassword').onclick=()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';$('#togglePassword').textContent=p.type==='password'?'Ver':'Ocultar'};
 $('#logoutButton').onclick=logout;$('#prevDay').onclick=()=>moveDate(-1);$('#nextDay').onclick=()=>moveDate(1);$('#todayButton').onclick=()=>{currentDate=isoDate(new Date());renderDate();loadAgenda()};$('#dateButton').onclick=()=>{if($('#dateInput').showPicker)$('#dateInput').showPicker();else $('#dateInput').click()};$('#dateInput').onchange=()=>{if($('#dateInput').value){currentDate=$('#dateInput').value;renderDate();loadAgenda()}};
 $('#newAppointmentButton').onclick=()=>openBookingModal('create');$('#newBlockButton').onclick=()=>openBlockModal('create');$('#modalClose').onclick=closeModal;$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});
 $$('[data-team-panel]').forEach(b=>b.onclick=()=>switchPanel(b.dataset.teamPanel));$$('[data-period]').forEach(b=>b.onclick=()=>{activePeriod=b.dataset.period;$$('[data-period]').forEach(x=>x.classList.toggle('active',x===b));loadPerformance()});
+
+
+$$('[data-client-tab]').forEach(b=>b.onclick=()=>switchClientTab(b.dataset.clientTab));
+$$('[data-client-base-filter]').forEach(b=>b.onclick=()=>{clientBaseFilter=b.dataset.clientBaseFilter;$$('[data-client-base-filter]').forEach(x=>x.classList.toggle('active',x===b));loadClients()});
+let clientSearchTimer=null;$('#clientSearch')?.addEventListener('input',()=>{clearTimeout(clientSearchTimer);clientSearchTimer=setTimeout(loadClients,280)});
+$$('[data-birthday-period]').forEach(b=>b.onclick=()=>{birthdayPeriod=b.dataset.birthdayPeriod;$$('[data-birthday-period]').forEach(x=>x.classList.toggle('active',x===b));renderBirthdays()});
+$('#importClientsButton')?.addEventListener('click',openImportClients);$('#exportClientsButton')?.addEventListener('click',openExportClients);
+$('#loadCampaignAudience')?.addEventListener('click',loadCampaignAudience);$('#previewCampaign')?.addEventListener('click',previewCampaign);$('#saveCampaignTemplate')?.addEventListener('click',saveCampaignTemplate);$('#sendCampaignNow')?.addEventListener('click',()=>createCampaign(false));$('#scheduleCampaign')?.addEventListener('click',()=>createCampaign(true));
+$('#campaignTemplate')?.addEventListener('change',e=>{const t=campaignTemplatesCache.find(x=>x.id===e.target.value);if(t)$('#campaignMessage').value=t.message});
 
 (async()=>{if(!getAuth()){showLogin();return}try{member=await rpc('barberium_staff_me');await showDashboard()}catch(e){console.error(e);clearAuth();showLogin()}})();
