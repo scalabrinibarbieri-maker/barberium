@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=2">
+  <link rel="stylesheet" href="./team.css?v=9">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
 <body>
@@ -26,7 +26,7 @@
         <label>Senha
           <div class="password-wrap">
             <input id="password" type="password" autocomplete="current-password" required placeholder="Sua senha">
-            <button id="togglePassword" type="button" aria-label="Mostrar senha">Ver</button>
+            <button id="togglePassword" type="button">Ver</button>
           </div>
         </label>
         <button class="gold-btn" id="loginButton" type="submit">Entrar</button>
@@ -47,6 +47,16 @@
         <div class="welcome-line">
           <div><span id="roleLabel" class="role-pill">Equipe</span><h1 id="welcomeName">Agenda</h1></div>
           <p id="scopeLabel"></p>
+        </div>
+
+        <div class="quick-actions">
+          <button id="newAppointmentButton" class="gold-btn small" type="button">+ Novo horário</button>
+          <button id="newBlockButton" class="soft-btn" type="button">Bloquear horário</button>
+        </div>
+
+        <div id="professionalFilterWrap" class="filter-wrap hidden">
+          <small>FILTRAR POR BARBEIRO</small>
+          <div id="professionalFilter" class="chips"></div>
         </div>
 
         <section class="date-card">
@@ -73,33 +83,49 @@
           <h1 id="performanceTitle">Desempenho</h1>
           <p id="performanceScope"></p>
         </div>
-
         <div class="period-tabs" id="periodTabs">
           <button class="active" data-period="today" type="button">Hoje</button>
           <button data-period="week" type="button">Semana</button>
           <button data-period="month" type="button">Mês</button>
         </div>
-
         <p id="periodLabel" class="period-label"></p>
         <section id="performanceCards" class="performance-grid"></section>
-
         <section class="services-performance">
-          <div class="section-head">
-            <div><small>SERVIÇOS</small><h2>Resumo do período</h2></div>
-          </div>
+          <div class="section-head"><div><small>SERVIÇOS</small><h2>Resumo do período</h2></div></div>
           <div id="servicesPerformance" class="service-stats"><div class="loading">Carregando desempenho…</div></div>
         </section>
       </section>
 
+      <section id="teamPanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill">ADM</span>
+          <h1>Equipe e permissões</h1>
+          <p>Defina, profissional por profissional, o que cada barbeiro pode fazer e visualizar.</p>
+        </div>
+        <div id="teamList" class="team-list"><div class="loading">Carregando equipe…</div></div>
+      </section>
+
       <footer class="dash-footer">Barberium • acesso protegido</footer>
 
-      <nav class="team-bottom-nav" aria-label="Navegação da equipe">
+      <nav id="teamBottomNav" class="team-bottom-nav" aria-label="Navegação da equipe">
         <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
-        <button data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+        <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+        <button id="teamNav" class="hidden" data-team-panel="team" type="button"><span>⚙</span><small>Equipe</small></button>
       </nav>
     </section>
   </main>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden" aria-hidden="true">
+    <section id="modalCard" class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div><small id="modalEyebrow"></small><h2 id="modalTitle"></h2></div>
+        <button id="modalClose" class="modal-close" type="button">×</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </section>
+  </div>
+
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=3"></script>
+  <script type="module" src="./team.js?v=9"></script>
 </body>
 </html>
