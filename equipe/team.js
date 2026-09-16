@@ -561,9 +561,12 @@ function openPlanEditor(p=null){
       <h3 class="section-mini-title">Assinatura</h3>
       <div class="notice-box">Assinatura é por período. Os números dos benefícios abaixo são limites de uso no ciclo, não uma carteira de créditos acumulados.</div>
       <div class="rules-grid">
-        <div class="field"><label>Ciclo</label><select id="planCycle"><option value="anniversary" ${planRule(p,'cycle_mode','anniversary')==='anniversary'?'selected':''}>Data de adesão</option><option value="calendar" ${planRule(p,'cycle_mode')==='calendar'?'selected':''}>Mês-calendário</option></select></div>
-        <div class="field"><label>Primeiro ciclo</label><select id="planFirstCycle"><option value="full" ${planRule(p,'first_cycle_mode','full')==='full'?'selected':''}>Integral</option><option value="proportional" ${planRule(p,'first_cycle_mode')==='proportional'?'selected':''}>Proporcional</option><option value="custom" ${planRule(p,'first_cycle_mode')==='custom'?'selected':''}>Personalizado pelo ADM</option><option value="next_cycle" ${planRule(p,'first_cycle_mode')==='next_cycle'?'selected':''}>Começa no próximo ciclo</option></select></div>
+        <div class="field"><label>Ciclo</label><select id="planCycle"><option value="signup_date" ${['signup_date','anniversary'].includes(planRule(p,'cycle_mode','signup_date'))?'selected':''}>Data de adesão</option><option value="calendar_month" ${['calendar_month','calendar'].includes(planRule(p,'cycle_mode'))?'selected':''}>Mês-calendário</option><option value="fixed_day" ${planRule(p,'cycle_mode')==='fixed_day'?'selected':''}>Dia fixo escolhido pela barbearia</option></select></div>
+        <div class="field"><label>Dia fixo do mês</label><input id="planFixedDay" type="number" min="1" max="31" value="${planRule(p,'fixed_day',1)}"></div>
+        <div class="field"><label>Primeiro ciclo</label><select id="planFirstCycle"><option value="full" ${planRule(p,'first_cycle_mode','full')==='full'?'selected':''}>Integral</option><option value="proportional" ${planRule(p,'first_cycle_mode')==='proportional'?'selected':''}>Proporcional</option><option value="custom" ${planRule(p,'first_cycle_mode')==='custom'?'selected':''}>Personalizado pelo ADM</option><option value="next_cycle" ${planRule(p,'first_cycle_mode')==='next_cycle'?'selected':''}>Começa no próximo vencimento</option></select></div>
+        <div class="field"><label>Valor do primeiro ciclo personalizado</label><input id="planFirstCustom" inputmode="decimal" value="${centsInput(planRule(p,'first_cycle_custom_amount_cents',0))}"></div>
         <div class="field"><label>Tolerância de atraso (dias)</label><input id="planGrace" type="number" min="0" value="${planRule(p,'grace_days',0)}"></div>
+        <div class="field"><label>Após a tolerância, ao pagar</label><select id="planLateCycle"><option value="retroactive" ${planRule(p,'late_payment_cycle_mode','retroactive')==='retroactive'?'selected':''}>Mantém o ciclo na data original</option><option value="from_payment" ${planRule(p,'late_payment_cycle_mode')==='from_payment'?'selected':''}>Novo ciclo começa no pagamento</option></select></div>
         <div class="field"><label>Durante tolerância</label><select id="planGraceAccess"><option value="keep_active" ${planRule(p,'grace_access','keep_active')==='keep_active'?'selected':''}>Mantém benefícios ativos</option><option value="no_new_credits" ${planRule(p,'grace_access')==='no_new_credits'?'selected':''}>Bloqueia novos usos até pagar</option></select></div>
       </div>
       <h3 class="section-mini-title">Pausa e cancelamento</h3>
@@ -571,7 +574,7 @@ function openPlanEditor(p=null){
       <div class="rules-grid"><div class="field"><label>Pausa mínima (dias)</label><input id="planPauseMin" type="number" min="1" value="${planRule(p,'pause_min_days','')}"></div><div class="field"><label>Pausa máxima (dias)</label><input id="planPauseMax" type="number" min="1" value="${planRule(p,'pause_max_days','')}"></div></div>
       <div class="notice-box">Ao aprovar a pausa, a vigência e os benefícios ficam congelados e a renovação é adiada pelo mesmo número de dias.</div>
       <label class="permission-item"><span>Cliente pode solicitar cancelamento</span><input id="planAllowCancel" type="checkbox" ${planRule(p,'allow_cancel',true)!==false?'checked':''}></label>
-      <div class="field"><label>Quando o cancelamento aprovado entra em vigor</label><select id="planCancelMode"><option value="end_cycle" ${planRule(p,'cancel_mode','end_cycle')==='end_cycle'?'selected':''}>No fim do ciclo já pago</option><option value="immediate" ${planRule(p,'cancel_mode')==='immediate'?'selected':''}>Imediatamente</option></select></div>
+      <div class="notice-box">Cancelamento aprovado preserva o ciclo já pago e bloqueia a próxima renovação.</div><input id="planCancelMode" type="hidden" value="end_cycle">
     </section>
     <section data-plan-section="package">
       <h3 class="section-mini-title">Pacote</h3>
@@ -588,13 +591,15 @@ function openPlanEditor(p=null){
   $('#addPlanBenefit').onclick=()=>{window.__planEditBenefits.push({service_id:catalog.services?.[0]?.id||'',quantity:1,unlimited:false,extra_discount_percent:0,min_days_between:null,max_per_week:null,max_per_month:null,rules:{}});renderPlanBenefitEditor()};
   bindPlanCommissionType(p?.rules?.commission||{});
   $('#planType').onchange=()=>{syncPlanTypeEditor();renderPlanBenefitEditor()};
-  syncPlanTypeEditor();
+  $('#planCycle').onchange=syncPlanCycleEditor;$('#planFirstCycle').onchange=syncPlanCycleEditor;
+  syncPlanTypeEditor();syncPlanCycleEditor();
   $('#planForm').onsubmit=e=>saveMembershipPlan(e,p);
 }
 function syncPlanTypeEditor(){
   const type=$('#planType')?.value||'subscription';
   $$('[data-plan-section]').forEach(x=>x.classList.toggle('hidden',x.dataset.planSection!==type));
 }
+function syncPlanCycleEditor(){if(!$('#planCycle'))return;$('#planFixedDay').disabled=$('#planCycle').value!=='fixed_day';$('#planFirstCustom').disabled=$('#planFirstCycle').value!=='custom'}
 
 function renderPlanBenefitEditor(){
   const root=$('#planBenefits');if(!root)return;
@@ -617,7 +622,7 @@ async function saveMembershipPlan(e,p){
     benefit_model:type==='subscription'?'period':'credits',allow_manual_extension:true,credit_valid_on_appointment_date:true,commission
   };
   if(type==='subscription')Object.assign(rules,{
-    cycle_mode:$('#planCycle').value,first_cycle_mode:$('#planFirstCycle').value,grace_days:Number($('#planGrace').value||0),grace_access:$('#planGraceAccess').value,
+    cycle_mode:$('#planCycle').value,fixed_day:$('#planCycle').value==='fixed_day'?Number($('#planFixedDay').value||1):null,first_cycle_mode:$('#planFirstCycle').value,first_cycle_custom_amount_cents:$('#planFirstCycle').value==='custom'?moneyToCents($('#planFirstCustom').value):null,grace_days:Number($('#planGrace').value||0),late_payment_cycle_mode:$('#planLateCycle').value,grace_access:$('#planGraceAccess').value,
     allow_pause:$('#planAllowPause').checked,pause_min_days:$('#planPauseMin').value?Number($('#planPauseMin').value):null,pause_max_days:$('#planPauseMax').value?Number($('#planPauseMax').value):null,pause_validity:'freeze',
     allow_cancel:$('#planAllowCancel').checked,cancel_mode:$('#planCancelMode').value
   });
@@ -688,7 +693,7 @@ function openMembershipPayment(m){
 }
 
 
-function switchPanel(panel){currentPanel=panel;$('#agendaPanel').classList.toggle('hidden',panel!=='agenda');$('#performancePanel').classList.toggle('hidden',panel!=='performance');$('#clientsPanel').classList.toggle('hidden',panel!=='clients');$('#financePanel').classList.toggle('hidden',panel!=='finance');$('#teamPanel').classList.toggle('hidden',panel!=='team');$$('[data-team-panel]').forEach(b=>b.classList.toggle('active',b.dataset.teamPanel===panel));if(panel==='performance')loadPerformance();if(panel==='clients'){currentClientTab='base';$$('[data-client-tab]').forEach(x=>x.classList.toggle('active',x.dataset.clientTab==='base'));$('#clientBaseTab').classList.remove('hidden');$('#clientReportsTab').classList.add('hidden');$('#clientCampaignsTab').classList.add('hidden');loadClients()}if(panel==='finance')loadFinance();if(panel==='team')loadTeam();window.scrollTo({top:0,behavior:'smooth'})}
+function switchPanel(panel){currentPanel=panel;$('#agendaPanel').classList.toggle('hidden',panel!=='agenda');$('#performancePanel').classList.toggle('hidden',panel!=='performance');$('#clientsPanel').classList.toggle('hidden',panel!=='clients');$('#financePanel').classList.toggle('hidden',panel!=='finance');$('#teamPanel').classList.toggle('hidden',panel!=='team');$('#settingsPanel')?.classList.toggle('hidden',panel!=='settings');$$('[data-team-panel]').forEach(b=>b.classList.toggle('active',b.dataset.teamPanel===panel));if(panel==='performance')loadPerformance();if(panel==='clients'){currentClientTab='base';$$('[data-client-tab]').forEach(x=>x.classList.toggle('active',x.dataset.clientTab==='base'));$('#clientBaseTab').classList.remove('hidden');$('#clientReportsTab').classList.add('hidden');$('#clientCampaignsTab').classList.add('hidden');loadClients()}if(panel==='finance')loadFinance();if(panel==='team')loadTeam();if(panel==='settings')window.BarberiumSettings?.load();window.scrollTo({top:0,behavior:'smooth'})}
 
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#loginButton');btn.disabled=true;btn.textContent='Entrando…';$('#loginError').textContent='';try{await login($('#email').value.trim(),$('#password').value);await showDashboard()}catch(err){$('#loginError').textContent=err.message}finally{btn.disabled=false;btn.textContent='Entrar'}});
 $('#togglePassword').onclick=()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';$('#togglePassword').textContent=p.type==='password'?'Ver':'Ocultar'};

@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=11">
+  <link rel="stylesheet" href="./team.css?v=12">
+  <link rel="stylesheet" href="./settings.css?v=12">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
 <body>
@@ -233,7 +234,27 @@
           <h1>Equipe e permissões</h1>
           <p>Defina, profissional por profissional, o que cada barbeiro pode fazer e visualizar.</p>
         </div>
+        <button id="settingsNav" class="soft-btn finance-wide" data-team-panel="settings" type="button">Configurações da barbearia</button>
         <div id="teamList" class="team-list"><div class="loading">Carregando equipe…</div></div>
+      </section>
+
+      <section id="settingsPanel" class="team-panel hidden">
+        <div class="settings-head">
+          <span class="role-pill">ADM</span>
+          <h1>Configurações</h1>
+          <p>Administre a barbearia, catálogo, profissionais, horários e regras da agenda sem precisar alterar código.</p>
+        </div>
+        <div class="settings-toolbar">
+          <div class="field"><label>Unidade</label><select id="settingsUnitSelect"></select></div>
+          <button class="soft-btn" data-team-panel="team" type="button">Voltar</button>
+        </div>
+        <div class="settings-tabs">
+          <button data-settings-tab="business" type="button">Barbearia</button>
+          <button class="active" data-settings-tab="services" type="button">Serviços</button>
+          <button data-settings-tab="professionals" type="button">Profissionais</button>
+          <button data-settings-tab="hours" type="button">Horários</button>
+        </div>
+        <div id="settingsContent" class="settings-content"><div class="settings-loading">Abra as configurações para carregar.</div></div>
       </section>
 
       <footer class="dash-footer">Barberium • acesso protegido</footer>
@@ -259,7 +280,8 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=11.2"></script>
+  <script type="module" src="./team.js?v=12"></script>
   <script type="module" src="./finance-reports.js?v=11.2"></script>
+  <script type="module" src="./settings.js?v=12"></script>
 </body>
 </html>
