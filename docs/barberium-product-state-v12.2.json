@@ -1,0 +1,48 @@
+{
+  "version": "12.2",
+  "date": "2026-09-16",
+  "module": "commission_settlements",
+  "status": "compiled_and_tested",
+  "features": {
+    "admin": [
+      "commission_settlement_preview_by_professional_and_period",
+      "create_commission_settlement",
+      "settlement_history",
+      "audited_positive_negative_adjustments",
+      "partial_and_full_payments",
+      "payment_method_and_date",
+      "cash_payment_requires_open_cash_session"
+    ],
+    "barber": [
+      "commissions_receivable_tab",
+      "commissions_paid_tab",
+      "own_settlement_detail",
+      "unsettled_vs_in_settlement_balance"
+    ],
+    "status_model": ["open", "partial", "paid"]
+  },
+  "database": {
+    "new_table": "commission_settlement_adjustments",
+    "extended_table": "commission_settlements",
+    "new_rpcs": [
+      "barberium_staff_commission_preview",
+      "barberium_staff_create_commission_settlement",
+      "barberium_staff_commission_settlements",
+      "barberium_staff_commission_settlement_detail",
+      "barberium_staff_adjust_commission_settlement",
+      "barberium_staff_record_commission_settlement_payment"
+    ],
+    "updated_rpc": "barberium_staff_my_commissions",
+    "anon_execute_new_staff_rpcs": false
+  },
+  "tests": {
+    "preview_total_cents": 8000,
+    "adjusted_total_cents": 8500,
+    "partial_payment_cents": 3000,
+    "partial_remaining_cents": 5500,
+    "full_payment_status": "paid",
+    "zero_total_auto_closes": true,
+    "cash_without_open_session_blocked": true,
+    "synthetic_residue_count": 0
+  }
+}
