@@ -1,6 +1,6 @@
-const CACHE='scalabrini-client-v9';
+const CACHE='scalabrini-client-v10';
 const PRECACHE=[
-  './','./index.html','./styles.css?v=7','./app.js?v=7','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=9','./equipe/team.js?v=9',
+  './','./index.html','./styles.css?v=7','./app.js?v=7','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=10','./equipe/team.js?v=10',
   './assets/corte-barba-sobrancelha.webp','./assets/combo-corte-barba.webp','./assets/combo-corte-barboterapia.webp',
   './assets/barba-express.webp','./assets/barba-tradizionale.webp','./assets/pezinho-detalhes.webp','./assets/sobrancelha.webp',
   './assets/vinicius-nunes.webp','./assets/barboterapia.webp','./assets/logo-sb.webp','./assets/cabeca-raspada.webp',
