@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07140e">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../assets/logo-sb.webp">
-  <link rel="stylesheet" href="./team.css?v=10">
+  <link rel="stylesheet" href="./team.css?v=11">
   <title>Área da Equipe • Scalabrini Barbieri</title>
 </head>
 <body>
@@ -175,6 +175,58 @@
         </section>
       </section>
 
+
+      <section id="financePanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill" id="financeRole">FINANCEIRO</span>
+          <h1 id="financeTitle">Financeiro</h1>
+          <p id="financeScope">Caixa, faturamento, despesas, comissões e planos.</p>
+        </div>
+
+        <div id="financeAdminControls" class="finance-controls">
+          <div class="field"><label>Unidade</label><select id="financeUnit"></select></div>
+          <div class="field"><label>Mês</label><input id="financeMonth" type="month"></div>
+          <div class="field"><label>Regime do relatório</label><select id="financeBasis"><option value="cash">Caixa</option><option value="accrual">Competência</option></select></div>
+        </div>
+
+        <div id="financeTabs" class="finance-tabs">
+          <button class="active" data-finance-tab="overview" type="button">Visão</button>
+          <button data-finance-tab="cash" type="button">Caixa</button>
+          <button data-finance-tab="expenses" type="button">Despesas</button>
+          <button data-finance-tab="commissions" type="button">Comissões</button>
+          <button data-finance-tab="plans" type="button">Planos</button>
+        </div>
+
+        <section id="financeOverviewTab" class="finance-tab-panel">
+          <div id="financeSummary" class="finance-summary"><div class="loading">Carregando financeiro…</div></div>
+          <section id="financeGoalWrap" class="finance-section"></section>
+          <section class="finance-section"><div class="section-head"><div><small>DRE SIMPLIFICADO</small><h2>Resultado operacional</h2></div></div><div id="financeDre"></div></section>
+          <section class="finance-section"><div class="section-head"><div><small>RECEBIMENTOS</small><h2>Formas de pagamento</h2></div></div><div id="financeMethods" class="report-list"></div></section>
+          <button id="financeSettingsButton" class="soft-btn finance-wide" type="button">Configurações financeiras</button>
+        </section>
+
+        <section id="financeCashTab" class="finance-tab-panel hidden">
+          <div id="cashStatus"><div class="loading">Carregando caixa…</div></div>
+        </section>
+
+        <section id="financeExpensesTab" class="finance-tab-panel hidden">
+          <div class="client-toolbar"><button id="newExpenseButton" class="gold-btn" type="button">+ Nova despesa</button><button id="expenseCategoriesButton" class="soft-btn" type="button">Categorias</button></div>
+          <div class="client-subtabs" id="expenseFilter"><button class="active" data-expense-filter="all" type="button">Todas</button><button data-expense-filter="predicted" type="button">Previstas</button><button data-expense-filter="paid" type="button">Pagas</button></div>
+          <div id="expenseList" class="finance-list"><div class="loading">Carregando despesas…</div></div>
+        </section>
+
+        <section id="financeCommissionsTab" class="finance-tab-panel hidden">
+          <div id="commissionSubtabs" class="client-subtabs"><button class="active" data-commission-tab="normal" type="button">Serviços</button><button data-commission-tab="plans" type="button">Assinaturas/Pacotes</button></div>
+          <div id="commissionContent"><div class="loading">Carregando comissões…</div></div>
+        </section>
+
+        <section id="financePlansTab" class="finance-tab-panel hidden">
+          <div class="client-toolbar"><button id="newPlanButton" class="gold-btn" type="button">+ Novo plano</button><button id="planRequestsButton" class="soft-btn" type="button">Solicitações</button></div>
+          <p class="campaign-help">Assinaturas e pacotes mantêm versões históricas: mudanças passam a valer apenas para novas compras ou para o próximo ciclo.</p>
+          <div id="membershipPlanList" class="finance-list"><div class="loading">Carregando planos…</div></div>
+        </section>
+      </section>
+
       <section id="teamPanel" class="team-panel hidden">
         <div class="performance-head">
           <span class="role-pill">ADM</span>
@@ -190,6 +242,7 @@
         <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
         <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
         <button id="clientsNav" class="hidden" data-team-panel="clients" type="button"><span>♙</span><small>Clientes</small></button>
+        <button id="financeNav" class="hidden" data-team-panel="finance" type="button"><span>◈</span><small>Financeiro</small></button>
         <button id="teamNav" class="hidden" data-team-panel="team" type="button"><span>⚙</span><small>Equipe</small></button>
       </nav>
     </section>
@@ -206,6 +259,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="./team.js?v=10"></script>
+  <script type="module" src="./team.js?v=11"></script>
 </body>
 </html>
