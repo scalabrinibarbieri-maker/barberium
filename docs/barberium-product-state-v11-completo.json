@@ -1,0 +1,234 @@
+{
+  "checkpoint": "v11-financeiro-planos-testavel",
+  "date": "2026-09-16",
+  "production_base": "v10-clientes",
+  "production_database_migrated_to_v11": true,
+  "frontend_build": "v11-testable-core",
+  "finance": {
+    "multi_unit": true,
+    "consolidated_admin_view": true,
+    "daily_cash_optional_per_unit": true,
+    "payment_methods": [
+      "pix",
+      "cash",
+      "debit",
+      "credit"
+    ],
+    "split_payments": true,
+    "cash_change": true,
+    "receivables": {
+      "enabled": true,
+      "partial_receipts": true,
+      "due_date_optional": true,
+      "permission": "leave_payment_pending"
+    },
+    "cash": {
+      "opening_balance": true,
+      "withdrawal": true,
+      "supply": true,
+      "cash_expenses_affect_expected": true,
+      "closing_discrepancy_reason_required": true
+    },
+    "expenses": {
+      "custom_categories": true,
+      "recurring_approved": true,
+      "states": [
+        "expected",
+        "paid"
+      ]
+    },
+    "providers": {
+      "multiple": true,
+      "fee_by_method_installments": true,
+      "fixed_fee": true,
+      "pix_fee": true
+    },
+    "commissions": {
+      "default_percent_per_professional": true,
+      "service_override": true,
+      "service_none": true,
+      "basis": [
+        "gross",
+        "net_after_fees"
+      ],
+      "settlement_cycles": [
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "partial_settlement": true,
+      "barber_own_only": true
+    },
+    "refunds": {
+      "approved": true,
+      "unpaid_commission_adjust": true,
+      "paid_commission_negative_future_adjustment": true
+    },
+    "dre": {
+      "modes": [
+        "cash",
+        "accrual"
+      ],
+      "formula": "gross - fees - commissions - expenses = estimated operating result"
+    },
+    "goals": {
+      "approved": true
+    },
+    "exports": [
+      "pdf",
+      "csv"
+    ]
+  },
+  "memberships": {
+    "automatic_charging": false,
+    "max_active_per_customer": {
+      "subscription": 1,
+      "package": 1
+    },
+    "personal_nontransferable": true,
+    "acquisition_modes": [
+      "team",
+      "site",
+      "both"
+    ],
+    "public_visibility_independent": true,
+    "benefits": {
+      "multiple_services": true,
+      "quantity_or_unlimited": true,
+      "extra_discount": true,
+      "unlimited_frequency_limits": [
+        "min_days_between",
+        "max_per_week",
+        "max_per_month"
+      ]
+    },
+    "credits": {
+      "reserve_on_booking": true,
+      "consume_on_completed": true,
+      "release_on_cancel": true,
+      "validity_checked_on_appointment_date": true,
+      "customer_chooses_between_eligible_subscription_and_package": true
+    },
+    "validity_modes": [
+      "cycle_end",
+      "carry_x_cycles",
+      "no_expiry",
+      "fixed_days",
+      "package_no_expiry"
+    ],
+    "manual_extension_approved": true,
+    "no_show_policy": [
+      "consume",
+      "keep",
+      "admin_decides"
+    ],
+    "pause_cancel": {
+      "configurable": true,
+      "immediate_or_cycle_end": true,
+      "pause": true,
+      "freeze_or_continue_validity": true,
+      "package_refund_policies": [
+        "nonrefundable",
+        "proportional",
+        "manual",
+        "no_cancel_after_first_use"
+      ]
+    },
+    "cycles": {
+      "modes": [
+        "anniversary",
+        "calendar"
+      ],
+      "first_cycle_modes": [
+        "full",
+        "proportional",
+        "custom",
+        "next_cycle"
+      ],
+      "renewal_creates_pending_charge": true,
+      "credits_after_payment": true,
+      "upgrade_downgrade_next_cycle_only": true,
+      "grace_configurable": true
+    },
+    "advanced_credit": {
+      "admin_only": true,
+      "if_next_charge_unpaid_after_grace": "convert_used_credit_to_retail_receivable"
+    },
+    "mixed_use": {
+      "plan_plus_avulso": true,
+      "combo_component_credit": true,
+      "combo_credit_value_modes": [
+        "full_retail",
+        "proportional"
+      ]
+    },
+    "unit_scope": [
+      "all",
+      "selected",
+      "origin"
+    ],
+    "immutable_versions": true,
+    "commission": {
+      "per_plan": true,
+      "modes": [
+        "hour",
+        "tickets",
+        "attendance",
+        "sale",
+        "none"
+      ],
+      "site_sale_commission": false,
+      "service_provider_receives_non_sale_models": true
+    },
+    "profile_shows": [
+      "plan",
+      "purchase_or_adherence_date",
+      "price",
+      "status",
+      "renewal",
+      "validity",
+      "benefits",
+      "total",
+      "used",
+      "reserved",
+      "available",
+      "history"
+    ]
+  },
+  "implemented_core": [
+    "payment_completion",
+    "split_payment",
+    "cash_change",
+    "receivable",
+    "providers_fees",
+    "basic_cash",
+    "expenses_categories",
+    "finance_overview",
+    "goals",
+    "normal_commission_config",
+    "own_commission_view",
+    "plan_versioning",
+    "plan_benefits",
+    "public_request",
+    "membership_payment_activation",
+    "customer_profile_plans",
+    "booking_credit_reservation",
+    "cancel_release",
+    "completion_consumption",
+    "combo_component_credit",
+    "membership_commission_attendance_hour_tickets"
+  ],
+  "approved_not_fully_wired_in_v11_core": [
+    "recurring_expense_generation",
+    "commission_settlement_payment_ui",
+    "refund_chargeback_ui",
+    "finance_pdf_csv_export",
+    "membership_pause_cancel_extend_switch_ui",
+    "automatic_cycle_generation_and_overdue_transition",
+    "advanced_credit_and_retail_debt_conversion",
+    "package_refund_ui",
+    "sale_commission_execution",
+    "custom_first_cycle_ui"
+  ],
+  "resume_after_test": "continue advanced memberships/packages implementation, then refine financial goals/reports"
+}
