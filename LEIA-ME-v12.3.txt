@@ -1,0 +1,17 @@
+Barberium v12.3 — Produtos, Estoque e Venda Interna
+
+Área da Equipe > Produtos: cadastro, estoque, venda de balcão, relatórios e comissões.
+Abra um atendimento para adicionar produtos e cobrar junto com o serviço.
+
+O banco já foi atualizado. Não execute as migrations manualmente no projeto atual.
+O estoque inicial é lançado após cadastrar o produto, em Estoque > Saldo inicial.
+As permissões dos barbeiros são habilitadas pelo ADM em Equipe.
+Não há loja pública nesta versão.
+
+Validação e regras: docs/BARBERIUM_CHECKPOINT_V12_3_COMPLETO.md
+
+PUBLICAÇÃO PENDENTE
+O GitHub recusou a criação do commit pela integração (HTTP 403).
+Este é um pacote de atualização sobre a v12.2. Extraia na raiz do repositório,
+substituindo os arquivos de mesmo nome e preservando a pasta assets e os demais
+arquivos existentes. Não apague o repositório antes de aplicar o pacote.
