@@ -1,0 +1,56 @@
+{
+  "version": "12.0",
+  "date": "2026-09-16",
+  "status": "compiled-and-tested",
+  "modules": {
+    "settings": {
+      "barbershop": true,
+      "units": true,
+      "professionals": true,
+      "business_hours": true,
+      "special_hours": true,
+      "services": true,
+      "addons": true,
+      "combos": true,
+      "professional_overrides": true,
+      "service_images": true
+    },
+    "catalog": {
+      "new_unit_defaults": ["Corte", "Barba"],
+      "defaults_are_drafts": true,
+      "soft_delete_preserves_history": true,
+      "combo_inherits_component_eligibility": true
+    },
+    "appointments": {
+      "professional_service_links_enforced": true,
+      "effective_price_duration": true,
+      "effective_addon_price_duration": true,
+      "special_hours": true,
+      "historical_snapshots": true,
+      "client_calendar_uses_configured_days_ahead": true
+    },
+    "subscriptions": {
+      "renewal_created_on_due_date": true,
+      "new_cycle_status": "pending",
+      "full_payment_required_for_benefits": true,
+      "cycle_modes": ["anniversary", "calendar", "fixed_day"],
+      "first_cycle_modes": ["full", "proportional", "custom", "next_cycle"],
+      "late_payment_modes": ["retroactive", "from_payment_date"],
+      "daily_renewal_job": true,
+      "versioned_next_cycle_updates": true
+    },
+    "security": {
+      "staff_rpc_anon_execute": false,
+      "staff_rpc_authenticated_execute": true,
+      "service_image_upload_requires_admin": true
+    }
+  },
+  "known_future_work": [
+    "recurring expense UI/projection",
+    "commission settlement admin UI",
+    "generic appointment refunds/chargebacks",
+    "dedicated upgrade/downgrade scheduling UI",
+    "extra-service discount execution",
+    "broader security advisor hardening"
+  ]
+}
