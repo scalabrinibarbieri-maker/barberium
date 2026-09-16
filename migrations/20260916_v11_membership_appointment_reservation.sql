@@ -1,0 +1,9 @@
+-- Barberium v11 follow-up já aplicado em produção.
+-- Reserva manual de benefício de assinatura/pacote em um atendimento.
+-- A função completa aplicada em produção está registrada na migração do projeto Supabase.
+-- Este arquivo documenta as RPCs públicas adicionadas para o frontend v11:
+--   barberium_staff_membership_options_for_appointment(uuid)
+--   barberium_staff_reserve_membership_use(uuid,uuid,uuid,uuid,uuid)
+--   barberium_staff_release_membership_use(uuid)
+--
+-- O SQL integral pode ser recuperado do histórico de migrations do projeto.
