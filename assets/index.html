@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07140e">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="../assets/logo-sb.webp">
+  <link rel="stylesheet" href="./team.css?v=11">
+  <title>Área da Equipe • Scalabrini Barbieri</title>
+</head>
+<body>
+  <main class="team-shell">
+    <section id="loginView" class="login-view">
+      <a class="back-link" href="../">← Voltar ao site</a>
+      <div class="login-brand">
+        <img src="../assets/logo-sb.webp" alt="Scalabrini Barbieri">
+        <span>Barberium</span>
+        <h1>Área da Equipe</h1>
+        <p>Acesso reservado à equipe Scalabrini Barbieri.</p>
+      </div>
+      <form id="loginForm" class="login-card">
+        <label>E-mail
+          <input id="email" type="email" autocomplete="username" required placeholder="seu@email.com">
+        </label>
+        <label>Senha
+          <div class="password-wrap">
+            <input id="password" type="password" autocomplete="current-password" required placeholder="Sua senha">
+            <button id="togglePassword" type="button">Ver</button>
+          </div>
+        </label>
+        <button class="gold-btn" id="loginButton" type="submit">Entrar</button>
+        <p class="form-error" id="loginError"></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" class="dashboard-view hidden">
+      <header class="dash-head">
+        <div class="brand-line">
+          <img src="../assets/logo-sb.webp" alt="">
+          <div><small>SCALABRINI BARBIERI</small><strong>Área da Equipe</strong></div>
+        </div>
+        <button id="logoutButton" class="icon-btn" type="button">Sair</button>
+      </header>
+
+      <section id="agendaPanel" class="team-panel">
+        <div class="welcome-line">
+          <div><span id="roleLabel" class="role-pill">Equipe</span><h1 id="welcomeName">Agenda</h1></div>
+          <p id="scopeLabel"></p>
+        </div>
+
+        <div class="quick-actions">
+          <button id="newAppointmentButton" class="gold-btn small" type="button">+ Novo horário</button>
+          <button id="newBlockButton" class="soft-btn" type="button">Bloquear horário</button>
+        </div>
+
+        <div id="professionalFilterWrap" class="filter-wrap hidden">
+          <small>FILTRAR POR BARBEIRO</small>
+          <div id="professionalFilter" class="chips"></div>
+        </div>
+
+        <section class="date-card">
+          <button id="prevDay" type="button" aria-label="Dia anterior">‹</button>
+          <button id="dateButton" type="button"><small>Agenda de</small><strong id="dateLabel"></strong></button>
+          <button id="nextDay" type="button" aria-label="Próximo dia">›</button>
+          <input id="dateInput" type="date" aria-label="Escolher data">
+        </section>
+
+        <section id="summary" class="summary-grid"></section>
+
+        <section class="agenda-section">
+          <div class="section-head">
+            <div><small>HORÁRIOS</small><h2>Agenda do dia</h2></div>
+            <button id="todayButton" class="soft-btn" type="button">Hoje</button>
+          </div>
+          <div id="agendaList" class="agenda-list"><div class="loading">Carregando agenda…</div></div>
+        </section>
+      </section>
+
+      <section id="performancePanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill" id="performanceRole">Equipe</span>
+          <h1 id="performanceTitle">Desempenho</h1>
+          <p id="performanceScope"></p>
+        </div>
+        <div class="period-tabs" id="periodTabs">
+          <button class="active" data-period="today" type="button">Hoje</button>
+          <button data-period="week" type="button">Semana</button>
+          <button data-period="month" type="button">Mês</button>
+        </div>
+        <p id="periodLabel" class="period-label"></p>
+        <section id="performanceCards" class="performance-grid"></section>
+        <section class="services-performance">
+          <div class="section-head"><div><small>SERVIÇOS</small><h2>Resumo do período</h2></div></div>
+          <div id="servicesPerformance" class="service-stats"><div class="loading">Carregando desempenho…</div></div>
+        </section>
+      </section>
+
+
+      <section id="clientsPanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill">ADM</span>
+          <h1>Clientes</h1>
+          <p>Base completa da barbearia, relatórios e campanhas.</p>
+        </div>
+
+        <div class="client-tabs" id="clientTabs">
+          <button class="active" data-client-tab="base" type="button">Base</button>
+          <button data-client-tab="reports" type="button">Relatórios</button>
+          <button data-client-tab="campaigns" type="button">Campanhas</button>
+        </div>
+
+        <section id="clientBaseTab" class="client-tab-panel">
+          <div class="client-toolbar">
+            <button id="importClientsButton" class="soft-btn" type="button">Importar</button>
+            <button id="exportClientsButton" class="soft-btn" type="button">Exportar</button>
+          </div>
+          <div class="client-subtabs">
+            <button class="active" data-client-base-filter="all" type="button">Todos</button>
+            <button data-client-base-filter="without_phone" type="button">Sem telefone</button>
+          </div>
+          <div class="field client-search"><label>Buscar cliente</label><input id="clientSearch" placeholder="Digite o nome ou WhatsApp"></div>
+          <div id="clientList" class="client-list"><div class="loading">Carregando clientes…</div></div>
+        </section>
+
+        <section id="clientReportsTab" class="client-tab-panel hidden">
+          <div id="clientReportSummary" class="summary-grid"></div>
+          <section class="report-section">
+            <div class="section-head"><div><small>ANIVERSÁRIOS</small><h2>Aniversariantes</h2></div></div>
+            <div class="client-subtabs" id="birthdayTabs">
+              <button class="active" data-birthday-period="today" type="button">Hoje</button>
+              <button data-birthday-period="week" type="button">Semana</button>
+              <button data-birthday-period="month" type="button">Mês</button>
+            </div>
+            <div id="birthdayList" class="client-list"></div>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>EVOLUÇÃO</small><h2>Comparativo evolutivo</h2></div></div>
+            <div id="evolutionList" class="report-list"></div>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>PROFISSIONAL</small><h2>Comparativo individual</h2></div></div>
+            <div class="field"><label>Profissional</label><select id="reportProfessional"></select></div>
+            <div id="professionalComparison" class="report-list"></div>
+          </section>
+        </section>
+
+        <section id="clientCampaignsTab" class="client-tab-panel hidden">
+          <section class="campaign-builder">
+            <div class="field"><label>Público</label><select id="campaignAudience">
+              <option value="absent_10_20">Ausentes 10–20 dias</option>
+              <option value="absent_20_30">Ausentes 20–30 dias</option>
+              <option value="absent_30_60">Ausentes 30–60 dias</option>
+              <option value="absent_60_100">Ausentes 60–100 dias</option>
+              <option value="absent_100_plus">Ausentes +100 dias</option>
+              <option value="birthday_today">Aniversariantes de hoje</option>
+              <option value="birthday_week">Aniversariantes da semana</option>
+              <option value="birthday_month">Aniversariantes do mês</option>
+            </select></div>
+            <button id="loadCampaignAudience" class="soft-btn" type="button">Carregar clientes</button>
+            <div id="campaignSelection" class="campaign-selection"><div class="empty">Escolha um público para montar a campanha.</div></div>
+            <div class="field"><label>Nome da campanha</label><input id="campaignTitle" placeholder="Ex.: Clientes ausentes — Setembro"></div>
+            <div class="field"><label>Modo da mensagem</label><select id="campaignMessageMode"><option value="single">Mensagem única</option><option value="personalized">Personalizada</option></select></div>
+            <div class="field"><label>Modelo salvo</label><select id="campaignTemplate"><option value="">Nenhum modelo</option></select></div>
+            <div class="field"><label>Mensagem</label><textarea id="campaignMessage" placeholder="Escreva a mensagem da campanha"></textarea><small class="field-help">Na personalizada, use {nome}, {dias_sem_vir} e {unidade}.</small></div>
+            <div class="action-row"><button id="saveCampaignTemplate" class="soft-btn" type="button">Salvar como modelo</button><button id="previewCampaign" class="soft-btn" type="button">Prévia</button></div>
+            <div class="field"><label>Agendar para (opcional)</label><input id="campaignSchedule" type="datetime-local"></div>
+            <div class="action-row"><button id="sendCampaignNow" class="gold-btn" type="button">Enviar agora</button><button id="scheduleCampaign" class="soft-btn" type="button">Agendar envio</button></div>
+            <p class="campaign-help">A lista de clientes fica congelada ao confirmar a campanha. O envio automático pelo WhatsApp será conectado na integração; nesta versão, campanhas prontas abrem cada conversa com a mensagem preenchida.</p>
+          </section>
+          <section class="report-section">
+            <div class="section-head"><div><small>HISTÓRICO</small><h2>Campanhas</h2></div></div>
+            <div id="campaignHistory" class="campaign-history"><div class="loading">Carregando campanhas…</div></div>
+          </section>
+        </section>
+      </section>
+
+
+      <section id="financePanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill" id="financeRole">FINANCEIRO</span>
+          <h1 id="financeTitle">Financeiro</h1>
+          <p id="financeScope">Caixa, faturamento, despesas, comissões e planos.</p>
+        </div>
+
+        <div id="financeAdminControls" class="finance-controls">
+          <div class="field"><label>Unidade</label><select id="financeUnit"></select></div>
+          <div class="field"><label>Mês</label><input id="financeMonth" type="month"></div>
+          <div class="field"><label>Regime do relatório</label><select id="financeBasis"><option value="cash">Caixa</option><option value="accrual">Competência</option></select></div>
+        </div>
+
+        <div id="financeTabs" class="finance-tabs">
+          <button class="active" data-finance-tab="overview" type="button">Visão</button>
+          <button data-finance-tab="cash" type="button">Caixa</button>
+          <button data-finance-tab="expenses" type="button">Despesas</button>
+          <button data-finance-tab="commissions" type="button">Comissões</button>
+          <button data-finance-tab="plans" type="button">Planos</button>
+        </div>
+
+        <section id="financeOverviewTab" class="finance-tab-panel">
+          <div id="financeSummary" class="finance-summary"><div class="loading">Carregando financeiro…</div></div>
+          <section id="financeGoalWrap" class="finance-section"></section>
+          <section class="finance-section"><div class="section-head"><div><small>DRE SIMPLIFICADO</small><h2>Resultado operacional</h2></div></div><div id="financeDre"></div></section>
+          <section class="finance-section"><div class="section-head"><div><small>RECEBIMENTOS</small><h2>Formas de pagamento</h2></div></div><div id="financeMethods" class="report-list"></div></section>
+          <button id="financeSettingsButton" class="soft-btn finance-wide" type="button">Configurações financeiras</button>
+        </section>
+
+        <section id="financeCashTab" class="finance-tab-panel hidden">
+          <div id="cashStatus"><div class="loading">Carregando caixa…</div></div>
+        </section>
+
+        <section id="financeExpensesTab" class="finance-tab-panel hidden">
+          <div class="client-toolbar"><button id="newExpenseButton" class="gold-btn" type="button">+ Nova despesa</button><button id="expenseCategoriesButton" class="soft-btn" type="button">Categorias</button></div>
+          <div class="client-subtabs" id="expenseFilter"><button class="active" data-expense-filter="all" type="button">Todas</button><button data-expense-filter="predicted" type="button">Previstas</button><button data-expense-filter="paid" type="button">Pagas</button></div>
+          <div id="expenseList" class="finance-list"><div class="loading">Carregando despesas…</div></div>
+        </section>
+
+        <section id="financeCommissionsTab" class="finance-tab-panel hidden">
+          <div id="commissionSubtabs" class="client-subtabs"><button class="active" data-commission-tab="normal" type="button">Serviços</button><button data-commission-tab="plans" type="button">Assinaturas/Pacotes</button></div>
+          <div id="commissionContent"><div class="loading">Carregando comissões…</div></div>
+        </section>
+
+        <section id="financePlansTab" class="finance-tab-panel hidden">
+          <div class="client-toolbar"><button id="newPlanButton" class="gold-btn" type="button">+ Novo plano</button><button id="planRequestsButton" class="soft-btn" type="button">Solicitações</button></div>
+          <p class="campaign-help">Assinaturas e pacotes mantêm versões históricas: mudanças passam a valer apenas para novas compras ou para o próximo ciclo.</p>
+          <div id="membershipPlanList" class="finance-list"><div class="loading">Carregando planos…</div></div>
+        </section>
+      </section>
+
+      <section id="teamPanel" class="team-panel hidden">
+        <div class="performance-head">
+          <span class="role-pill">ADM</span>
+          <h1>Equipe e permissões</h1>
+          <p>Defina, profissional por profissional, o que cada barbeiro pode fazer e visualizar.</p>
+        </div>
+        <div id="teamList" class="team-list"><div class="loading">Carregando equipe…</div></div>
+      </section>
+
+      <footer class="dash-footer">Barberium • acesso protegido</footer>
+
+      <nav id="teamBottomNav" class="team-bottom-nav" aria-label="Navegação da equipe">
+        <button class="active" data-team-panel="agenda" type="button"><span>◷</span><small>Agenda</small></button>
+        <button id="performanceNav" data-team-panel="performance" type="button"><span>↗</span><small>Desempenho</small></button>
+        <button id="clientsNav" class="hidden" data-team-panel="clients" type="button"><span>♙</span><small>Clientes</small></button>
+        <button id="financeNav" class="hidden" data-team-panel="finance" type="button"><span>◈</span><small>Financeiro</small></button>
+        <button id="teamNav" class="hidden" data-team-panel="team" type="button"><span>⚙</span><small>Equipe</small></button>
+      </nav>
+    </section>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden" aria-hidden="true">
+    <section id="modalCard" class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div><small id="modalEyebrow"></small><h2 id="modalTitle"></h2></div>
+        <button id="modalClose" class="modal-close" type="button">×</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="./team.js?v=11.2"></script>
+  <script type="module" src="./finance-reports.js?v=11.2"></script>
+</body>
+</html>
