@@ -1,0 +1,24 @@
+BARBERIUM v11.2 — validação
+
+Backend (testes transacionais com rollback):
+- assinatura paga integralmente: ativa; não cria bucket de créditos; uso por ciclo funciona;
+- assinatura pendente: não libera benefício;
+- reserva/consumo de benefício de assinatura com bucket_id nulo;
+- pacote pago: créditos liberados;
+- ajuste manual de pacote: quantidade + motivo + evento de auditoria;
+- reembolso proporcional: calculado sobre quantidade originalmente comprada; cortesia não aumenta reembolso;
+- pausa: solicitação do cliente + aprovação ADM + congelamento + extensão do ciclo;
+- cancelamento: solicitação + aprovação + bloqueio da próxima renovação;
+- no-show: manter / consumir / decisão ADM;
+- relatório: pagamento de plano + reembolso incluídos no Financeiro;
+- limpeza: nenhum cliente/plano/agendamento de teste permaneceu no banco.
+
+Frontend estático:
+- node --check: team.js, finance-reports.js, membership.js, sw.js;
+- sem IDs HTML duplicados;
+- CSS com chaves balanceadas;
+- cache-busting v11.2 conferido no site, equipe e service worker.
+
+Segurança:
+- nova tabela de solicitações com RLS ativo;
+- RPCs v11.2 exclusivas da equipe sem EXECUTE para anon e liberadas para authenticated.

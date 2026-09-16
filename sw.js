@@ -1,6 +1,6 @@
-const CACHE='scalabrini-client-v11-1';
+const CACHE='scalabrini-client-v11-2';
 const PRECACHE=[
-  './','./index.html','./styles.css?v=7','./app.js?v=7','./membership.css?v=11','./membership.js?v=11','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=11','./equipe/team.js?v=11','./equipe/finance-reports.js?v=11.1',
+  './','./index.html','./styles.css?v=7','./app.js?v=7','./membership.css?v=11.2','./membership.js?v=11.2','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=11','./equipe/team.js?v=11.2','./equipe/finance-reports.js?v=11.2',
   './assets/corte-barba-sobrancelha.webp','./assets/combo-corte-barba.webp','./assets/combo-corte-barboterapia.webp',
   './assets/barba-express.webp','./assets/barba-tradizionale.webp','./assets/pezinho-detalhes.webp','./assets/sobrancelha.webp',
   './assets/vinicius-nunes.webp','./assets/barboterapia.webp','./assets/logo-sb.webp','./assets/cabeca-raspada.webp',

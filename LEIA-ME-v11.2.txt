@@ -1,0 +1,41 @@
+BARBERIUM v11.2 — atualização incremental sobre v11.1
+
+IMPORTANTE
+- O backend v11.2 JÁ FOI aplicado e testado no Supabase da Scalabrini Barbieri.
+- NÃO execute os SQLs para atualizar o ambiente atual.
+- Os arquivos da pasta migrations/ devem ser enviados ao GitHub apenas como histórico técnico/base de reconstrução.
+- Não remova app.js, styles.css, assets, site.webmanifest nem outros arquivos existentes.
+
+ARQUIVOS PARA SUBSTITUIR NO GITHUB
+Raiz:
+- index.html
+- membership.js
+- membership.css
+- sw.js
+
+Pasta equipe/:
+- index.html
+- team.js
+- finance-reports.js
+
+ARQUIVOS PARA ADICIONAR/SUBSTITUIR EM docs/:
+- V11_2_MEMBERSHIP_RULES.md
+- BARBERIUM_CHECKPOINT_V11_COMPLETO.md
+- barberium-product-state-v11-completo.json
+
+ARQUIVOS PARA ADICIONAR EM migrations/ (histórico; não executar agora):
+1. 20260916_v11_2_01_membership_rules.sql
+2. 20260916_v11_2_02_subscription_period_entitlements_fix.sql
+3. 20260916_v11_2_03_staff_rpc_hardening.sql
+
+MUDANÇAS CENTRAIS
+- Pagamento integral obrigatório para ativação.
+- Assinatura = benefício por período/ciclo, sem carteira persistente de créditos.
+- Pacote = créditos/sessões consumíveis.
+- Pausa/cancelamento solicitado pelo cliente e aprovado pelo ADM.
+- Pausa congela acesso e estende o ciclo.
+- Cancelamento padrão mantém o ciclo pago até o fim e bloqueia renovação.
+- Ajustes manuais de créditos de pacote com motivo + auditoria.
+- Reembolso de pacote conforme política configurada e integrado ao Financeiro.
+- No-show: manter benefício, contar como uso ou ADM decide.
+- Relatórios financeiros incluem pagamentos de planos e reembolsos.
