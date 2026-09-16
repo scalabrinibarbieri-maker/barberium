@@ -452,3 +452,25 @@ Esses itens **não são decisões pendentes**: as regras acima já estão aprova
 ## 25. Ponto de retomada depois do teste
 
 Depois de testar a v11 no site, continuar o desenho/implementação a partir das regras avançadas de Assinaturas/Pacotes e, em seguida, detalhar Metas/relatórios financeiros sem refazer as decisões deste documento.
+
+
+## Atualização v11.2 — regras operacionais de planos
+
+- Ativação de assinatura/pacote somente após pagamento integral.
+- Assinatura tratada na interface como benefício por período/ciclo; pacote como créditos/sessões.
+- Solicitação de pausa/cancelamento pelo cliente com aprovação do ADM.
+- Pausa congela vigência/benefícios e adia ciclo.
+- Cancelamento de assinatura pode valer no fim do ciclo já pago ou imediatamente, conforme regra do plano.
+- Ajuste manual de créditos de pacote com motivo e auditoria permanente.
+- Cancelamento/reembolso operacional de pacote conforme política configurada.
+- Reembolso integrado ao Financeiro e ajustes de comissão relacionados.
+- No-show `ADM decide` ganhou resolução operacional e o processamento passou a ser por benefício.
+- Pagamentos de planos e reembolsos incluídos na visão financeira e nos relatórios.
+
+
+### Fechamento v11.2 — semântica corrigida
+- **Assinatura não possui carteira de créditos.** Ela concede benefícios durante um ciclo pago. Quantidades são limites de utilização daquele ciclo; o saldo é calculado a partir dos usos do período e não é acumulado em `membership_credit_buckets`.
+- **Pacote possui créditos/sessões.** É o único tipo que mantém saldo persistente em `membership_credit_buckets`.
+- Pagamento integral é requisito para ativar qualquer um dos dois tipos.
+- Pausa/cancelamento de assinatura, ajuste auditado de pacote, reembolso e decisão de no-show foram implementados e testados na v11.2.
+- O relatório financeiro PDF/CSV já está implementado desde v11.1 e foi ampliado na v11.2 para pagamentos/reembolsos de planos.

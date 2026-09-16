@@ -1,9 +1,9 @@
 {
-  "checkpoint": "v11-financeiro-planos-testavel",
+  "checkpoint": "v11.2-membership-rules",
   "date": "2026-09-16",
   "production_base": "v10-clientes",
   "production_database_migrated_to_v11": true,
-  "frontend_build": "v11-testable-core",
+  "frontend_build": "v11.2-membership-rules",
   "finance": {
     "multi_unit": true,
     "consolidated_admin_view": true,
@@ -62,14 +62,17 @@
     "refunds": {
       "approved": true,
       "unpaid_commission_adjust": true,
-      "paid_commission_negative_future_adjustment": true
+      "paid_commission_negative_future_adjustment": true,
+      "package_refund_ui": true,
+      "included_in_overview": true,
+      "included_in_reports": true
     },
     "dre": {
       "modes": [
         "cash",
         "accrual"
       ],
-      "formula": "gross - fees - commissions - expenses = estimated operating result"
+      "formula": "gross - refunds - fees - commissions - expenses = estimated operating result"
     },
     "goals": {
       "approved": true
@@ -102,18 +105,9 @@
         "max_per_month"
       ]
     },
-    "credits": {
-      "reserve_on_booking": true,
-      "consume_on_completed": true,
-      "release_on_cancel": true,
-      "validity_checked_on_appointment_date": true,
-      "customer_chooses_between_eligible_subscription_and_package": true
-    },
     "validity_modes": [
-      "cycle_end",
-      "carry_x_cycles",
-      "no_expiry",
-      "fixed_days",
+      "subscription_cycle_period",
+      "package_fixed_days",
       "package_no_expiry"
     ],
     "manual_extension_approved": true,
@@ -132,7 +126,13 @@
         "proportional",
         "manual",
         "no_cancel_after_first_use"
-      ]
+      ],
+      "customer_request_site": true,
+      "admin_approval_required": true,
+      "pause_freezes_validity_and_benefits": true,
+      "pause_shifts_cycle": true,
+      "pause_min_max_configurable": true,
+      "cancel_blocks_next_renewal": true
     },
     "cycles": {
       "modes": [
@@ -146,9 +146,9 @@
         "next_cycle"
       ],
       "renewal_creates_pending_charge": true,
-      "credits_after_payment": true,
       "upgrade_downgrade_next_cycle_only": true,
-      "grace_configurable": true
+      "grace_configurable": true,
+      "benefits_after_full_payment": true
     },
     "advanced_credit": {
       "admin_only": true,
@@ -193,42 +193,85 @@
       "reserved",
       "available",
       "history"
-    ]
+    ],
+    "activation": {
+      "full_payment_required": true,
+      "partial_activation": false
+    },
+    "model_semantics": {
+      "subscription": "period/cycle entitlement with usage limits; no persistent credit wallet",
+      "package": "consumable credits/sessions with persistent balance"
+    },
+    "package_credit_adjustment": {
+      "admin": true,
+      "reason_required": true,
+      "actor_datetime_history": true
+    },
+    "no_show_operational": {
+      "keep": true,
+      "consume": true,
+      "admin_decision": true,
+      "per_benefit": true
+    },
+    "usage_model": {
+      "subscription": {
+        "period_entitlement": true,
+        "persistent_credit_bucket": false,
+        "finite_limit_resets_each_cycle": true,
+        "unlimited_supported": true
+      },
+      "package": {
+        "persistent_credit_bucket": true,
+        "manual_adjustment_audited": true
+      },
+      "booking": {
+        "reserve_on_booking": true,
+        "consume_or_count_on_completed": true,
+        "release_on_cancel": true,
+        "validity_checked_on_appointment_date": true
+      }
+    }
   },
   "implemented_core": [
-    "payment_completion",
-    "split_payment",
-    "cash_change",
-    "receivable",
-    "providers_fees",
     "basic_cash",
+    "booking_credit_reservation",
+    "cancel_release",
+    "cash_change",
+    "combo_component_credit",
+    "completion_consumption",
+    "customer_profile_plans",
     "expenses_categories",
     "finance_overview",
     "goals",
+    "membership_commission_attendance_hour_tickets",
+    "membership_full_payment_activation",
+    "membership_payment_activation",
+    "membership_payments_in_finance",
+    "membership_refunds_in_reports",
+    "no_show_admin_resolution",
     "normal_commission_config",
     "own_commission_view",
-    "plan_versioning",
+    "package_credit_adjustment",
+    "package_refund_finance",
+    "package_refund_ui",
+    "payment_completion",
     "plan_benefits",
+    "plan_versioning",
+    "providers_fees",
     "public_request",
-    "membership_payment_activation",
-    "customer_profile_plans",
-    "booking_credit_reservation",
-    "cancel_release",
-    "completion_consumption",
-    "combo_component_credit",
-    "membership_commission_attendance_hour_tickets"
+    "receivable",
+    "split_payment",
+    "subscription_pause_cancel_requests",
+    "subscription_period_entitlements_no_credit_bucket"
   ],
   "approved_not_fully_wired_in_v11_core": [
-    "recurring_expense_generation",
-    "commission_settlement_payment_ui",
-    "refund_chargeback_ui",
-    "finance_pdf_csv_export",
-    "membership_pause_cancel_extend_switch_ui",
-    "automatic_cycle_generation_and_overdue_transition",
     "advanced_credit_and_retail_debt_conversion",
-    "package_refund_ui",
-    "sale_commission_execution",
-    "custom_first_cycle_ui"
+    "appointment_refund_chargeback_ui",
+    "automatic_cycle_generation_and_overdue_transition",
+    "commission_settlement_payment_ui",
+    "custom_first_cycle_ui",
+    "recurring_expense_generation",
+    "sale_commission_execution"
   ],
-  "resume_after_test": "continue advanced memberships/packages implementation, then refine financial goals/reports"
+  "resume_after_test": "continue advanced memberships/packages implementation from v11.2 checkpoint"
 }
