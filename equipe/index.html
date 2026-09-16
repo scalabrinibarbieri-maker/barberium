@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07140e">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="../assets/logo-sb.webp">
+  <link rel="stylesheet" href="./team.css?v=1">
+  <title>Área da Equipe • Scalabrini Barbieri</title>
+</head>
+<body>
+  <main class="team-shell">
+    <section id="loginView" class="login-view">
+      <a class="back-link" href="../">← Voltar ao site</a>
+      <div class="login-brand">
+        <img src="../assets/logo-sb.webp" alt="Scalabrini Barbieri">
+        <span>Barberium</span>
+        <h1>Área da Equipe</h1>
+        <p>Acesso reservado à equipe Scalabrini Barbieri.</p>
+      </div>
+      <form id="loginForm" class="login-card">
+        <label>E-mail
+          <input id="email" type="email" autocomplete="username" required placeholder="seu@email.com">
+        </label>
+        <label>Senha
+          <div class="password-wrap">
+            <input id="password" type="password" autocomplete="current-password" required placeholder="Sua senha">
+            <button id="togglePassword" type="button" aria-label="Mostrar senha">Ver</button>
+          </div>
+        </label>
+        <button class="gold-btn" id="loginButton" type="submit">Entrar</button>
+        <p class="form-error" id="loginError"></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" class="dashboard-view hidden">
+      <header class="dash-head">
+        <div class="brand-line">
+          <img src="../assets/logo-sb.webp" alt="">
+          <div><small>SCALABRINI BARBIERI</small><strong>Área da Equipe</strong></div>
+        </div>
+        <button id="logoutButton" class="icon-btn" type="button">Sair</button>
+      </header>
+
+      <div class="welcome-line">
+        <div><span id="roleLabel" class="role-pill">Equipe</span><h1 id="welcomeName">Agenda</h1></div>
+        <p id="scopeLabel"></p>
+      </div>
+
+      <section class="date-card">
+        <button id="prevDay" type="button" aria-label="Dia anterior">‹</button>
+        <button id="dateButton" type="button"><small>Agenda de</small><strong id="dateLabel"></strong></button>
+        <button id="nextDay" type="button" aria-label="Próximo dia">›</button>
+        <input id="dateInput" type="date" aria-label="Escolher data">
+      </section>
+
+      <section id="summary" class="summary-grid"></section>
+
+      <section class="agenda-section">
+        <div class="section-head">
+          <div><small>HORÁRIOS</small><h2>Agenda do dia</h2></div>
+          <button id="todayButton" class="soft-btn" type="button">Hoje</button>
+        </div>
+        <div id="agendaList" class="agenda-list"><div class="loading">Carregando agenda…</div></div>
+      </section>
+
+      <footer class="dash-footer">Barberium • acesso protegido</footer>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script type="module" src="./team.js?v=1"></script>
+</body>
+</html>
