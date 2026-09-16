@@ -1,0 +1,24 @@
+BARBERIUM v12.0 — PACOTE DE ATUALIZAÇÃO
+
+Este ZIP é um checkpoint testado da v12.
+
+Principais novidades:
+- Configurações da barbearia para ADM.
+- Serviços, adicionais e combos editáveis.
+- Imagem, descrição, preço, duração e ordem por item.
+- Vínculos por profissional com preço/duração próprios.
+- Combos compostos por serviços reais e com elegibilidade herdada.
+- Horários semanais e especiais.
+- Histórico preservado por snapshots.
+- Corte + Barba como rascunhos para novas unidades/tenants.
+- Calendário público respeitando o alcance configurado.
+- Renovação de assinatura por adesão, mês-calendário ou dia fixo.
+- Nova mensalidade somente no vencimento e benefícios após pagamento integral.
+- Job diário idempotente de renovação.
+
+IMPORTANTE
+As migrações já foram aplicadas no Supabase de produção durante a compilação.
+A pasta migrations/ fica no pacote como histórico/reprodução do checkpoint.
+
+Para atualizar o GitHub manualmente, extraia o ZIP na raiz do repositório e substitua
+os arquivos de mesmo nome. Não apague a pasta assets/ existente.

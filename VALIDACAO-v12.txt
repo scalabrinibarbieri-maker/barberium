@@ -1,0 +1,39 @@
+BARBERIUM v12.0 — VALIDAÇÃO FINAL
+Data: 16/09/2026
+
+BANCO / PRODUÇÃO
+[OK] Migrações v12 aplicadas no Supabase de produção.
+[OK] Configurações e catálogo ADM retornando dados da Scalabrini.
+[OK] Serviços, adicionais e combos validados em transação com rollback.
+[OK] Preço/duração personalizados por profissional validados.
+[OK] Combo bloqueia profissional que não executa todos os componentes.
+[OK] Adicionais usam preço/duração efetivos por profissional.
+[OK] Horário especial fechado retorna zero slots.
+[OK] Snapshots históricos de serviço/profissional/unidade validados.
+[OK] Reagendamento atualiza preço/duração efetivos corretamente.
+[OK] Catálogo público retorna descrição, componentes e vínculos efetivos.
+[OK] Nova unidade recebe Corte + Barba como rascunhos.
+[OK] Renovação gera ciclo pendente somente no vencimento.
+[OK] Ciclo fixo e primeiro ciclo proporcional validados.
+[OK] Pagamento tardio e versionamento do próximo ciclo validados.
+[OK] Job diário de renovação ativo e único.
+[OK] RPCs staff v12: anon=false / authenticated=true.
+[OK] Permissões do barbeiro de teste preservadas.
+[OK] Resíduos __V12 TEST__: 0 serviços, 0 clientes, 0 planos, 0 unidades.
+[OK] Agendamentos existentes sem snapshot faltante: 0.
+
+FRONT-END / PACOTE
+[OK] node --check: app.js.
+[OK] node --check: membership.js.
+[OK] node --check: equipe/team.js.
+[OK] node --check: equipe/finance-reports.js.
+[OK] node --check: equipe/settings.js.
+[OK] Configurações carregadas por equipe/index.html?v=12.
+[OK] Service worker atualizado para cache v12.
+[OK] app.js/styles.css em v12.
+[OK] calendário do cliente usa days_ahead configurado.
+
+ADVISORS SUPABASE
+Existem avisos arquiteturais preexistentes sobre RLS sem policy, SECURITY DEFINER,
+btree_gist no schema public e leaked-password protection desativado. As RPCs staff do
+lote v12 foram especificamente endurecidas contra execução anônima.

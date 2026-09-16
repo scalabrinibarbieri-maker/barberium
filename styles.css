@@ -128,3 +128,12 @@ img{display:block;max-width:100%}
 .team-entry{text-align:center;margin:-2px 0 14px}
 .team-entry a{font-size:10px;color:#716b60;text-decoration:none;border-bottom:1px solid rgba(210,166,76,.18);padding-bottom:2px}
 .team-entry a:active{color:var(--gold)}
+
+/* Barberium v12 — catálogo personalizado */
+.choice-service{min-height:76px}
+.choice-service>span:nth-child(2){padding:10px 0}
+.service-description{display:block;margin-top:4px;color:#aaa292;font-size:10px;line-height:1.35;font-weight:500}
+.combo-components{display:block;margin-top:4px;color:#d6c8a5;font-size:9px;line-height:1.3}
+.addon-info .service-description{font-size:9px;line-height:1.25;margin-top:1px}
+.pro-choice-copy{display:flex;flex-direction:column;gap:4px}
+.pro-choice-copy small{font-size:10px;color:#aaa292;font-weight:600}
