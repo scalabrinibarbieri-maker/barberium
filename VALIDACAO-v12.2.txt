@@ -1,0 +1,22 @@
+BARBERIUM v12.2 — VALIDAÇÃO
+
+[OK] Migrations v12.2 aplicadas no Supabase de produção.
+[OK] Prévia: 2 lançamentos sintéticos = R$ 80,00.
+[OK] Criação de acerto: R$ 80,00.
+[OK] Ajuste auditável: +R$ 5,00 => total R$ 85,00.
+[OK] Pagamento parcial: R$ 30,00 => saldo R$ 55,00, status Parcial.
+[OK] Quitação: +R$ 55,00 => saldo R$ 0,00, status Pago.
+[OK] Visão do barbeiro refletiu saldo do acerto corretamente.
+[OK] Fechamento com total líquido R$ 0,00 encerra automaticamente como Pago.
+[OK] Pagamento em dinheiro sem caixa aberto é bloqueado.
+[OK] Novas RPCs administrativas: anon_execute=false / authenticated_execute=true.
+[OK] Permissões existentes do barbeiro preservadas, inclusive view_own_commission.
+[OK] Resíduos sintéticos v12.2 após testes: 0.
+[OK] app.js: sintaxe JavaScript válida.
+[OK] membership.js: sintaxe JavaScript válida.
+[OK] equipe/team.js: sintaxe JavaScript válida.
+[OK] equipe/settings.js: sintaxe JavaScript válida.
+[OK] equipe/finance-reports.js: sintaxe JavaScript válida.
+[OK] sw.js: sintaxe JavaScript válida.
+[OK] index.html e equipe/index.html sem IDs duplicados.
+[OK] Service Worker atualizado para scalabrini-client-v12-2.

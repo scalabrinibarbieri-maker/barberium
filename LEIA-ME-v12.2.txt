@@ -1,0 +1,18 @@
+BARBERIUM v12.2 — FECHAMENTO DE COMISSÕES
+
+Novidades principais:
+- Financeiro > Comissões > Acertos para ADM.
+- Prévia por profissional e período antes do fechamento.
+- Histórico dos lançamentos que compõem cada acerto.
+- Ajuste positivo/negativo com motivo obrigatório e auditoria.
+- Pagamento parcial ou integral com forma e data.
+- Pagamento em dinheiro integrado ao caixa aberto da unidade.
+- Profissional vê A receber / Pagas e detalhes dos próprios acertos.
+- Saldo separa comissão ainda não fechada de comissão já em acerto.
+
+BACKEND DE PRODUÇÃO:
+As migrations v12.2 já foram aplicadas no Supabase de produção.
+Os SQLs deste pacote são histórico/backup e NÃO precisam ser executados manualmente.
+
+FRONTEND:
+Substitua os arquivos do repositório pelos arquivos deste pacote, preservando a estrutura de pastas.
