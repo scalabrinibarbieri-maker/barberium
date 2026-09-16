@@ -1,38 +1,24 @@
-# Barberium — Scalabrini Barbieri (Cliente v2)
+# Barberium — Scalabrini Barbieri (Cliente v5 / Backend real)
 
-Segunda versão da área do cliente da **Scalabrini Barbieri — II Unidade, Bragança Paulista**.
+Esta versão conecta a área do cliente ao Supabase real do Barberium.
 
-## Incluído nesta versão
+## Agora é compartilhado entre aparelhos
 
-- Identidade visual premium verde / dourado
-- Foto real da unidade na hero
-- Logo oficial SB
-- Todos os 11 serviços com artes, valores e duração
-- Profissionais: Vinicius Nunes e Jean Dalarmi
-- Fluxo completo de agendamento
-- Agenda inteligente local, respeitando duração do serviço e conflitos do mesmo aparelho
-- Dados do cliente sem login e sem senha
-- Reconhecimento do cliente no mesmo aparelho
-- Próximo agendamento na Home
-- Meus horários: próximos e histórico
-- Reagendamento com alteração de serviço/profissional/data/hora
-- Cancelamento com confirmação
-- "Agendar novamente" pelo histórico
-- Meu perfil / edição de nome e aniversário
-- WhatsApp e Google Maps
-- PWA / cache offline
+- catálogo e adicionais vêm do banco;
+- horários são consultados no servidor;
+- conflitos entre clientes são bloqueados no banco;
+- novos agendamentos são gravados no Supabase;
+- cancelamento e reagendamento são reais;
+- histórico é carregado do backend;
+- o dispositivo recebe um token aleatório para reconhecer o cliente sem senha.
 
-## Importante: protótipo estático atual
+## Estrutura preparada para SaaS
 
-Esta versão ainda roda apenas no navegador/GitHub Pages e usa `localStorage`.
+O banco é multiempresa e já possui tabelas para barbearias, unidades, profissionais, serviços, adicionais, clientes, horários, bloqueios, agendamentos e membros administrativos.
 
-Por isso, ainda precisam de backend real:
-- agenda compartilhada entre todos os clientes;
-- banco de dados multiempresa;
-- sincronização entre aparelhos;
-- recuperação por código no WhatsApp;
-- validação de alteração do número;
-- painel administrativo e suas configurações;
-- regras de cancelamento/antecedência definidas pelo ADM.
+## Ainda pendente
 
-A interface já foi preparada para esses recursos sem exigir login tradicional do cliente.
+- painel ADM visual;
+- recuperação de acesso por código no WhatsApp;
+- alteração de telefone com confirmação;
+- automações e notificações via WhatsApp.
