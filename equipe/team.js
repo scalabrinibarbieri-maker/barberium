@@ -85,11 +85,25 @@ function renderSummary(s){
 function renderAgenda(items){
   if(!items.length){$('#agendaList').innerHTML='<div class="empty">Nenhum horário nesta data.</div>';return}
   const isManager=['owner','admin'].includes(member?.role);
-  $('#agendaList').innerHTML=items.map(a=>{const addons=(a.addons||[]).map(x=>x.name).join(' + ');const canAct=a.status==='confirmed';return `<article class="appt"><div class="appt-time"><strong>${timeBR(a.starts_at)}</strong><small>${timeBR(a.ends_at)}</small></div><div class="appt-body"><div class="appt-top"><h3>${escapeHtml(a.customer)}</h3><span class="status ${a.status}">${statusLabel(a.status)}</span></div><p class="appt-service">${escapeHtml(a.service)}${addons?` + ${escapeHtml(addons)}`:''}</p><div class="appt-meta">${isManager?`<span>${escapeHtml(a.professional)}</span>`:''}<a href="${whatsappLink(a.phone)}" target="_blank" rel="noopener">WhatsApp</a><span>${moneyCents(a.total_price_cents)}</span></div>${canAct?`<div class="appt-actions"><button class="done" data-status="completed" data-id="${a.id}">Concluído</button><button data-status="no_show" data-id="${a.id}">Não compareceu</button>${isManager?`<button class="danger" data-status="cancelled" data-id="${a.id}">Cancelar</button>`:''}</div>`:''}</div></article>`}).join('');
+  $('#agendaList').innerHTML=items.map(a=>{
+    const addons=(a.addons||[]).map(x=>x.name).join(' + ');
+    let actions='';
+    if(isManager){
+      const buttons=[];
+      if(a.status!=='confirmed')buttons.push(`<button data-status="confirmed" data-id="${a.id}">Confirmar</button>`);
+      if(a.status!=='completed')buttons.push(`<button class="done" data-status="completed" data-id="${a.id}">Concluído</button>`);
+      if(a.status!=='no_show')buttons.push(`<button data-status="no_show" data-id="${a.id}">Não compareceu</button>`);
+      if(a.status!=='cancelled')buttons.push(`<button class="danger" data-status="cancelled" data-id="${a.id}">Cancelar</button>`);
+      actions=`<div class="appt-actions">${buttons.join('')}</div>`;
+    }else if(a.status==='confirmed'){
+      actions=`<div class="appt-actions"><button class="done" data-status="completed" data-id="${a.id}">Concluído</button><button data-status="no_show" data-id="${a.id}">Não compareceu</button></div>`;
+    }
+    return `<article class="appt"><div class="appt-time"><strong>${timeBR(a.starts_at)}</strong><small>${timeBR(a.ends_at)}</small></div><div class="appt-body"><div class="appt-top"><h3>${escapeHtml(a.customer)}</h3><span class="status ${a.status}">${statusLabel(a.status)}</span></div><p class="appt-service">${escapeHtml(a.service)}${addons?` + ${escapeHtml(addons)}`:''}</p><div class="appt-meta">${isManager?`<span>${escapeHtml(a.professional)}</span>`:''}<a href="${whatsappLink(a.phone)}" target="_blank" rel="noopener">WhatsApp</a><span>${moneyCents(a.total_price_cents)}</span></div>${actions}</div></article>`;
+  }).join('');
   document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>changeStatus(b.dataset.id,b.dataset.status)));
 }
 
-async function changeStatus(id,status){const labels={completed:'marcar como concluído',no_show:'marcar como não compareceu',cancelled:'cancelar'};if(!confirm(`Deseja ${labels[status]} este horário?`))return;try{await rpc('barberium_staff_set_appointment_status',{p_appointment_id:id,p_status:status});toast('Agenda atualizada.');loadDashboard();if(!$('#performancePanel').classList.contains('hidden'))loadPerformance()}catch(e){toast(e.message)}}
+async function changeStatus(id,status){const labels={confirmed:'confirmar novamente',completed:'marcar como concluído',no_show:'marcar como não compareceu',cancelled:'cancelar'};if(!confirm(`Deseja ${labels[status]} este horário?`))return;try{await rpc('barberium_staff_set_appointment_status',{p_appointment_id:id,p_status:status});toast('Agenda atualizada.');loadDashboard();if(!$('#performancePanel').classList.contains('hidden'))loadPerformance()}catch(e){toast(e.message)}}
 
 function periodRange(kind){
   const now=new Date();now.setHours(12,0,0,0);
