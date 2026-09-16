@@ -1,0 +1,1 @@
+alter table public.finance_refunds drop constraint finance_refunds_source_check; alter table public.finance_refunds add constraint finance_refunds_source_check check(appointment_id is not null or membership_id is not null or product_sale_id is not null);
