@@ -1,0 +1,18 @@
+BARBERIUM v12.1 — GRADE DE HORÁRIOS POR PROFISSIONAL
+
+Checkpoint incremental sobre a v12.0.
+
+Novidade:
+- O ADM pode definir a listagem/grade de horários individualmente por profissional.
+- Cada profissional pode herdar o intervalo padrão da unidade ou usar um valor próprio entre 5 e 120 minutos.
+- O intervalo muda somente os horários possíveis de início; a duração dos serviços permanece independente.
+- A regra vale tanto no agendamento do cliente quanto na agenda/equipe.
+
+Exemplo:
+- Unidade: 60 min
+- Vinicius: herda 60 min
+- Jean: personalizado em 15 min -> 10:00, 10:15, 10:30, 10:45...
+
+A migration já foi aplicada no Supabase de produção.
+Para atualizar o GitHub, extraia o ZIP na raiz e substitua os arquivos de mesmo nome.
+Não apague a pasta assets/ existente.

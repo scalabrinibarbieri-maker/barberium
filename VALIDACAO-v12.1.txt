@@ -1,0 +1,25 @@
+BARBERIUM v12.1 — VALIDAÇÃO
+Data: 2026-09-16
+
+BACKEND
+[OK] Migration v12_1_professional_slot_intervals aplicada em produção.
+[OK] Helper effective_slot_minutes: override profissional -> padrão da unidade -> fallback 10.
+[OK] RPC de configuração restrita a owner/admin.
+[OK] anon sem EXECUTE no novo RPC; authenticated com EXECUTE.
+[OK] Teste real temporário em Jean Dalarmi: override 15 min.
+[OK] Agenda pública retornou 10:00, 10:15, 10:30, 10:45, 11:00.
+[OK] Agenda da equipe retornou a mesma grade de 15 min.
+[OK] Override temporário removido após o teste; Jean voltou a herdar o padrão da unidade.
+
+FRONTEND
+[OK] Configurações > Profissionais mostra a grade efetiva/resumo.
+[OK] Editor do profissional permite Usar padrão da unidade ou Personalizar.
+[OK] Campo personalizado valida 5–120 minutos.
+[OK] Salvar novo profissional também salva a configuração de agenda.
+[OK] node --check em settings.js, app.js e team.js.
+[OK] Service Worker/cache bumpado para v12.1.
+
+SEM ALTERAÇÃO
+- Duração do serviço não é alterada pela grade.
+- Preço/duração personalizados por vínculo continuam funcionando.
+- Demais módulos da v12 permanecem preservados.
