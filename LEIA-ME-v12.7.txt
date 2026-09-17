@@ -1,0 +1,27 @@
+BARBERIUM v12.7 — ENCAIXE COM BLOQUEIO OPCIONAL
+
+INSTALAÇÃO PELO CELULAR
+1. Extraia o ZIP.
+2. Na raiz do repositório barberium, substitua sw.js.
+3. Dentro da pasta equipe do repositório, substitua index.html e team.js pelos arquivos da pasta equipe do ZIP.
+4. Aguarde a publicação e feche/reabra o site.
+Não coloque o index.html da equipe na raiz. Não crie equipe/equipe.
+Servidor e banco já atualizados: nenhum SQL precisa ser executado.
+
+COMO USAR
+Na Área da Equipe, ao lado de Novo horário, toque em + Novo encaixe.
+Selecione o cliente, serviço e adicionais. Digite a data e horário, inclusive no passado, fora do expediente, ocupado ou bloqueado.
+A caixinha Bloquear este horário na agenda vem DESMARCADA:
+- Desmarcada: registra o atendimento, mas mantém a disponibilidade normal para outras reservas.
+- Marcada: impede novas reservas normais durante a duração do serviço e adicionais. Não cancela ou modifica reservas e bloqueios já existentes.
+O encaixe pode ser criado mesmo junto de outro encaixe, atendimento ou bloqueio.
+Barbeiro cria apenas na própria agenda, respeitando sua permissão de criar atendimentos. ADM escolhe qualquer profissional.
+A agenda e a ficha mostram Encaixe — sem bloqueio ou bloqueia horário. Na edição do encaixe, a caixinha pode ser ajustada.
+Conclua e receba o pagamento pelo fluxo habitual; produtos, financeiro e comissão usam o mesmo atendimento.
+A área do cliente não recebe a opção de encaixe e não pode contornar essas regras pelo servidor. Para reagendar um encaixe, o cliente precisa falar com a equipe.
+
+VALIDAÇÃO
+Testes passaram antes e depois da instalação no banco, sempre com rollback:
+encaixe passado/bloqueado, sobreposição, disponibilidade pública preservada sem bloqueio, indisponibilidade com bloqueio, proteção de gravação normal, edição para desbloquear, acesso exclusivo da equipe, agenda de outro profissional rejeitada, identificação na ficha/agenda e conclusão com pagamento.
+Interface testada em navegador: horário manual, caixinha desmarcada, seleção limitada ao barbeiro, envio correto e agendamento normal preservado.
+Falta publicar estes arquivos e conferir a tela no seu celular.
