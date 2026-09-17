@@ -1,6 +1,6 @@
-const CACHE='scalabrini-client-v12-4';
+const CACHE='scalabrini-client-v12-5';
 const PRECACHE=[
-  './','./index.html','./styles.css?v=12.4','./app.js?v=12.4','./push.js?v=12.4','./membership.css?v=11.2','./membership.js?v=11.2','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=12.3.1','./equipe/settings.css?v=12','./equipe/team.js?v=12.3.1','./equipe/finance-reports.js?v=12.3.1','./equipe/settings.js?v=12.1',
+  './','./index.html','./styles.css?v=12.4','./app.js?v=12.4','./push.js?v=12.4','./membership.css?v=11.2','./membership.js?v=11.2','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=12.3.1','./equipe/settings.css?v=12','./equipe/team.js?v=12.5','./equipe/finance-reports.js?v=12.3.1','./equipe/settings.js?v=12.1',
   './assets/corte-barba-sobrancelha.webp','./assets/combo-corte-barba.webp','./assets/combo-corte-barboterapia.webp',
   './assets/barba-express.webp','./assets/barba-tradizionale.webp','./assets/pezinho-detalhes.webp','./assets/sobrancelha.webp',
   './assets/vinicius-nunes.webp','./assets/barboterapia.webp','./assets/logo-sb.webp','./assets/cabeca-raspada.webp',
@@ -17,14 +17,15 @@ self.addEventListener('push',event=>event.waitUntil((async()=>{
  if(data.expires_at && Date.parse(data.expires_at)<Date.now())return;
  await self.registration.showNotification(data.title||'Barberium',{
   body:data.body||'Confira seus agendamentos.',icon:new URL('./assets/logo-sb.webp',self.registration.scope).href,
-  tag:data.tag||'barberium',renotify:false,data:{url:'?view=appointments'},
+  tag:data.tag||'barberium',renotify:false,data:{url:data.audience==='staff'?'equipe/?whatsapp=1':'?view=appointments'},
  });
 })()));
 self.addEventListener('notificationclick',event=>{
  event.notification.close();event.waitUntil((async()=>{
-  const target=new URL('./?view=appointments',self.registration.scope).href;
+  const staff=event.notification.data?.url==='equipe/?whatsapp=1';
+  const target=new URL(staff?'./equipe/?whatsapp=1':'./?view=appointments',self.registration.scope).href;
   const tabs=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  for(const tab of tabs){if(tab.url.startsWith(self.registration.scope)&&!new URL(tab.url).pathname.includes('/equipe')){await tab.navigate(target);await tab.focus();return;}}
+  for(const tab of tabs){if(tab.url.startsWith(self.registration.scope)&&new URL(tab.url).pathname.includes('/equipe')===staff){await tab.navigate(target);await tab.focus();return;}}
   await self.clients.openWindow(target);
  })());
 });

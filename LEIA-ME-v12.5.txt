@@ -1,0 +1,30 @@
+BARBERIUM v12.5 — LEMBRETE WHATSAPP AO ADMINISTRADOR
+
+INSTALAÇÃO PELO CELULAR
+Este ZIP tem um arquivo na raiz e uma pasta equipe. Preserve essa estrutura.
+1. Na raiz do repositório barberium, substitua sw.js.
+2. Entre na pasta equipe do repositório. Substitua index.html e team.js pelos arquivos que estão na pasta equipe do ZIP.
+3. Não coloque os arquivos da pasta equipe na raiz, nem crie equipe/equipe.
+4. Aguarde a publicação. Feche e abra novamente a área da equipe.
+O LEIA-ME é apenas a explicação. Nenhum SQL precisa ser executado: servidor já atualizado.
+
+ATIVAR
+Entre como administrador. No quadro Lembretes WhatsApp, toque em Ativar avisos ao administrador e permita notificações.
+Esta ativação é separada do push do cliente. O nome do cliente e horário aparecerão no aviso do celular, inclusive na tela bloqueada, conforme as configurações do aparelho.
+No iPhone/iPad: adicione o site à Tela de Início pelo Safari e abra pelo ícone.
+
+FUNCIONAMENTO
+Todos os atendimentos confirmados têm lembrete programado para 2 horas antes; não é necessário o barbeiro apertar para cada horário.
+Quando faltarem 2 horas, o aviso será enviado aos aparelhos administrativos ativados e o horário aparecerá em Ver lembretes pendentes.
+Agendamentos criados dentro das duas horas entram na lista imediatamente; o disparador verifica a fila a cada minuto.
+A ficha também tem Lembrete WhatsApp. O barbeiro solicita ao ADM sem receber telefone ou link da conversa. Antes das duas horas, a solicitação permanece programada.
+O ADM abre a mensagem com nome completo, data, horário e profissional. Abrir no WhatsApp usa o WhatsApp disponível NO APARELHO DO ADM: confira que está usando a conta da barbearia. O sistema não escolhe a conta por você.
+Toque em Enviar no WhatsApp. De volta ao site, Marcar como enviado retira da lista compartilhada; abrir a conversa não marca automaticamente.
+Cliente sem telefone válido exige correção do cadastro pelo ADM.
+Reagendamento substitui o lembrete antigo; cancelamento e conclusão retiram o pendente.
+Ao sair da conta administrativa os avisos daquele acesso são desativados. Ao entrar novamente, use Ativar avisos ao administrador.
+
+TESTE REAL
+Ative como ADM. Crie um agendamento de teste para menos de 2 horas à frente. Em cerca de um minuto deve chegar o aviso com nome e horário. Confira a mensagem sem enviar para cliente real. Cancele o teste após verificar.
+Testes técnicos de autorização, horário, fila e interface passaram. A entrega no aparelho do ADM ainda precisa deste teste.
+Os lembretes push diretamente ao cliente continuam funcionando como na v12.4.
