@@ -46,7 +46,7 @@ async function login(email,password){
   const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data?.error_description||data?.msg||'E-mail ou senha inválidos.');saveAuth(data);
   try{member=await rpc('barberium_staff_me');return member}catch{clearAuth();throw new Error('Este login não possui acesso à Área da Equipe.')}
 }
-async function logout(){try{await authFetch('/auth/v1/logout',{method:'POST',body:'{}'})}catch{}clearAuth();member=null;showLogin()}
+async function logout(){try{await disableWaDevice()}catch{}try{await authFetch('/auth/v1/logout',{method:'POST',body:'{}'})}catch{}clearAuth();member=null;showLogin()}
 function showLogin(){$('#loginView').classList.remove('hidden');$('#dashboardView').classList.add('hidden');$('#password').value=''}
 
 function roleName(){return member?.role==='owner'?'Proprietário':member?.role==='admin'?'Administrador':'Barbeiro'}
@@ -78,7 +78,7 @@ async function showDashboard(){
   const visibleNav=$$('#teamBottomNav button:not(.hidden)').length;
   ['six','five','four','two','one'].forEach(c=>$('#teamBottomNav').classList.remove(c));
   if(visibleNav===6)$('#teamBottomNav').classList.add('six');if(visibleNav===5)$('#teamBottomNav').classList.add('five');if(visibleNav===4)$('#teamBottomNav').classList.add('four');if(visibleNav===2)$('#teamBottomNav').classList.add('two');if(visibleNav===1)$('#teamBottomNav').classList.add('one');
-  filterProfessionalId=null;renderProfessionalFilter();renderDate();await loadAgenda();
+  filterProfessionalId=null;renderProfessionalFilter();renderDate();await loadAgenda();initWaReminders();
 }
 function renderProfessionalFilter(){if(!isManager())return;$('#professionalFilter').innerHTML=[`<button class="chip ${filterProfessionalId===null?'active':''}" data-filter-prof="">Todos</button>`,...catalog.professionals.map(p=>`<button class="chip ${filterProfessionalId===p.id?'active':''}" data-filter-prof="${p.id}">${esc(p.name.split(' ')[0])}</button>`)].join('');$$('[data-filter-prof]').forEach(b=>b.onclick=()=>{filterProfessionalId=b.dataset.filterProf||null;renderProfessionalFilter();loadAgenda()})}
 function renderDate(){$('#dateLabel').textContent=dateLong(currentDate);$('#dateInput').value=currentDate}
@@ -146,6 +146,7 @@ function renderAppointmentDetail(d){
   $('#applyMembershipUse')?.addEventListener('click',()=>openMembershipUseModal(d.id));
   $$('[data-new-status]').forEach(b=>b.onclick=()=>changeStatus(d.id,b.dataset.newStatus));
   $('#cancelCompletedAppointment')?.addEventListener('click',()=>openCancelCompletedAppointment(d.id));
+  injectWaButton(d);
   injectAppointmentProducts(d);
   if(['completed','cancelled'].includes(d.status))injectAppointmentFinanceSummary(d.id);if(d.status==='no_show'&&isManager())injectNoShowMembershipDecision(d.id);
 }
@@ -820,4 +821,66 @@ async function openCancelCompletedAppointment(id){
   openModal('CANCELAR ATENDIMENTO CONCLUÍDO',d.customer.name,`<form id="cancelCompletedForm" class="form-grid"><div class="detail-grid"><div class="detail-box"><small>Devolução do serviço</small><strong>${moneyCents(serviceRefund)}</strong></div><div class="detail-box"><small>Devolução dos produtos</small><strong>${moneyCents(productRefund)}</strong></div><div class="detail-box wide"><small>Total a devolver</small><strong>${moneyCents(serviceRefund+productRefund)}</strong></div></div><div class="detail-note"><p>O cancelamento reverte as comissões e devolve os produtos ao estoque.${pending>0?` O saldo pendente de ${moneyCents(pending)} será cancelado.`:''}${(f.uses||[]).some(u=>u.status==='consumed')?' O benefício do plano/pacote será devolvido.':''}</p><p>Os recebimentos e o estorno permanecem no histórico. Registre a forma usada para devolver o valor ao cliente.</p></div><div class="field"><label>Forma da devolução</label><select id="cancelRefundMethod" required><option value="">Selecione</option><option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="debit">Débito</option><option value="credit">Crédito</option><option value="transfer">Transferência</option><option value="other">Outro / sem valor a devolver</option></select></div><div class="field"><label>Motivo do cancelamento</label><textarea id="cancelReason" minlength="3" required></textarea></div><button class="danger-btn finance-wide" type="submit">Confirmar cancelamento e registrar estorno</button></form>`);
   $('#cancelCompletedForm').onsubmit=async e=>{e.preventDefault();const btn=e.target.querySelector('[type=submit]');if(btn.disabled)return;btn.disabled=true;try{await rpc('barberium_staff_cancel_completed_appointment',{p_appointment_id:id,p_reason:$('#cancelReason').value.trim(),p_refund_method:$('#cancelRefundMethod').value});toast('Atendimento cancelado. Estorno, estoque e comissões atualizados.');closeModal();await loadAgenda();await openAppointmentDetail(id)}catch(err){toast(friendlyError(err));btn.disabled=false}};
  }catch(e){$('#modalBody').textContent=friendlyError(e)}
+}
+
+
+// v12.5 — lembretes de WhatsApp assistidos pelo administrador.
+let waTimer=null;
+async function waSubscription(){
+ if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
+ const reg=await navigator.serviceWorker.register('../sw.js?v=12.5',{scope:'../'});
+ await navigator.serviceWorker.ready;
+ return reg;
+}
+async function disableWaDevice(){
+ if(!isManager()||!('serviceWorker' in navigator))return;
+ const reg=await navigator.serviceWorker.getRegistration(new URL('../',location.href).href);
+ const sub=await reg?.pushManager.getSubscription();
+ if(sub)await rpc('barberium_staff_wa_device',{p_subscription:sub.toJSON(),p_action:'disable'});
+ // A mesma inscrição pode ser usada pela área do cliente; desativa só a finalidade administrativa.
+}
+async function initWaReminders(){
+ clearInterval(waTimer);$('#waAdminBox')?.remove();if(!isManager())return;
+ const box=document.createElement('section');box.id='waAdminBox';box.className='notice-box';
+ box.innerHTML='<strong>Lembretes WhatsApp</strong><p>Receba um aviso 2 horas antes, com nome e horário do cliente. Você conclui o envio pelo WhatsApp da barbearia.</p><div class="action-row"><button id="waInbox" class="soft-btn" type="button">Ver lembretes pendentes</button><button id="waEnable" class="gold-btn" type="button">Ativar avisos ao administrador</button><button id="waDisable" class="soft-btn" type="button">Desativar avisos neste aparelho</button></div><p id="waDeviceState" role="status"></p>';
+ $('#dashboardView').prepend(box);
+ $('#waInbox').onclick=openWaInbox;
+ $('#waEnable').onclick=async()=>{
+ const btn=$('#waEnable');btn.disabled=true;
+ try{
+ const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(ios&&!matchMedia('(display-mode: standalone)').matches&&!navigator.standalone)throw new Error('No Safari, adicione o site à Tela de Início e abra pelo ícone para ativar os avisos.');
+ if(!('Notification' in window)||!('PushManager' in window))throw new Error('Este navegador não oferece notificações push. Use um navegador compatível.');
+ if(await Notification.requestPermission()!=='granted')throw new Error('Permita notificações nas configurações do navegador para receber avisos.');
+ const config=await rpc('barberium_push_public_config');if(!config.enabled)throw new Error('Os avisos estão temporariamente indisponíveis.');
+ const reg=await waSubscription();let sub=await reg.pushManager.getSubscription();
+ if(!sub){const raw=atob(config.public_key.replace(/-/g,'+').replace(/_/g,'/'));sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(raw,c=>c.charCodeAt(0))});}
+ await rpc('barberium_staff_wa_device',{p_subscription:sub.toJSON(),p_action:'subscribe'});
+ $('#waDeviceState').textContent='Avisos ativados neste aparelho. O nome do cliente poderá aparecer na tela bloqueada.';
+ }catch(e){$('#waDeviceState').textContent=friendlyError(e)}finally{btn.disabled=false}
+ };
+ $('#waDisable').onclick=async()=>{try{await disableWaDevice();$('#waDeviceState').textContent='Avisos administrativos desativados neste aparelho.'}catch(e){toast(friendlyError(e))}};
+ async function refresh(){if(!isManager()||!getAuth()){clearInterval(waTimer);return}try{const rows=await rpc('barberium_staff_whatsapp');const b=$('#waInbox');if(b)b.textContent=`Ver lembretes pendentes (${rows.length})`;}catch{}}
+ refresh();waTimer=setInterval(refresh,60000);
+ if(new URLSearchParams(location.search).get('whatsapp')==='1')openWaInbox();
+}
+async function openWaInbox(){
+ if(!isManager())return;
+ openModal('WHATSAPP','Lembretes pendentes','<div class="loading">Carregando…</div>');
+ try{const rows=await rpc('barberium_staff_whatsapp');$('#modalBody').innerHTML=rows.length?rows.map(r=>`<article class="service-stat"><div><h3>${esc(r.customer)}</h3><p>${dateTimeBR(r.starts_at)} • ${esc(r.professional)}</p></div><button class="soft-btn" data-wa-open="${r.id}" type="button">Preparar lembrete</button></article>`).join(''):'<div class="empty">Nenhum lembrete pendente. Os horários aparecem aqui 2 horas antes do atendimento.</div>';$$('[data-wa-open]').forEach(b=>b.onclick=()=>openWaMessage(b.dataset.waOpen));}catch(e){$('#modalBody').textContent=friendlyError(e)}
+}
+async function openWaMessage(id){
+ openModal('WHATSAPP','Conferir lembrete','<div class="loading">Preparando mensagem…</div>');
+ try{const d=await rpc('barberium_staff_whatsapp',{p_appointment_id:id,p_action:'message'});const valid=/^[1-9][0-9]{9,14}$/.test(d.phone||'');
+ $('#modalBody').innerHTML=`<p style="white-space:pre-wrap">${esc(d.message)}</p>${d.sent_at?'<p>Este lembrete já foi marcado como enviado.</p>':''}${valid?`<p>Confira se o WhatsApp aberto é o da barbearia. Depois, toque em Enviar.</p><div class="action-row"><button class="gold-btn" id="waOpenChat" type="button">Abrir no WhatsApp</button><button class="soft-btn" id="waMarkSent" type="button">Marcar como enviado</button></div>`:'<p>Cliente sem telefone válido. Atualize o cadastro antes de enviar.</p>'}`;
+ $('#waOpenChat')?.addEventListener('click',async()=>{const tab=window.open('about:blank','_blank');if(tab)tab.opener=null;try{const fresh=await rpc('barberium_staff_whatsapp',{p_appointment_id:id,p_action:'message'});if(!/^[1-9][0-9]{9,14}$/.test(fresh.phone||''))throw new Error('Telefone inválido');const url='https://wa.me/'+fresh.phone+'?text='+encodeURIComponent(fresh.message);if(tab)tab.location.href=url;else location.href=url;}catch(e){tab?.close();toast(friendlyError(e))}});
+ $('#waMarkSent')?.addEventListener('click',async()=>{if(!confirm('Você já enviou esta mensagem pelo WhatsApp?'))return;try{await rpc('barberium_staff_whatsapp',{p_appointment_id:id,p_action:'sent'});toast('Lembrete marcado como enviado.');openWaInbox()}catch(e){toast(friendlyError(e))}});
+ }catch(e){$('#modalBody').textContent=friendlyError(e)}
+}
+function injectWaButton(d){
+ if(d.status!=='confirmed'||new Date(d.starts_at)<=new Date())return;
+ const wrap=document.createElement('section');wrap.className='notice-box';wrap.innerHTML='<button class="soft-btn" type="button">Lembrete WhatsApp</button><p role="status"></p>';
+ $('#modalBody').append(wrap);const btn=wrap.querySelector('button'),status=wrap.querySelector('p');
+ rpc('barberium_staff_whatsapp',{p_appointment_id:d.id,p_action:'status'}).then(s=>{if(s.sent_at)status.textContent='Lembrete marcado como enviado.';else if(s.requested)status.textContent='Lembrete solicitado ao administrador.';else status.textContent='Aviso ao administrador programado para 2 horas antes.';}).catch(()=>{});
+ btn.onclick=async()=>{if(isManager()){openWaMessage(d.id);return}btn.disabled=true;try{const s=await rpc('barberium_staff_whatsapp',{p_appointment_id:d.id,p_action:'request'});status.textContent=s.sent_at?'Lembrete já marcado como enviado.':'Solicitado. O administrador será avisado 2 horas antes; se já estiver nesse período, o lembrete está na lista de pendentes.';toast('Solicitação registrada.')}catch(e){status.textContent=friendlyError(e)}finally{btn.disabled=false}};
 }
