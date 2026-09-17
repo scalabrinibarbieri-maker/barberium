@@ -1,0 +1,27 @@
+BARBERIUM v12.6 — NOVOS AGENDAMENTOS PARA A EQUIPE
+
+INSTALAÇÃO
+1. Extraia o ZIP.
+2. Substitua sw.js na RAIZ do repositório barberium.
+3. Na pasta equipe do repositório, substitua index.html e team.js pelos arquivos da pasta equipe do ZIP.
+4. Aguarde a publicação e feche/reabra o site.
+Não coloque o index.html da equipe na raiz. Não crie equipe/equipe. Banco e serviço já atualizados; nenhum SQL precisa ser executado.
+
+ATIVAÇÃO
+No topo da Área da Equipe haverá Notificações da equipe.
+Cada barbeiro entra na própria conta e toca em Ativar notificações neste aparelho.
+O administrador que já ativou os avisos anteriormente aproveita a inscrição existente, desde que permaneça ativa e com sessão válida.
+Após sair da conta e entrar novamente, ative os avisos novamente.
+
+NOVOS AGENDAMENTOS
+Quando o cliente faz um novo agendamento pelo site, o profissional daquele atendimento e os administradores inscritos recebem um aviso.
+Exemplo: Novo agendamento — João marcou para 18/09, às 14:00, com Jean.
+O nome respeita a permissão de visualização do profissional. Telefone não aparece no push.
+Ao tocar, abre a ficha daquele agendamento, exigindo login e verificando acesso novamente.
+Não envia notificações retroativas nem avisos de novo agendamento para reservas lançadas pela equipe.
+A fila é processada a cada minuto; a entrega depende do navegador e conexão. Notificações não entregues expiram após 30 minutos, ou no início do atendimento, se ocorrer antes.
+Os lembretes WhatsApp de 2 horas continuam exclusivos do administrador. Os push de cliente também continuam.
+
+TESTAR
+Com o ADM e o barbeiro inscritos, faça um agendamento de teste pela área do cliente. Confira nome, horário e abertura da ficha nos dois aparelhos. O outro barbeiro não deve receber.
+Depois cancele o teste. Os testes técnicos já passaram; a confirmação nos aparelhos depende desta publicação.
