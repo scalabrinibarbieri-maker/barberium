@@ -74,6 +74,7 @@ async function showDashboard(){
   $('#financeNav').classList.toggle('hidden',!(isManager()||can('view_own_commission')));
   $('#performanceNav').classList.toggle('hidden',!can('view_own_revenue'));
   $('#newAppointmentButton').classList.toggle('hidden',!can('create_appointment'));
+  $('#newWalkInButton').classList.toggle('hidden',!can('create_appointment'));
   $('#newBlockButton').classList.toggle('hidden',!(can('create_block')||can('create_recurring_block')));
   const visibleNav=$$('#teamBottomNav button:not(.hidden)').length;
   ['six','five','four','two','one'].forEach(c=>$('#teamBottomNav').classList.remove(c));
@@ -104,7 +105,7 @@ function renderAgenda(data){
   $$('[data-appt-id]').forEach(b=>b.onclick=()=>openAppointmentDetail(b.dataset.apptId));
   $$('[data-block-id]').forEach(b=>b.onclick=()=>openBlockDetail(b.dataset.blockId,b.dataset.blockKind));
 }
-function appointmentCard(a){const addons=(a.addons||[]).map(x=>x.name).join(' + ');return `<button class="agenda-item" data-appt-id="${a.id}" type="button"><div class="agenda-time"><strong>${timeBR(a.starts_at)}</strong><small>${timeBR(a.ends_at)}</small></div><div class="agenda-body"><div class="agenda-top"><h3>${esc(a.customer)}</h3><span class="status ${a.status}">${statusLabel(a.status)}</span></div><p class="agenda-service">${esc(a.service)}${addons?` + ${esc(addons)}`:''}</p><div class="agenda-meta">${isManager()?`<span>${esc(a.professional)}</span>`:''}${a.total_price_cents!==null?`<span>${moneyCents(a.total_price_cents)}</span>`:''}${a.internal_note?'<span class="note-flag">Nota interna</span>':''}</div></div></button>`}
+function appointmentCard(a){const addons=(a.addons||[]).map(x=>x.name).join(' + ');return `<button class="agenda-item" data-appt-id="${a.id}" type="button"><div class="agenda-time"><strong>${timeBR(a.starts_at)}</strong><small>${timeBR(a.ends_at)}</small></div><div class="agenda-body"><div class="agenda-top"><h3>${esc(a.customer)}</h3><span class="status ${a.status}">${statusLabel(a.status)}</span></div>${a.is_walk_in?`<span class="note-flag">Encaixe · ${a.blocks_schedule?'bloqueia horário':'sem bloqueio'}</span>`:''}<p class="agenda-service">${esc(a.service)}${addons?` + ${esc(addons)}`:''}</p><div class="agenda-meta">${isManager()?`<span>${esc(a.professional)}</span>`:''}${a.total_price_cents!==null?`<span>${moneyCents(a.total_price_cents)}</span>`:''}${a.internal_note?'<span class="note-flag">Nota interna</span>':''}</div></div></button>`}
 function blockCard(b){return `<button class="agenda-item block" data-block-id="${b.id}" data-block-kind="${b.block_type}" type="button"><div class="agenda-time"><strong>${timeBR(b.starts_at)}</strong><small>${timeBR(b.ends_at)}</small></div><div class="agenda-body"><div class="agenda-top"><h3>Bloqueado</h3><span class="status blocked">${b.recurring?'Recorrente':'Bloqueio'}</span></div><p class="agenda-service">${esc(b.reason||'Sem motivo informado')}</p><div class="agenda-meta">${isManager()?`<span>${esc(b.professional)}</span>`:''}</div></div></button>`}
 
 function openModal(eyebrow,title,html){$('#modalEyebrow').textContent=eyebrow||'';$('#modalTitle').textContent=title||'';$('#modalBody').innerHTML=html;$('#modalBackdrop').classList.remove('hidden');$('#modalBackdrop').setAttribute('aria-hidden','false')}
@@ -123,6 +124,7 @@ function renderAppointmentDetail(d){
   const canEdit=d.status==='confirmed'&&(isManager()||['edit_service','edit_addons','edit_date','edit_time','edit_value','edit_internal_note'].some(can));
   const statusBtns=statusButtons(d);
   $('#modalBody').innerHTML=`
+    ${d.is_walk_in?`<div class="notice-box"><strong>Encaixe</strong><p>${d.blocks_schedule?'Bloqueia novas reservas durante o atendimento.':'Não bloqueia a disponibilidade da agenda.'}</p></div>`:''}
     <div class="detail-grid">
       <div class="detail-box"><small>Status</small><strong>${statusLabel(d.status)}</strong></div>
       <div class="detail-box"><small>Profissional</small><strong>${esc(d.professional.name)}</strong></div>
@@ -183,8 +185,8 @@ function eventHtml(e){
 }
 
 async function openBookingModal(mode,detail=null){
-  const edit=mode==='edit';
-  const pt=edit?partsSP(detail.starts_at):{date:currentDate,time:''};
+  const edit=mode==='edit';const walkIn=mode==='walk-in'||Boolean(detail?.is_walk_in);
+  const pt=edit?partsSP(detail.starts_at):{date:currentDate,time:walkIn?timeBR(new Date()):''};
   const selectedCustomer={id:edit?detail.customer.id:null,name:edit?detail.customer.name:'',phone:edit?detail.customer.phone:''};
   const professionalId=edit?detail.professional.id:(isManager()?(filterProfessionalId||catalog.professionals[0]?.id):member.professional_id);
   const serviceId=edit?detail.service.id:catalog.services[0]?.id;
@@ -192,8 +194,8 @@ async function openBookingModal(mode,detail=null){
   const canValue=isManager()||can('edit_value')||can('view_value');
   const canNote=isManager()||can('edit_internal_note')||can('view_internal_note');
   const price=edit&&detail.total_price_cents!==null?detail.total_price_cents:calcListed(serviceId,addonIds);
-  openModal(edit?'EDITAR ATENDIMENTO':'NOVO HORÁRIO',edit?detail.customer.name:'Agendamento manual',bookingFormHtml({edit,selectedCustomer,professionalId,serviceId,addonIds,date:pt.date,time:pt.time,price,note:edit?(detail.internal_note||''):''},canValue,canNote));
-  const state={edit,detail,customer:selectedCustomer,newCustomer:false,professionalId,serviceId,addonIds:[...addonIds],date:pt.date,time:pt.time,manualPriceCents:price};
+  openModal(edit?'EDITAR ATENDIMENTO':walkIn?'NOVO ENCAIXE':'NOVO HORÁRIO',edit?detail.customer.name:'Agendamento manual',bookingFormHtml({edit,walkIn,blocksSchedule:detail?.blocks_schedule===true,selectedCustomer,professionalId,serviceId,addonIds,date:pt.date,time:pt.time,price,note:edit?(detail.internal_note||''):''},canValue,canNote));
+  const state={edit,walkIn,detail,customer:selectedCustomer,newCustomer:false,professionalId,serviceId,addonIds:[...addonIds],date:pt.date,time:pt.time,manualPriceCents:price};
   bindBookingForm(state);await refreshBookingDynamic(state,true);
 }
 function bookingFormHtml(st,showValue,showNote){
@@ -214,10 +216,11 @@ function bookingFormHtml(st,showValue,showNote){
       <div class="field"><label>Serviço</label><select id="bookingService" ${st.edit&&!isManager()&&!can('edit_service')?'disabled':''}>${serviceOptions}</select></div>
       <div><label class="field">Adicionais</label><div id="addonOptions" class="addon-options"></div></div>
     </section>
-    <section class="form-section"><h3>Data e horário</h3><div class="form-grid two"><div class="field"><label>Data</label><input id="bookingDate" type="date" value="${st.date}" ${st.edit&&!isManager()&&!can('edit_date')?'disabled':''}></div><div class="field"><label>Horário</label><select id="bookingTime" ${st.edit&&!isManager()&&!can('edit_time')?'disabled':''}><option value="">Carregando…</option></select></div></div></section>
+    <section class="form-section"><h3>Data e horário</h3><div class="form-grid two"><div class="field"><label>Data</label><input id="bookingDate" type="date" value="${st.date}" ${st.edit&&!isManager()&&!can('edit_date')?'disabled':''}></div><div class="field"><label>Horário</label>${st.walkIn?`<input id="bookingTime" type="time" required value="${st.time}" ${st.edit&&!isManager()&&!can('edit_time')?'disabled':''}>`:`<select id="bookingTime" ${st.edit&&!isManager()&&!can('edit_time')?'disabled':''}><option value="">Carregando…</option></select>`}</div></div></section>
+    ${st.walkIn?`<section class="form-section"><label class="check-row"><input id="walkInBlocks" type="checkbox" ${st.edit&&st.blocksSchedule?'checked':''}><span>Bloquear este horário na agenda</span></label><p>Desmarcado: mantém o período disponível. Marcado: impede novas reservas durante este atendimento. Atendimentos e bloqueios existentes são preservados.</p></section>`:''}
     ${showValue?`<section class="form-section"><h3>Valor</h3><div class="price-preview"><span>Preço de tabela</span><strong id="listedPrice">${moneyCents(calcListed(st.serviceId,st.addonIds))}</strong></div><div class="field"><label>Valor final</label><input id="finalPrice" type="number" min="0" step="0.01" value="${(st.price/100).toFixed(2)}" ${isManager()||can('edit_value')?'':'disabled'}></div></section>`:''}
     ${showNote?`<section class="form-section"><h3>Observação interna</h3><div class="field"><textarea id="internalNote" placeholder="Visível somente para a equipe" ${isManager()||can('edit_internal_note')?'':'readonly'}>${esc(st.note)}</textarea></div></section>`:''}
-    <button id="saveBooking" class="gold-btn" type="submit">${st.edit?'Salvar alterações':'Criar agendamento'}</button>
+    <button id="saveBooking" class="gold-btn" type="submit">${st.edit?'Salvar alterações':st.walkIn?'Criar encaixe':'Criar agendamento'}</button>
   </form>`
 }
 function calcListed(serviceId,addonIds){const s=serviceById(serviceId);return(s?.price_cents||0)+(s?.addons||[]).filter(a=>addonIds.includes(a.service_id)).reduce((sum,a)=>sum+(a.price_cents||0),0)}
@@ -239,7 +242,7 @@ async function searchCustomers(st){
 async function refreshBookingDynamic(st,initial=false){renderAddonOptions(st);syncPrice(st,!initial);await refreshSlots(st)}
 function renderAddonOptions(st){const s=serviceById(st.serviceId);const wrap=$('#addonOptions');if(!wrap)return;wrap.innerHTML=s?.addons?.length?s.addons.map(a=>`<label class="check-row"><input type="checkbox" value="${a.service_id}" ${st.addonIds.includes(a.service_id)?'checked':''} ${st.edit&&!isManager()&&!can('edit_addons')?'disabled':''}><span>${esc(a.name)} · +${moneyCents(a.price_cents)}</span></label>`).join(''):'<div class="empty">Este serviço não possui adicionais.</div>';$$('#addonOptions input').forEach(i=>i.onchange=()=>{st.addonIds=$$('#addonOptions input:checked').map(x=>x.value);syncPrice(st,true);refreshSlots(st)})}
 function syncPrice(st,resetFinal){const listed=calcListed(st.serviceId,st.addonIds);if($('#listedPrice'))$('#listedPrice').textContent=moneyCents(listed);if(resetFinal&&(isManager()||can('edit_value'))&&$('#finalPrice')){$('#finalPrice').value=(listed/100).toFixed(2);st.manualPriceCents=listed}}
-async function refreshSlots(st){const sel=$('#bookingTime');if(!sel||!st.professionalId||!st.serviceId||!st.date)return;const keep=st.time;sel.innerHTML='<option value="">Carregando…</option>';try{let slots=await rpc('barberium_staff_available_slots',{p_professional_id:st.professionalId,p_service_id:st.serviceId,p_addon_service_ids:st.addonIds,p_date:st.date,p_exclude_appointment_id:st.edit?st.detail.id:null});if(keep&&!slots.includes(keep))slots=[keep,...slots].sort();sel.innerHTML=slots.length?`<option value="">Selecione</option>${slots.map(t=>`<option value="${t}" ${t===keep?'selected':''}>${t}</option>`).join('')}`:'<option value="">Sem horários livres</option>';sel.onchange=e=>st.time=e.target.value}catch(e){sel.innerHTML='<option value="">Erro ao carregar</option>'}}
+async function refreshSlots(st){if(st.walkIn){$('#bookingTime').onchange=e=>st.time=e.target.value;return}const sel=$('#bookingTime');if(!sel||!st.professionalId||!st.serviceId||!st.date)return;const keep=st.time;sel.innerHTML='<option value="">Carregando…</option>';try{let slots=await rpc('barberium_staff_available_slots',{p_professional_id:st.professionalId,p_service_id:st.serviceId,p_addon_service_ids:st.addonIds,p_date:st.date,p_exclude_appointment_id:st.edit?st.detail.id:null});if(keep&&!slots.includes(keep))slots=[keep,...slots].sort();sel.innerHTML=slots.length?`<option value="">Selecione</option>${slots.map(t=>`<option value="${t}" ${t===keep?'selected':''}>${t}</option>`).join('')}`:'<option value="">Sem horários livres</option>';sel.onchange=e=>st.time=e.target.value}catch(e){sel.innerHTML='<option value="">Erro ao carregar</option>'}}
 async function saveBooking(e,st){
   e.preventDefault();const btn=$('#saveBooking');btn.disabled=true;btn.textContent='Salvando…';
   try{
@@ -247,13 +250,13 @@ async function saveBooking(e,st){
     const finalInput=$('#finalPrice');const finalCents=finalInput?Math.round((Number(finalInput.value)||0)*100):null;
     const note=$('#internalNote')?.value||null;
     if(st.edit){
-      await rpc('barberium_staff_update_appointment',{p_appointment_id:st.detail.id,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
+      await rpc(st.walkIn?'barberium_staff_update_walk_in':'barberium_staff_update_appointment',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_appointment_id:st.detail.id,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
       toast('Atendimento atualizado.');closeModal();await loadAgenda();
     }else{
       let customerId=st.customer?.id||null,fullName=null,phone=null;
       if(!customerId){if(!st.newCustomer)throw new Error('Selecione um cliente ou crie um novo.');fullName=$('#newCustomerName').value.trim();phone=$('#newCustomerPhone').value.trim()}
-      await rpc('barberium_staff_create_appointment',{p_customer_id:customerId,p_full_name:fullName,p_phone:phone,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
-      toast('Agendamento criado.');closeModal();await loadAgenda();
+      await rpc(st.walkIn?'barberium_staff_create_walk_in':'barberium_staff_create_appointment',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_customer_id:customerId,p_full_name:fullName,p_phone:phone,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
+      toast(st.walkIn?'Encaixe criado.':'Agendamento criado.');currentDate=$('#bookingDate').value;renderDate();closeModal();await loadAgenda();
     }
   }catch(err){toast(friendlyError(err));btn.disabled=false;btn.textContent=st.edit?'Salvar alterações':'Criar agendamento'}
 }
@@ -786,6 +789,7 @@ function switchPanel(panel){currentPanel=panel;$('#productsPanel').classList.tog
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#loginButton');btn.disabled=true;btn.textContent='Entrando…';$('#loginError').textContent='';try{await login($('#email').value.trim(),$('#password').value);await showDashboard()}catch(err){$('#loginError').textContent=err.message}finally{btn.disabled=false;btn.textContent='Entrar'}});
 $('#togglePassword').onclick=()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';$('#togglePassword').textContent=p.type==='password'?'Ver':'Ocultar'};
 $('#logoutButton').onclick=logout;$('#prevDay').onclick=()=>moveDate(-1);$('#nextDay').onclick=()=>moveDate(1);$('#todayButton').onclick=()=>{currentDate=isoDate(new Date());renderDate();loadAgenda()};$('#dateButton').onclick=()=>{if($('#dateInput').showPicker)$('#dateInput').showPicker();else $('#dateInput').click()};$('#dateInput').onchange=()=>{if($('#dateInput').value){currentDate=$('#dateInput').value;renderDate();loadAgenda()}};
+$('#newWalkInButton').onclick=()=>openBookingModal('walk-in');
 $('#newAppointmentButton').onclick=()=>openBookingModal('create');$('#newBlockButton').onclick=()=>openBlockModal('create');$('#modalClose').onclick=closeModal;$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});
 $$('[data-team-panel]').forEach(b=>b.onclick=()=>switchPanel(b.dataset.teamPanel));$$('[data-period]').forEach(b=>b.onclick=()=>{activePeriod=b.dataset.period;$$('[data-period]').forEach(x=>x.classList.toggle('active',x===b));loadPerformance()});
 
