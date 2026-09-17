@@ -1,0 +1,31 @@
+BARBERIUM v12.4 — NOTIFICAÇÕES PUSH
+
+COMO PUBLICAR PELO CELULAR
+1. Extraia este ZIP.
+2. Abra o repositório barberium no GitHub, na tela inicial onde já aparecem index.html e app.js.
+3. Envie os cinco arquivos de código deste ZIP nessa mesma pasta: index.html, app.js, push.js, styles.css e sw.js. Confirme a substituição e salve o commit.
+4. LEIA-ME-v12.4.txt é apenas esta explicação; pode ficar na raiz também.
+5. Não crie uma pasta v12.4. Não apague assets, equipe, membership.js, membership.css ou site.webmanifest.
+6. Aguarde a publicação do GitHub Pages. Feche e reabra o site. Se a tela antiga persistir, atualize a página novamente.
+
+O banco, o serviço de envio e a rotina de lembretes JÁ foram aplicados no Supabase. Este ZIP contém apenas a atualização da tela; não há SQL para você executar.
+
+COMO TESTAR
+No próprio celular, acesse o site como cliente e abra Meu perfil.
+O convite será: “Ative as notificações para receber lembretes dos seus horários!”
+Toque em Ativar notificações e depois Permitir, no pedido do navegador.
+Em seguida, toque em Testar notificação (limite de um teste a cada cinco minutos).
+O convite também aparece após agendar e na página inicial quando há próximo horário.
+No iPhone/iPad, use Safari e adicione o site à Tela de Início antes de ativar pelo ícone instalado.
+
+INCLUÍDO
+Confirmação de novos agendamentos após ativar, lembretes de 24 horas e 2 horas, alterações e cancelamentos.
+Ao ativar, horários futuros já existentes recebem os lembretes que ainda não passaram.
+Lembretes antigos são retirados quando o horário muda, é cancelado ou concluído.
+O cliente pode desativar neste aparelho em Meu perfil. A permissão só é solicitada quando ele toca no botão.
+
+LIMITES
+Cada cliente precisa ativar no seu aparelho; cadastrar somente o telefone não habilita push.
+A entrega depende de conexão, navegador, permissões e configurações de bateria/foco do aparelho. Não é garantia de leitura.
+Não inclui campanhas de marketing. Nenhuma mensagem real foi enviada nos testes técnicos.
+A entrega real no seu celular ainda precisa ser validada depois da publicação.

@@ -1,4 +1,5 @@
-const BARBERIUM_BUILD='v12-settings-services';
+import {createPushUI} from './push.js?v=12.4';
+const BARBERIUM_BUILD='v12.4-push';
 const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
 const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
 const SHOP_SLUG='scalabrini-barbieri';
@@ -42,6 +43,8 @@ async function rpc(name,payload={}){
   }
   return data;
 }
+
+const pushUI=createPushUI({rpc,getSession,shopSlug:SHOP_SLUG,toast});
 
 function normalizeCatalog(raw){
   CATALOG=raw;
@@ -156,6 +159,7 @@ function renderHome(){
   }else if(p){
     wrap.innerHTML=`<section class="welcome-back"><span class="kicker">Bem-vindo de volta</span><h3>Que bom ter você aqui, ${p.name.split(' ')[0]}.</h3><p>Você não tem horários futuros. Quando quiser, escolha um novo atendimento.</p><button class="gold-button" type="button" data-action="start-booking">Agendar novo horário →</button></section>`;
   }else wrap.innerHTML='';
+  if(p&&next)wrap.insertAdjacentHTML('beforeend',pushUI.mount());
   $$('[data-action="start-booking"]').forEach(btn=>btn.onclick=()=>startBooking());
 }
 
@@ -209,7 +213,7 @@ async function commitBooking(){
     await refreshPortal();state.bookingStep=7;renderBooking();renderHome();
   }catch(e){console.error(e);toast(friendlyError(e));if(btn){btn.disabled=false;btn.textContent=state.bookingMode==='reschedule'?'Confirmar novo horário':'Confirmar agendamento'}}
 }
-function bookingConfirmation(){const stage=$('#bookingStage'),s=serviceById(state.booking.serviceId),p=proById(state.booking.professionalId);stage.innerHTML=`<div class="confirmation"><div class="confirm-seal">✓</div><h2>Horário confirmado.</h2><p>Esperamos você na Scalabrini Barbieri — II Unidade, Bragança Paulista.</p><div class="review-card"><div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(selectedPrice())}</p></div></div><div class="review-lines"><div class="review-line"><span>Profissional</span><strong>${p.name}</strong></div><div class="review-line"><span>Data</span><strong>${humanDate(state.booking.date)}</strong></div><div class="review-line"><span>Horário</span><strong>${state.booking.time}</strong></div>${selectedAddons().map(a=>`<div class="review-line"><span>Adicional</span><strong>${a.name}</strong></div>`).join('')}</div></div><div class="stage-actions"><button class="secondary-button" id="confirmHome" type="button">Voltar ao início</button><button class="gold-button" id="confirmAppts" type="button">Ver meu agendamento</button></div></div>`;$('#confirmHome').onclick=()=>navigate('home');$('#confirmAppts').onclick=()=>navigate('appointments')}
+function bookingConfirmation(){const stage=$('#bookingStage'),s=serviceById(state.booking.serviceId),p=proById(state.booking.professionalId);stage.innerHTML=`<div class="confirmation"><div class="confirm-seal">✓</div><h2>Horário confirmado.</h2><p>Esperamos você na Scalabrini Barbieri — II Unidade, Bragança Paulista.</p><div class="review-card"><div class="review-hero"><img src="${s.image}" alt=""><div><h3>${s.name}</h3><p>${money(selectedPrice())}</p></div></div><div class="review-lines"><div class="review-line"><span>Profissional</span><strong>${p.name}</strong></div><div class="review-line"><span>Data</span><strong>${humanDate(state.booking.date)}</strong></div><div class="review-line"><span>Horário</span><strong>${state.booking.time}</strong></div>${selectedAddons().map(a=>`<div class="review-line"><span>Adicional</span><strong>${a.name}</strong></div>`).join('')}</div></div>${pushUI.mount()}<div class="stage-actions"><button class="secondary-button" id="confirmHome" type="button">Voltar ao início</button><button class="gold-button" id="confirmAppts" type="button">Ver meu agendamento</button></div></div>`;$('#confirmHome').onclick=()=>navigate('home');$('#confirmAppts').onclick=()=>navigate('appointments')}
 
 function renderAppointments(){
   const root=$('#appointmentsContent');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===state.appointmentsTab));const list=state.appointmentsTab==='upcoming'?futureBookings():pastBookings();
@@ -224,6 +228,7 @@ function renderProfile(){
   const root=$('#profileContent'),p=currentProfile();$('#profileInitial').textContent=p?p.name.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase():'SB';
   if(!p){$('#profileGreeting').textContent='Meu perfil';root.innerHTML=`<div class="empty-state"><h3>Você ainda não tem dados salvos.</h3><p>Seu perfil é criado automaticamente depois do primeiro agendamento. Sem login e sem senha.</p><button class="gold-button" id="profileBook" type="button">Fazer meu primeiro agendamento →</button></div><section class="profile-section"><h3>Acesso em outro aparelho</h3><p>Quando ativarmos a recuperação via WhatsApp, você poderá validar seu número no novo aparelho e recuperar seu histórico.</p></section>`;$('#profileBook').onclick=()=>startBooking();return}
   $('#profileGreeting').textContent=`Olá, ${p.name.split(' ')[0]}.`;root.innerHTML=`<div class="profile-card"><div class="profile-row"><small>Nome e sobrenome</small><strong>${esc(p.name)}</strong></div><div class="profile-row"><small>WhatsApp</small><strong>${formatPhone(p.phone)}</strong></div><div class="profile-row"><small>Data de aniversário</small><strong>${p.birthday||'Não informado'}</strong></div></div><div class="profile-actions"><button class="secondary-button" id="editProfile" type="button">Editar meus dados</button><button class="secondary-button" id="otherDevice" type="button">Acessar em outro aparelho</button></div><section class="profile-section"><h3>Privacidade dos meus dados</h3><p>Nome, telefone, aniversário e histórico são utilizados para seus agendamentos e relacionamento com a Scalabrini Barbieri.</p><button class="danger-button" id="deleteData" type="button">Solicitar exclusão dos meus dados</button></section>`;
+  root.insertAdjacentHTML('beforeend',pushUI.mount('settings'));
   $('#editProfile').onclick=editProfileModal;$('#otherDevice').onclick=()=>modal(`<h3>Acesso em outro aparelho</h3><p>A recuperação por código no WhatsApp é a próxima integração do Barberium. Você não precisará criar senha.</p><div class="modal-actions"><button class="gold-button" data-modal-close type="button">Entendi</button></div>`);$('#deleteData').onclick=()=>modal(`<h3>Solicitar exclusão</h3><p>Para proteger seu histórico, a exclusão dos dados precisa ser confirmada pela barbearia. Fale conosco pelo WhatsApp para solicitar a remoção.</p><div class="modal-actions"><a class="gold-button" style="text-decoration:none" href="https://wa.me/5511945246544" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="secondary-button" data-modal-close type="button">Voltar</button></div>`)
 }
 function editProfileModal(){const p=currentProfile();modal(`<h3>Editar meus dados</h3><form class="form-grid" id="profileEditForm"><div class="field"><label>Nome e sobrenome</label><input name="name" required value="${esc(p.name)}"></div><div class="field"><label>Data de aniversário <span style="text-transform:none">(opcional)</span></label><input type="date" name="birthday" value="${p.birthday||''}"></div><div class="field"><label>WhatsApp</label><input value="${formatPhone(p.phone)}" disabled><p class="field-hint">A alteração de número exigirá confirmação no novo WhatsApp.</p></div><div class="modal-actions"><button class="secondary-button" data-modal-close type="button">Cancelar</button><button class="gold-button" type="submit">Salvar</button></div></form>`);$('#profileEditForm').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.currentTarget);try{const customer=await rpc('barberium_update_customer_profile',{p_barbershop_slug:SHOP_SLUG,p_access_token:getSession().access_token,p_full_name:String(fd.get('name')).trim(),p_birthday:String(fd.get('birthday')||'')||null});saveSession({...getSession(),customer});closeModal();toast('Dados atualizados.');renderProfile();renderHome()}catch(err){toast(friendlyError(err))}}}
@@ -231,10 +236,10 @@ function modal(html){$('#modalBox').innerHTML=html;$('#modalBackdrop').classList
 function closeModal(){$('#modalBackdrop').classList.remove('open');$('#modalBackdrop').setAttribute('aria-hidden','true')}
 
 async function init(){
-  try{await loadCatalog();await refreshPortal();renderHome();renderAppointments();renderProfile()}
+  try{await loadCatalog();await refreshPortal();renderHome();renderAppointments();renderProfile();await pushUI.init();if(new URLSearchParams(location.search).get("view")==="appointments")navigate("appointments")}
   catch(e){console.error(e);toast('Não foi possível conectar ao Barberium. Atualize a página.')}
 }
 
 $$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));$$('[data-action="start-booking"]').forEach(b=>b.onclick=()=>startBooking());$('#bookingBack').onclick=stepBack;$$('.tab').forEach(t=>t.onclick=()=>{state.appointmentsTab=t.dataset.tab;renderAppointments()});$('#modalBackdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 init();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=12',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=12.4',{updateViaCache:'none'}).catch(()=>{}));
