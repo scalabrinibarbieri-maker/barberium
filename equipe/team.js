@@ -828,23 +828,27 @@ async function openCancelCompletedAppointment(id){
 let waTimer=null;
 async function waSubscription(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
- const reg=await navigator.serviceWorker.register('../sw.js?v=12.5',{scope:'../'});
+ const reg=await navigator.serviceWorker.register('../sw.js?v=12.6',{scope:'../'});
  await navigator.serviceWorker.ready;
  return reg;
 }
 async function disableWaDevice(){
- if(!isManager()||!('serviceWorker' in navigator))return;
+ if(!member||!('serviceWorker' in navigator))return;
  const reg=await navigator.serviceWorker.getRegistration(new URL('../',location.href).href);
  const sub=await reg?.pushManager.getSubscription();
  if(sub)await rpc('barberium_staff_wa_device',{p_subscription:sub.toJSON(),p_action:'disable'});
  // A mesma inscrição pode ser usada pela área do cliente; desativa só a finalidade administrativa.
 }
 async function initWaReminders(){
- clearInterval(waTimer);$('#waAdminBox')?.remove();if(!isManager())return;
+ clearInterval(waTimer);$('#waAdminBox')?.remove();if(!member)return;
  const box=document.createElement('section');box.id='waAdminBox';box.className='notice-box';
  box.innerHTML='<strong>Lembretes WhatsApp</strong><p>Receba um aviso 2 horas antes, com nome e horário do cliente. Você conclui o envio pelo WhatsApp da barbearia.</p><div class="action-row"><button id="waInbox" class="soft-btn" type="button">Ver lembretes pendentes</button><button id="waEnable" class="gold-btn" type="button">Ativar avisos ao administrador</button><button id="waDisable" class="soft-btn" type="button">Desativar avisos neste aparelho</button></div><p id="waDeviceState" role="status"></p>';
  $('#dashboardView').prepend(box);
+ $('#waInbox').hidden=!isManager();
  $('#waInbox').onclick=openWaInbox;
+ box.querySelector('strong').textContent='Notificações da equipe';
+ box.querySelector('p').textContent=isManager()?'Receba novos agendamentos de toda a equipe e os lembretes WhatsApp 2 horas antes.':'Receba um aviso quando um cliente agendar com você. Somente a sua agenda.';
+ $('#waEnable').textContent='Ativar notificações neste aparelho';
  $('#waEnable').onclick=async()=>{
  const btn=$('#waEnable');btn.disabled=true;
  try{
@@ -859,9 +863,12 @@ async function initWaReminders(){
  $('#waDeviceState').textContent='Avisos ativados neste aparelho. O nome do cliente poderá aparecer na tela bloqueada.';
  }catch(e){$('#waDeviceState').textContent=friendlyError(e)}finally{btn.disabled=false}
  };
- $('#waDisable').onclick=async()=>{try{await disableWaDevice();$('#waDeviceState').textContent='Avisos administrativos desativados neste aparelho.'}catch(e){toast(friendlyError(e))}};
+ (async()=>{try{const reg=await navigator.serviceWorker?.getRegistration(new URL('../',location.href).href);const sub=await reg?.pushManager.getSubscription();if(sub){const state=await rpc('barberium_staff_wa_device',{p_subscription:sub.toJSON(),p_action:'status'});if(state.enabled&&$('#waDeviceState'))$('#waDeviceState').textContent='Notificações ativadas neste aparelho.';}}catch{}})();
+ $('#waDisable').onclick=async()=>{try{await disableWaDevice();$('#waDeviceState').textContent='Notificações da equipe desativadas neste aparelho.'}catch(e){toast(friendlyError(e))}};
  async function refresh(){if(!isManager()||!getAuth()){clearInterval(waTimer);return}try{const rows=await rpc('barberium_staff_whatsapp');const b=$('#waInbox');if(b)b.textContent=`Ver lembretes pendentes (${rows.length})`;}catch{}}
- refresh();waTimer=setInterval(refresh,60000);
+ if(isManager()){refresh();waTimer=setInterval(refresh,60000);}
+ const appointmentId=new URLSearchParams(location.search).get('appointment');
+ if(/^[0-9a-f-]{36}$/i.test(appointmentId||''))openAppointmentDetail(appointmentId);
  if(new URLSearchParams(location.search).get('whatsapp')==='1')openWaInbox();
 }
 async function openWaInbox(){
