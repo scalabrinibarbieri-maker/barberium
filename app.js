@@ -50,11 +50,11 @@ function normalizeCatalog(raw){
   CATALOG=raw;
   SERVICES=(raw?.services||[]).map(s=>({
     id:s.id,slug:s.slug,name:s.name,kind:s.kind||'service',description:s.description||'',price:s.price_cents/100,priceCents:s.price_cents,
-    duration:s.duration_min,durationLabel:s.duration_label||`${s.duration_min} min`,image:assetUrl(s.image_path),
+    duration:s.duration_min,durationLabel:s.duration_label||`${s.duration_min} min`,image:assetUrl(s.image_path)||'./assets/logo-sb.webp',
     professionalIds:s.professional_ids||[],professionalLinks:s.professional_links||[],components:s.components||[],
     addons:(s.addons||[]).map(a=>({
       id:a.service_id,slug:a.slug,name:a.name,description:a.description||'',price:a.price_cents/100,priceCents:a.price_cents,
-      duration:a.duration_min,durationLabel:`${a.duration_min} min`,image:assetUrl(a.image_path),
+      duration:a.duration_min,durationLabel:`${a.duration_min} min`,image:assetUrl(a.image_path)||'./assets/logo-sb.webp',
       professionalIds:a.professional_ids||[],professionalLinks:a.professional_links||[]
     }))
   }));

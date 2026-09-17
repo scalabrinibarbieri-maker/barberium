@@ -1,0 +1,23 @@
+BARBERIUM v12.7.1 — CORREÇÃO DE FOTO DE SERVIÇO/ADICIONAL
+
+INSTALAÇÃO
+Na RAIZ do repositório: substitua index.html, app.js e sw.js.
+Dentro de EQUIPE: substitua index.html e settings.js pelos arquivos que estão na pasta equipe do ZIP.
+Atenção: os dois index.html são diferentes; mantenha cada um na sua pasta.
+Aguarde publicar, feche e reabra o site.
+A correção de permissões já foi aplicada no servidor. Não execute SQL.
+
+REENVIAR A FOTO
+Área da Equipe > Configurações > Serviços > adicional Sobrancelha.
+Selecione a foto novamente, aguarde a mensagem Imagem enviada e toque em Salvar.
+O cadastro estava sem image_path e não havia arquivo no armazenamento, por isso não foi possível recuperar automaticamente a seleção anterior.
+Se ainda falhar, mande a mensagem de erro e anexe a imagem original para conferir o arquivo.
+
+CORREÇÕES
+Permissão de leitura para operações de armazenamento limitada ao ADM/proprietário da mesma barbearia; compatibilidade com o envio anterior.
+Novo upload usa arquivo exclusivo e não solicita sobrescrita.
+Renovação de sessão expirada antes do upload e retry de autenticação existente.
+Formato detectado pelo cabeçalho JPEG/PNG/WebP, mesmo com MIME vazio/genérico no celular. Limite 5 MB.
+Salvar fica indisponível enquanto envia. Falha de upload impede salvar inadvertidamente sem a foto.
+Serviços/adicionais sem foto exibem o logo como imagem provisória.
+Testes Chromium passaram com APIs simuladas; a foto real precisa ser reenviada pelo seu aparelho.
