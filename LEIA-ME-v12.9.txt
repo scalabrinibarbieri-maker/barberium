@@ -1,0 +1,22 @@
+BARBERIUM v12.9 — PACOTE DE ATUALIZAÇÃO
+
+Suba o conteúdo deste ZIP na RAIZ do repositório Barberium, preservando a estrutura das pastas
+e substituindo os arquivos de mesmo nome.
+
+Arquivos incluídos:
+- equipe/index.html
+- equipe/barberium-v12.9.js
+- sw.js
+- migrations/20260918_v12_9_membership_contracts.sql
+
+O que muda:
+1. Financeiro > Planos ganha a subaba "Contratos ativos", com busca e configuração dos contratos atuais.
+2. Ajuste de créditos não depende mais de digitar + ou - no teclado: escolha "Somar" ou "Subtrair" e informe a quantidade.
+3. Agenda/Cancelados passa a ocultar corretamente os itens da aba oposta.
+4. Campos numéricos que começam em zero selecionam/substituem o zero ao iniciar a digitação.
+5. Cache do PWA sobe para v12.9.
+
+IMPORTANTE:
+- A migration do banco já foi aplicada no Supabase de produção nesta conversa.
+- O arquivo SQL está incluído apenas para manter o repositório e o histórico completos.
+- Nenhum arquivo fora destes pontos foi reconstruído ou alterado.
