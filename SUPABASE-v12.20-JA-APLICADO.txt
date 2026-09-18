@@ -1,0 +1,7 @@
+SUPABASE v12.20 — JÁ APLICADO EM PRODUÇÃO
+
+- Novo contexto seguro de plano para o fechamento da comanda.
+- Barbeiro pode reservar ficha válida somente no próprio atendimento.
+- Barbeiro pode desfazer reserva ainda não consumida somente no próprio atendimento.
+- Exige permissão de concluir atendimento.
+- anon sem EXECUTE; authenticated permitido, com autorização interna por membro/profissional.

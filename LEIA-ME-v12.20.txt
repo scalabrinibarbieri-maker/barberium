@@ -1,0 +1,26 @@
+BARBERIUM v12.20 — BARBEIRO FECHA COMANDA USANDO FICHA
+
+Ao abrir "Concluir atendimento", se o cliente tiver plano:
+- aparece CLIENTE DE PLANO;
+- aparecem as fichas válidas para os serviços daquela comanda;
+- o barbeiro pode tocar em "Usar ficha";
+- a comanda reabre automaticamente com "A receber agora" recalculado;
+- cobertura total => R$ 0,00 de serviço a receber;
+- cobertura parcial => cobra apenas a diferença;
+- a ficha pode ser removida antes da conclusão.
+
+SEGURANÇA
+- barbeiro não ganhou acesso aos contratos ativos nem à administração de planos;
+- só pode usar/remover ficha no próprio atendimento;
+- precisa ter permissão para marcar atendimento como concluído;
+- saldo, validade, unidade, frequência e serviço coberto continuam validados no Supabase.
+
+SUPABASE
+Backend v12.20 já aplicado em produção. Não execute SQL manualmente.
+
+ARQUIVOS DESTA ATUALIZAÇÃO
+- equipe/barberium-v12.17.js  (mesmo arquivo atual, apenas acrescido da integração v12.20)
+- sw.js                      (somente cache v12.17 -> v12.20)
+
+IMPORTANTE
+O equipe/index.html NÃO é substituído nesta atualização. Isso é intencional para preservar exatamente a versão atual da main.
