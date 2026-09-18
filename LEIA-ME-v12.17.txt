@@ -1,0 +1,45 @@
+BARBERIUM v12.17 — SALDO DE PLANOS SEMPRE ATUALIZADO
+
+PROBLEMA ENCONTRADO
+A baixa das fichas já acontecia corretamente no banco ao concluir um atendimento,
+mas a tela "Contratos ativos" podia permanecer com os dados que haviam sido
+carregados antes da conclusão.
+
+Isso fazia parecer que a ficha não tinha sido descontada.
+
+CORREÇÃO
+- Sempre que "Contratos ativos" volta a ficar visível, a própria tela existente
+  faz uma nova consulta ao backend.
+- Também atualiza ao voltar para a aba do navegador/app.
+- Não altera os cálculos nem desconta uma ficha adicional.
+- Não cria nenhuma nova regra de planos.
+
+CASO CRISTIANO PUPO — CONFERIDO NO BANCO
+Atendimento concluído de 18/09/2026, 16:30, Jean:
+- Corte: 1 ficha consumida.
+- Barba Tradizionale: 1 ficha consumida.
+
+Saldo real atual retornado pelo backend:
+- Corte: 4 totais, 1 usada, 3 disponíveis.
+- Barba Tradizionale: 3 totais, 1 usada, 2 disponíveis.
+
+MEU PERFIL DO CLIENTE
+A tela do cliente já lê diretamente o campo "available" do saldo real do backend.
+Portanto, ao carregar o perfil, ela recebe o saldo já consumido.
+
+NÃO ALTERADO
+- Supabase / banco de dados.
+- Consumo de créditos.
+- Reserva de créditos.
+- Conclusão de atendimento.
+- Planos e regras.
+- Financeiro.
+- Comissões.
+- Agenda.
+- Encaixe.
+- Área desktop v12.16.
+- Área do cliente v12.15.
+
+INSTALAÇÃO
+Extraia este ZIP na RAIZ do repositório e substitua os arquivos correspondentes.
+O cache passa de v12.16 para v12.17.
