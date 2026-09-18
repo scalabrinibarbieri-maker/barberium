@@ -1,0 +1,155 @@
+/* Barberium v12.14 — camada desktop da área do cliente.
+   Mobile/tablet pequeno permanecem controlados pelos estilos existentes. */
+.desktop-nav{display:none}
+
+@media (min-width:900px){
+  html{background:#020704}
+  body{padding:0;background:#020704;min-height:100vh}
+  .app-shell{width:100%;max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;padding-bottom:0;overflow:visible;background:linear-gradient(180deg,#06110c,#08150e 55%,#050c08)}
+
+  .topbar{height:82px;padding:0 clamp(32px,5vw,76px);gap:24px;background:rgba(4,12,8,.92);border-bottom:1px solid rgba(255,255,255,.055);backdrop-filter:blur(20px)}
+  .brand-button{min-width:230px;gap:12px}
+  .mini-logo{width:48px;height:48px}
+  .brand-button strong{font-size:17px}
+  .brand-button small{font-size:9px;letter-spacing:.1em}
+  .desktop-nav{display:flex;align-items:center;justify-content:center;gap:6px;margin-left:auto}
+  .desktop-nav .nav-item{width:auto;min-width:0;height:46px;padding:0 14px;border-radius:12px;display:flex;flex-direction:row;gap:7px;color:#8d887e;transition:background .18s ease,color .18s ease,transform .18s ease}
+  .desktop-nav .nav-item:hover{background:rgba(255,255,255,.045);color:#d9cfbd}
+  .desktop-nav .nav-item.active{background:rgba(210,166,76,.11);color:var(--gold2)}
+  .desktop-nav .nav-glyph{font-size:16px}
+  .desktop-nav .nav-item small{font-size:11px;letter-spacing:.01em}
+  .top-profile{width:44px;height:44px;flex:0 0 44px;font-size:12px}
+  .bottom-nav{display:none}
+
+  .page-pad{padding-left:clamp(36px,5vw,76px);padding-right:clamp(36px,5vw,76px)}
+
+  .hero{height:clamp(590px,72vh,760px);min-height:590px;max-height:760px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .hero-bg{object-position:center 45%}
+  .hero-shade{background:linear-gradient(90deg,rgba(2,8,5,.92) 0%,rgba(3,10,7,.72) 30%,rgba(3,10,7,.34) 58%,rgba(2,8,5,.16) 100%),linear-gradient(180deg,rgba(0,0,0,.04),rgba(3,12,8,.18) 60%,#06110c 100%)}
+  .hero-content{inset:auto auto clamp(62px,9vh,94px) clamp(48px,8vw,132px);width:min(650px,52vw);align-items:flex-start}
+  .hero-logo{width:112px;height:112px;margin-bottom:22px}
+  .hero-unit{font-size:18px;margin-bottom:10px}
+  .hero h1{max-width:620px;font-size:clamp(66px,6.2vw,90px);line-height:.92;letter-spacing:-.05em}
+  .hero-welcome{font-size:15px;margin-top:16px}
+  .hero-cta{min-width:224px;margin-top:28px;padding:17px 20px;font-size:14px}
+
+  .home-content{width:min(1180px,calc(100% - 80px));margin:0 auto;padding:0 0 58px}
+  #nextAppointmentWrap:not(:empty){padding-top:38px}
+  .next-card{margin-top:0;padding:26px 28px;border-radius:24px}
+  .next-head h3{font-size:31px}
+  .next-details{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .detail-box{padding:14px}
+  .detail-box strong{font-size:14px}
+  .card-actions{max-width:430px;margin-top:18px}
+
+  .home-section{padding-top:54px}
+  .section-title{margin-bottom:22px}
+  .section-title h2,.unit-card h2{font-size:39px}
+  .services-summary-card{padding:32px 34px;border-radius:24px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);column-gap:52px;row-gap:24px;align-items:start}
+  .services-summary-card p{font-size:15px;line-height:1.75}
+  .services-summary-list{margin:0;padding-left:20px;font-size:13px;line-height:1.65;gap:10px}
+  .services-summary-card .inline-book-button{grid-column:1/-1;width:auto;min-width:264px;justify-self:start;margin-top:0;padding:15px 20px}
+
+  .unit-card{margin:52px 0 30px;padding:36px 40px;border-radius:26px}
+  .unit-logo-wrap{right:-34px;top:-38px;width:210px;height:210px}
+  .unit-info{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:760px;margin:26px 0}
+  .unit-info>div{gap:13px}
+  .info-icon{width:38px;height:38px}
+  .unit-info strong{font-size:14px}
+  .unit-actions{grid-template-columns:repeat(2,minmax(0,1fr));max-width:590px;gap:12px}
+  .outline-button{padding:14px 16px;font-size:12px}
+  .powered{font-size:11px}
+  .team-entry{margin-bottom:4px}
+
+  .booking-page{width:min(1180px,calc(100% - 80px));margin:0 auto;padding:38px 0 64px}
+  .booking-header{grid-template-columns:48px 1fr auto;gap:16px}
+  .icon-button{width:44px;height:44px;border-radius:13px}
+  .booking-header h1{font-size:38px;margin-top:5px}
+  .step-counter{font-size:11px}
+  .progress-track{margin:22px 0 30px;height:4px}
+  .booking-stage{min-height:620px}
+  .booking-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+
+  .choice-service{grid-template-columns:102px 1fr 28px;min-height:102px;border-radius:18px;padding-right:16px}
+  .choice-service img{width:102px;height:102px}
+  .choice-service h3{font-size:21px}
+  .choice-service p{font-size:11px}
+  .choice-service p strong{font-size:12px}
+  .service-description{font-size:11px;line-height:1.45}
+  .combo-components{font-size:10px}
+
+  .pro-choice{min-height:94px;padding:16px;border-radius:18px}
+  .pro-choice img{width:70px;height:70px;border-radius:14px}
+  .pro-choice strong{font-size:22px}
+  .pro-choice-copy small{font-size:11px}
+
+  .addon-section{margin-top:32px;padding-top:28px}
+  .addon-heading h3{font-size:30px}
+  .addon-heading p{font-size:12px}
+  .addon-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .addon-card{grid-template-columns:84px 1fr 36px;min-height:84px;border-radius:18px}
+  .addon-card img{width:84px;height:84px}
+  .addon-info strong{font-size:19px}
+  .booking-total-mini{padding:15px 18px}
+
+  .calendar-strip{grid-template-columns:repeat(4,minmax(120px,160px));justify-content:start;gap:10px;margin-bottom:22px}
+  .day-button{padding:14px 8px;border-radius:15px}
+  .day-button strong{font-size:19px}
+  .month-label{font-size:26px;margin-bottom:16px}
+  .time-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+  .time-btn{padding:15px 10px}
+
+  #bookingStage>.form-grid,#bookingStage>.known-client,#bookingStage>.review-card,#bookingStage>.confirmation{width:min(760px,100%);margin-left:auto;margin-right:auto}
+  #bookingStage>.continue-btn{width:min(760px,100%);margin-left:auto;margin-right:auto}
+  #bookingStage .field input{padding:15px 14px}
+  .known-client{padding:24px;border-radius:20px}
+  .known-client h3{font-size:29px}
+  .review-card{border-radius:22px}
+  .review-hero{grid-template-columns:118px 1fr;padding:17px;gap:18px}
+  .review-hero img{width:118px;height:118px;border-radius:16px}
+  .review-hero h3{font-size:27px}
+  .review-lines{padding:8px 20px 16px}
+  .review-line{font-size:12px;padding:13px 0}
+  .stage-actions{max-width:760px;margin:22px auto 0}
+  .confirmation{padding-top:48px}
+  .confirmation h2{font-size:48px}
+
+  .standard-page{width:min(1120px,calc(100% - 80px));margin:0 auto;padding:48px 0 70px}
+  .page-heading{padding:4px 0 28px}
+  .page-heading h1{font-size:52px;margin-top:7px}
+  .page-heading p{font-size:13px;max-width:560px}
+  .tabs{width:360px;margin-bottom:24px}
+  #appointmentsContent{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  #appointmentsContent .appointment-card{margin:0;padding:21px;border-radius:20px}
+  #appointmentsContent .empty-state{grid-column:1/-1}
+  .appt-top h3{font-size:25px}
+  .appt-top p{font-size:12px}
+  .appt-price{font-size:13px}
+  .appt-pro{font-size:12px}
+  .appt-pro img{width:42px;height:42px;border-radius:11px}
+
+  #profileContent>.profile-card,#profileContent>.profile-actions,#profileContent>.profile-section,#profileContent>.push-card{width:min(760px,100%)}
+  .profile-card{border-radius:22px}
+  .profile-row{padding:18px 20px}
+  .profile-row strong{font-size:14px}
+  .profile-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .profile-section{margin-top:38px}
+  .profile-section h3{font-size:28px}
+  .profile-section p{font-size:12px}
+  .bm-membership-section{margin-top:46px}
+  .bm-title h2{font-size:2rem}
+  .bm-plan-list,.bm-offer-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .bm-plan-card,.bm-offer-card{padding:22px;border-radius:20px}
+  .bm-booking-benefit{width:min(760px,100%);margin:22px auto;padding:20px}
+
+  .modal-backdrop{align-items:center;padding:28px}
+  .modal{width:min(620px,calc(100% - 56px));border-radius:24px;padding:26px}
+  .modal h3{font-size:31px}
+  .toast{bottom:28px;width:min(620px,calc(100% - 56px))}
+}
+
+@media (min-width:1380px){
+  .home-content{width:min(1240px,calc(100% - 120px))}
+  .booking-page,.standard-page{width:min(1240px,calc(100% - 120px))}
+  .hero-content{left:max(90px,calc((100vw - 1240px)/2))}
+}

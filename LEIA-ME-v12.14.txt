@@ -1,0 +1,51 @@
+BARBERIUM v12.14 — DESKTOP DA ÁREA DO CLIENTE
+
+Objetivo:
+Dar à tela do cliente um layout próprio para computador, sem reconstruir o
+Barberium e sem alterar o funcionamento mobile.
+
+ALTERAÇÕES
+- Desktop deixa de ser o "celular de 620px no meio da tela".
+- Cabeçalho desktop com navegação horizontal:
+  Início / Agendar / Meus horários / Meu perfil.
+- Hero da página inicial passa a aproveitar a largura da tela.
+- Conteúdo central ganha largura apropriada de desktop.
+- Cards e informações da home aproveitam melhor o espaço.
+- Fluxo de agendamento ganha:
+  - serviços em grade;
+  - profissionais em grade;
+  - adicionais em grade;
+  - horários em mais colunas;
+  - formulários e revisão com largura confortável.
+- "Meus horários" pode exibir os agendamentos em duas colunas.
+- "Meu perfil" e planos ganham melhor distribuição em telas grandes.
+- Modais e notificações ficam proporcionais ao desktop.
+
+PRESERVADO
+- Área da Equipe: não alterada.
+- Supabase: não alterado.
+- Regras de agendamento: não alteradas.
+- Serviços, adicionais, profissionais e horários: mesma lógica existente.
+- Planos/benefícios: mesma lógica existente.
+- Mobile: continua usando o layout anterior.
+- Tablet pequeno: continua usando o comportamento anterior.
+
+RESPONSIVIDADE
+- A nova camada desktop entra a partir de 900px.
+- Isso também permite testar pelo modo "Versão para computador" de muitos
+  navegadores móveis, que normalmente usam um viewport próximo de 980px.
+
+ARQUIVOS
+- index.html
+- desktop-v12.14.css
+- sw.js
+
+INSTALAÇÃO
+Extraia este ZIP na RAIZ do repositório Barberium e substitua os arquivos
+index.html e sw.js. Adicione desktop-v12.14.css na raiz.
+
+O cache do PWA foi atualizado de v12.13 para v12.14.
+
+IMPORTANTE
+Esta versão parte exatamente do index.html e sw.js que estavam na branch main
+no momento da criação da atualização.
