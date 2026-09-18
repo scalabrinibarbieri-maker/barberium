@@ -1,0 +1,26 @@
+BARBERIUM v12.8 — CANCELAMENTOS
+
+Arquivos deste pacote:
+1) /equipe/index.html
+2) /equipe/agenda-cancelados-v12.8.js
+3) /sw.js
+
+COMO COLOCAR NO GITHUB
+- Envie os arquivos mantendo exatamente essas pastas.
+- Substitua /equipe/index.html pelo arquivo deste pacote.
+- Adicione /equipe/agenda-cancelados-v12.8.js.
+- Substitua /sw.js pelo arquivo deste pacote.
+- Não altere nenhum outro arquivo.
+
+O QUE MUDA
+- Agenda passa a ter as abas “Agenda” e “Cancelados”.
+- Cancelados deixam de poluir a agenda normal.
+- Ao cancelar, há “Cancelamento normal” ou “Engano / erro de agendamento”.
+- Cancelamento de atendimento concluído também recebe essa classificação.
+- Estorno, comissão, estoque e histórico continuam preservados.
+- No relatório do barbeiro, correções por erro não aparecem como vários lançamentos em aberto;
+  aparece apenas “Cancelamento por erro de agendamento: X”.
+- O team.js principal não foi alterado.
+
+OBSERVAÇÃO
+O Supabase já foi preparado para esta versão nesta conversa.
