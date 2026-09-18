@@ -1,0 +1,40 @@
+BARBERIUM v12.15 — AGENDAMENTO MAIOR NO DESKTOP
+
+Esta atualização parte da v12.14 e altera SOMENTE o visual do fluxo de
+agendamento em telas desktop (>= 900px).
+
+AUMENTADO NO DESKTOP:
+- título e informações do passo atual;
+- cards e fotos dos serviços;
+- textos de preço, duração, descrição e componentes;
+- cards e fotos dos profissionais;
+- adicionais;
+- datas;
+- botões de horários;
+- campos de dados do cliente;
+- benefício/plano durante o agendamento;
+- revisão final;
+- confirmação;
+- botões do fluxo.
+
+PRESERVADO:
+- Mobile: sem alteração.
+- Home desktop aprovada na v12.14: sem alteração.
+- Meus horários: sem alteração.
+- Meu perfil: sem alteração.
+- Área da Equipe: sem alteração.
+- JavaScript: sem alteração.
+- Supabase: sem alteração.
+- Regras, preços, durações, disponibilidade e confirmação: sem alteração.
+
+ARQUIVOS:
+- desktop-v12.15.css
+- index.html
+- sw.js
+
+INSTALAÇÃO:
+Extraia na RAIZ do repositório e substitua index.html e sw.js.
+Adicione desktop-v12.15.css.
+
+O antigo desktop-v12.14.css pode continuar no repositório; a página deixa de
+carregá-lo e passa a usar desktop-v12.15.css.

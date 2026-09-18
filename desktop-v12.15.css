@@ -1,0 +1,537 @@
+/* Barberium v12.14 — camada desktop da área do cliente.
+   Mobile/tablet pequeno permanecem controlados pelos estilos existentes. */
+.desktop-nav{display:none}
+
+@media (min-width:900px){
+  html{background:#020704}
+  body{padding:0;background:#020704;min-height:100vh}
+  .app-shell{width:100%;max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;padding-bottom:0;overflow:visible;background:linear-gradient(180deg,#06110c,#08150e 55%,#050c08)}
+
+  .topbar{height:82px;padding:0 clamp(32px,5vw,76px);gap:24px;background:rgba(4,12,8,.92);border-bottom:1px solid rgba(255,255,255,.055);backdrop-filter:blur(20px)}
+  .brand-button{min-width:230px;gap:12px}
+  .mini-logo{width:48px;height:48px}
+  .brand-button strong{font-size:17px}
+  .brand-button small{font-size:9px;letter-spacing:.1em}
+  .desktop-nav{display:flex;align-items:center;justify-content:center;gap:6px;margin-left:auto}
+  .desktop-nav .nav-item{width:auto;min-width:0;height:46px;padding:0 14px;border-radius:12px;display:flex;flex-direction:row;gap:7px;color:#8d887e;transition:background .18s ease,color .18s ease,transform .18s ease}
+  .desktop-nav .nav-item:hover{background:rgba(255,255,255,.045);color:#d9cfbd}
+  .desktop-nav .nav-item.active{background:rgba(210,166,76,.11);color:var(--gold2)}
+  .desktop-nav .nav-glyph{font-size:16px}
+  .desktop-nav .nav-item small{font-size:11px;letter-spacing:.01em}
+  .top-profile{width:44px;height:44px;flex:0 0 44px;font-size:12px}
+  .bottom-nav{display:none}
+
+  .page-pad{padding-left:clamp(36px,5vw,76px);padding-right:clamp(36px,5vw,76px)}
+
+  .hero{height:clamp(590px,72vh,760px);min-height:590px;max-height:760px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .hero-bg{object-position:center 45%}
+  .hero-shade{background:linear-gradient(90deg,rgba(2,8,5,.92) 0%,rgba(3,10,7,.72) 30%,rgba(3,10,7,.34) 58%,rgba(2,8,5,.16) 100%),linear-gradient(180deg,rgba(0,0,0,.04),rgba(3,12,8,.18) 60%,#06110c 100%)}
+  .hero-content{inset:auto auto clamp(62px,9vh,94px) clamp(48px,8vw,132px);width:min(650px,52vw);align-items:flex-start}
+  .hero-logo{width:112px;height:112px;margin-bottom:22px}
+  .hero-unit{font-size:18px;margin-bottom:10px}
+  .hero h1{max-width:620px;font-size:clamp(66px,6.2vw,90px);line-height:.92;letter-spacing:-.05em}
+  .hero-welcome{font-size:15px;margin-top:16px}
+  .hero-cta{min-width:224px;margin-top:28px;padding:17px 20px;font-size:14px}
+
+  .home-content{width:min(1180px,calc(100% - 80px));margin:0 auto;padding:0 0 58px}
+  #nextAppointmentWrap:not(:empty){padding-top:38px}
+  .next-card{margin-top:0;padding:26px 28px;border-radius:24px}
+  .next-head h3{font-size:31px}
+  .next-details{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .detail-box{padding:14px}
+  .detail-box strong{font-size:14px}
+  .card-actions{max-width:430px;margin-top:18px}
+
+  .home-section{padding-top:54px}
+  .section-title{margin-bottom:22px}
+  .section-title h2,.unit-card h2{font-size:39px}
+  .services-summary-card{padding:32px 34px;border-radius:24px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);column-gap:52px;row-gap:24px;align-items:start}
+  .services-summary-card p{font-size:15px;line-height:1.75}
+  .services-summary-list{margin:0;padding-left:20px;font-size:13px;line-height:1.65;gap:10px}
+  .services-summary-card .inline-book-button{grid-column:1/-1;width:auto;min-width:264px;justify-self:start;margin-top:0;padding:15px 20px}
+
+  .unit-card{margin:52px 0 30px;padding:36px 40px;border-radius:26px}
+  .unit-logo-wrap{right:-34px;top:-38px;width:210px;height:210px}
+  .unit-info{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:760px;margin:26px 0}
+  .unit-info>div{gap:13px}
+  .info-icon{width:38px;height:38px}
+  .unit-info strong{font-size:14px}
+  .unit-actions{grid-template-columns:repeat(2,minmax(0,1fr));max-width:590px;gap:12px}
+  .outline-button{padding:14px 16px;font-size:12px}
+  .powered{font-size:11px}
+  .team-entry{margin-bottom:4px}
+
+  .booking-page{width:min(1180px,calc(100% - 80px));margin:0 auto;padding:38px 0 64px}
+  .booking-header{grid-template-columns:48px 1fr auto;gap:16px}
+  .icon-button{width:44px;height:44px;border-radius:13px}
+  .booking-header h1{font-size:38px;margin-top:5px}
+  .step-counter{font-size:11px}
+  .progress-track{margin:22px 0 30px;height:4px}
+  .booking-stage{min-height:620px}
+  .booking-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+
+  .choice-service{grid-template-columns:102px 1fr 28px;min-height:102px;border-radius:18px;padding-right:16px}
+  .choice-service img{width:102px;height:102px}
+  .choice-service h3{font-size:21px}
+  .choice-service p{font-size:11px}
+  .choice-service p strong{font-size:12px}
+  .service-description{font-size:11px;line-height:1.45}
+  .combo-components{font-size:10px}
+
+  .pro-choice{min-height:94px;padding:16px;border-radius:18px}
+  .pro-choice img{width:70px;height:70px;border-radius:14px}
+  .pro-choice strong{font-size:22px}
+  .pro-choice-copy small{font-size:11px}
+
+  .addon-section{margin-top:32px;padding-top:28px}
+  .addon-heading h3{font-size:30px}
+  .addon-heading p{font-size:12px}
+  .addon-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .addon-card{grid-template-columns:84px 1fr 36px;min-height:84px;border-radius:18px}
+  .addon-card img{width:84px;height:84px}
+  .addon-info strong{font-size:19px}
+  .booking-total-mini{padding:15px 18px}
+
+  .calendar-strip{grid-template-columns:repeat(4,minmax(120px,160px));justify-content:start;gap:10px;margin-bottom:22px}
+  .day-button{padding:14px 8px;border-radius:15px}
+  .day-button strong{font-size:19px}
+  .month-label{font-size:26px;margin-bottom:16px}
+  .time-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+  .time-btn{padding:15px 10px}
+
+  #bookingStage>.form-grid,#bookingStage>.known-client,#bookingStage>.review-card,#bookingStage>.confirmation{width:min(760px,100%);margin-left:auto;margin-right:auto}
+  #bookingStage>.continue-btn{width:min(760px,100%);margin-left:auto;margin-right:auto}
+  #bookingStage .field input{padding:15px 14px}
+  .known-client{padding:24px;border-radius:20px}
+  .known-client h3{font-size:29px}
+  .review-card{border-radius:22px}
+  .review-hero{grid-template-columns:118px 1fr;padding:17px;gap:18px}
+  .review-hero img{width:118px;height:118px;border-radius:16px}
+  .review-hero h3{font-size:27px}
+  .review-lines{padding:8px 20px 16px}
+  .review-line{font-size:12px;padding:13px 0}
+  .stage-actions{max-width:760px;margin:22px auto 0}
+  .confirmation{padding-top:48px}
+  .confirmation h2{font-size:48px}
+
+  .standard-page{width:min(1120px,calc(100% - 80px));margin:0 auto;padding:48px 0 70px}
+  .page-heading{padding:4px 0 28px}
+  .page-heading h1{font-size:52px;margin-top:7px}
+  .page-heading p{font-size:13px;max-width:560px}
+  .tabs{width:360px;margin-bottom:24px}
+  #appointmentsContent{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  #appointmentsContent .appointment-card{margin:0;padding:21px;border-radius:20px}
+  #appointmentsContent .empty-state{grid-column:1/-1}
+  .appt-top h3{font-size:25px}
+  .appt-top p{font-size:12px}
+  .appt-price{font-size:13px}
+  .appt-pro{font-size:12px}
+  .appt-pro img{width:42px;height:42px;border-radius:11px}
+
+  #profileContent>.profile-card,#profileContent>.profile-actions,#profileContent>.profile-section,#profileContent>.push-card{width:min(760px,100%)}
+  .profile-card{border-radius:22px}
+  .profile-row{padding:18px 20px}
+  .profile-row strong{font-size:14px}
+  .profile-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .profile-section{margin-top:38px}
+  .profile-section h3{font-size:28px}
+  .profile-section p{font-size:12px}
+  .bm-membership-section{margin-top:46px}
+  .bm-title h2{font-size:2rem}
+  .bm-plan-list,.bm-offer-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .bm-plan-card,.bm-offer-card{padding:22px;border-radius:20px}
+  .bm-booking-benefit{width:min(760px,100%);margin:22px auto;padding:20px}
+
+  .modal-backdrop{align-items:center;padding:28px}
+  .modal{width:min(620px,calc(100% - 56px));border-radius:24px;padding:26px}
+  .modal h3{font-size:31px}
+  .toast{bottom:28px;width:min(620px,calc(100% - 56px))}
+}
+
+@media (min-width:1380px){
+  .home-content{width:min(1240px,calc(100% - 120px))}
+  .booking-page,.standard-page{width:min(1240px,calc(100% - 120px))}
+  .hero-content{left:max(90px,calc((100vw - 1240px)/2))}
+}
+
+/* Barberium v12.15 — escala desktop do fluxo de agendamento.
+   Escopo deliberadamente restrito a [data-view="booking"].
+   Mobile e demais telas desktop permanecem como na v12.14. */
+@media (min-width:900px){
+  [data-view="booking"] .booking-page{
+    width:min(1280px,calc(100% - 80px));
+    padding-top:46px;
+    padding-bottom:76px;
+  }
+
+  [data-view="booking"] .booking-header{
+    grid-template-columns:54px 1fr auto;
+    gap:19px;
+  }
+  [data-view="booking"] .icon-button{
+    width:50px;
+    height:50px;
+    border-radius:15px;
+    font-size:22px;
+  }
+  [data-view="booking"] .kicker{
+    font-size:11px;
+    letter-spacing:.2em;
+  }
+  [data-view="booking"] .booking-header h1{
+    font-size:46px;
+    line-height:1.02;
+    margin-top:7px;
+  }
+  [data-view="booking"] .step-counter{
+    font-size:13px;
+  }
+  [data-view="booking"] .progress-track{
+    height:5px;
+    margin:27px 0 38px;
+  }
+  [data-view="booking"] .booking-stage{
+    min-height:680px;
+  }
+
+  /* Serviços */
+  [data-view="booking"] .booking-list{
+    gap:18px;
+  }
+  [data-view="booking"] .choice-service{
+    grid-template-columns:132px 1fr 32px;
+    min-height:132px;
+    gap:18px;
+    padding-right:20px;
+    border-radius:21px;
+  }
+  [data-view="booking"] .choice-service img{
+    width:132px;
+    height:132px;
+  }
+  [data-view="booking"] .choice-service>span:nth-child(2){
+    padding:16px 0;
+  }
+  [data-view="booking"] .choice-service h3{
+    font-size:27px;
+    line-height:1.1;
+  }
+  [data-view="booking"] .choice-service p{
+    margin-top:9px;
+    font-size:13px;
+    line-height:1.45;
+  }
+  [data-view="booking"] .choice-service p strong{
+    font-size:14px;
+  }
+  [data-view="booking"] .service-description{
+    margin-top:7px;
+    font-size:13px;
+    line-height:1.5;
+  }
+  [data-view="booking"] .combo-components{
+    margin-top:6px;
+    font-size:12px;
+    line-height:1.4;
+  }
+  [data-view="booking"] .radio-mark{
+    width:23px;
+    height:23px;
+  }
+  [data-view="booking"] .selected .radio-mark:after{
+    inset:4px;
+  }
+
+  /* Profissionais */
+  [data-view="booking"] .pro-choice{
+    min-height:118px;
+    gap:18px;
+    padding:18px 20px;
+    border-radius:21px;
+  }
+  [data-view="booking"] .pro-choice img{
+    width:88px;
+    height:88px;
+    border-radius:17px;
+  }
+  [data-view="booking"] .pro-choice strong{
+    font-size:27px;
+  }
+  [data-view="booking"] .pro-choice-copy{
+    gap:7px;
+  }
+  [data-view="booking"] .pro-choice-copy small{
+    font-size:13px;
+    line-height:1.45;
+  }
+
+  /* Adicionais */
+  [data-view="booking"] .addon-section{
+    margin-top:40px;
+    padding-top:34px;
+  }
+  [data-view="booking"] .addon-heading h3{
+    font-size:35px;
+  }
+  [data-view="booking"] .addon-heading p{
+    font-size:14px;
+    line-height:1.55;
+    max-width:780px;
+  }
+  [data-view="booking"] .addon-list{
+    gap:15px;
+  }
+  [data-view="booking"] .addon-card{
+    grid-template-columns:104px 1fr 40px;
+    min-height:104px;
+    gap:15px;
+    padding-right:16px;
+    border-radius:20px;
+  }
+  [data-view="booking"] .addon-card img{
+    width:104px;
+    height:104px;
+  }
+  [data-view="booking"] .addon-info{
+    gap:4px;
+  }
+  [data-view="booking"] .addon-info strong{
+    font-size:22px;
+  }
+  [data-view="booking"] .addon-info small{
+    font-size:11px;
+  }
+  [data-view="booking"] .addon-info .service-description{
+    font-size:12px;
+    line-height:1.4;
+  }
+  [data-view="booking"] .addon-price{
+    font-size:13px;
+  }
+  [data-view="booking"] .addon-price b{
+    font-size:14px;
+  }
+  [data-view="booking"] .addon-action{
+    width:32px;
+    height:32px;
+    font-size:16px;
+  }
+  [data-view="booking"] .booking-total-mini{
+    margin-top:20px;
+    padding:18px 21px;
+    border-radius:16px;
+  }
+  [data-view="booking"] .booking-total-mini span{
+    font-size:12px;
+  }
+  [data-view="booking"] .booking-total-mini strong{
+    font-size:18px;
+  }
+
+  /* Datas */
+  [data-view="booking"] .calendar-strip{
+    grid-template-columns:repeat(4,minmax(150px,190px));
+    gap:12px;
+    margin-bottom:28px;
+  }
+  [data-view="booking"] .day-button{
+    min-height:100px;
+    padding:18px 10px;
+    gap:4px;
+    border-radius:18px;
+  }
+  [data-view="booking"] .day-button small{
+    font-size:10px;
+    letter-spacing:.06em;
+  }
+  [data-view="booking"] .day-button strong{
+    font-size:25px;
+  }
+  [data-view="booking"] .day-button span{
+    font-size:12px;
+  }
+  [data-view="booking"] .month-label{
+    font-size:32px;
+    margin-bottom:21px;
+  }
+
+  /* Horários */
+  [data-view="booking"] .time-grid{
+    grid-template-columns:repeat(6,minmax(110px,1fr));
+    gap:12px;
+  }
+  [data-view="booking"] .time-btn{
+    min-height:58px;
+    padding:17px 12px;
+    border-radius:16px;
+    font-size:16px;
+  }
+  [data-view="booking"] .no-times{
+    padding:34px;
+    border-radius:19px;
+    font-size:15px;
+    line-height:1.6;
+  }
+
+  /* Dados do cliente */
+  [data-view="booking"] #bookingStage>.form-grid,
+  [data-view="booking"] #bookingStage>.known-client,
+  [data-view="booking"] #bookingStage>.review-card,
+  [data-view="booking"] #bookingStage>.confirmation{
+    width:min(900px,100%);
+  }
+  [data-view="booking"] #bookingStage>.continue-btn{
+    width:min(900px,100%);
+  }
+  [data-view="booking"] .form-grid{
+    gap:18px;
+  }
+  [data-view="booking"] .field{
+    gap:8px;
+  }
+  [data-view="booking"] .field label{
+    font-size:12px;
+    letter-spacing:.09em;
+  }
+  [data-view="booking"] .field input{
+    min-height:58px;
+    padding:17px 17px;
+    border-radius:16px;
+    font-size:16px;
+  }
+  [data-view="booking"] .field-hint{
+    font-size:12px;
+    line-height:1.55;
+  }
+
+  [data-view="booking"] .known-client{
+    padding:30px;
+    border-radius:23px;
+  }
+  [data-view="booking"] .known-client h3{
+    font-size:35px;
+    margin-top:7px;
+  }
+  [data-view="booking"] .known-client p{
+    font-size:14px;
+    line-height:1.55;
+  }
+  [data-view="booking"] .known-row{
+    padding:14px 0;
+    font-size:14px;
+  }
+  [data-view="booking"] .text-button{
+    font-size:13px;
+    padding:13px;
+  }
+
+  /* Benefício/planos durante o agendamento */
+  [data-view="booking"] .bm-booking-benefit{
+    width:min(900px,100%);
+    margin:26px auto;
+    padding:25px;
+    border-radius:20px;
+  }
+  [data-view="booking"] .bm-booking-benefit h3{
+    font-size:26px;
+  }
+  [data-view="booking"] .bm-booking-benefit>p,
+  [data-view="booking"] .bm-booking-coverage{
+    font-size:13px;
+    line-height:1.5;
+  }
+  [data-view="booking"] .bm-benefit-choice label{
+    font-size:12px;
+  }
+  [data-view="booking"] .bm-benefit-choice select{
+    min-height:54px;
+    padding:14px;
+    font-size:15px;
+  }
+
+  /* Revisão e confirmação */
+  [data-view="booking"] .review-card{
+    border-radius:24px;
+  }
+  [data-view="booking"] .review-hero{
+    grid-template-columns:146px 1fr;
+    gap:22px;
+    padding:20px;
+  }
+  [data-view="booking"] .review-hero img{
+    width:146px;
+    height:146px;
+    border-radius:18px;
+  }
+  [data-view="booking"] .review-hero h3{
+    font-size:33px;
+    line-height:1.08;
+  }
+  [data-view="booking"] .review-hero p{
+    margin-top:8px;
+    font-size:16px;
+  }
+  [data-view="booking"] .review-lines{
+    padding:10px 24px 20px;
+  }
+  [data-view="booking"] .review-line{
+    padding:16px 0;
+    font-size:14px;
+  }
+  [data-view="booking"] .stage-actions{
+    max-width:900px;
+    gap:12px;
+    margin-top:27px;
+  }
+  [data-view="booking"] .gold-button,
+  [data-view="booking"] .secondary-button,
+  [data-view="booking"] .danger-button,
+  [data-view="booking"] .soft-button{
+    min-height:54px;
+    padding:15px 19px;
+    border-radius:15px;
+    font-size:14px;
+  }
+  [data-view="booking"] .continue-btn{
+    margin-top:24px;
+  }
+  [data-view="booking"] .confirmation{
+    padding-top:58px;
+    padding-bottom:48px;
+  }
+  [data-view="booking"] .confirm-seal{
+    width:98px;
+    height:98px;
+    font-size:40px;
+    margin-bottom:24px;
+  }
+  [data-view="booking"] .confirmation h2{
+    font-size:54px;
+  }
+  [data-view="booking"] .confirmation>p{
+    max-width:570px;
+    font-size:15px;
+    line-height:1.6;
+  }
+}
+
+@media (min-width:1380px){
+  [data-view="booking"] .booking-page{
+    width:min(1320px,calc(100% - 120px));
+  }
+  [data-view="booking"] .choice-service{
+    grid-template-columns:142px 1fr 34px;
+    min-height:142px;
+  }
+  [data-view="booking"] .choice-service img{
+    width:142px;
+    height:142px;
+  }
+  [data-view="booking"] .choice-service h3{
+    font-size:29px;
+  }
+  [data-view="booking"] .time-grid{
+    grid-template-columns:repeat(6,minmax(130px,1fr));
+  }
+}
+
