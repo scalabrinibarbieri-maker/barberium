@@ -1,0 +1,454 @@
+/* Barberium v12.16 — Área da Equipe em desktop
+   Camada exclusivamente visual para telas >= 900px.
+   Mobile continua sendo controlado pelos estilos originais. */
+
+@media (min-width:900px){
+  html,body{min-height:100%;background:#06110b}
+  body{overflow-x:hidden}
+  .team-shell{width:100%;max-width:none;min-height:100vh;margin:0;padding:0}
+
+  /* Login: apenas ganha proporção de desktop. */
+  .login-view{
+    width:min(520px,calc(100% - 64px));
+    min-height:100vh;
+    margin:0 auto;
+    padding:36px 0 64px;
+    justify-content:center;
+  }
+  .back-link{position:absolute;left:40px;top:28px;margin:0;font-size:13px}
+  .login-brand{margin:0 0 30px}
+  .login-brand img{width:132px;height:132px;margin-bottom:17px}
+  .login-brand span{font-size:11px}
+  .login-brand h1{font-size:44px;margin-top:9px}
+  .login-brand p{font-size:14px}
+  .login-card{padding:28px;border-radius:25px;gap:19px}
+  .login-card label{font-size:12px}
+  .login-card input{min-height:54px;font-size:15px}
+  .login-card .gold-btn{min-height:54px;font-size:14px}
+
+  /* Dashboard em largura real. */
+  .dashboard-view{
+    min-height:100vh;
+    padding:0 0 70px 244px;
+  }
+
+  /* Cabeçalho superior da área útil. */
+  .dash-head{
+    position:sticky;
+    top:0;
+    z-index:35;
+    height:82px;
+    padding:0 42px;
+    background:rgba(5,15,10,.93);
+    border-bottom:1px solid rgba(255,255,255,.055);
+    backdrop-filter:blur(18px);
+  }
+  .dash-head .brand-line{
+    position:fixed;
+    z-index:45;
+    left:25px;
+    top:20px;
+    width:194px;
+    height:48px;
+  }
+  .brand-line img{width:46px;height:46px}
+  .brand-line small{font-size:9px}
+  .brand-line strong{font-size:19px}
+  .dash-head #logoutButton{
+    margin-left:auto;
+    min-height:42px;
+    padding-inline:17px;
+    font-size:12px;
+  }
+
+  /* Navegação inferior vira sidebar; itens/visibilidade continuam sendo
+     controlados pelo JS existente. */
+  .team-bottom-nav,
+  .team-bottom-nav.one,
+  .team-bottom-nav.two,
+  .team-bottom-nav.four,
+  .team-bottom-nav.five,
+  .team-bottom-nav.six{
+    position:fixed;
+    z-index:30;
+    left:0;
+    top:0;
+    bottom:0;
+    width:244px;
+    height:100vh;
+    transform:none;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap:7px;
+    padding:92px 15px 22px;
+    background:linear-gradient(180deg,rgba(7,20,14,.99),rgba(5,15,10,.99));
+    border-top:0;
+    border-right:1px solid rgba(255,255,255,.065);
+    backdrop-filter:blur(20px);
+  }
+  .team-bottom-nav button{
+    width:100%;
+    min-height:50px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:13px;
+    padding:10px 15px;
+    border-radius:13px;
+    color:#837d72;
+  }
+  .team-bottom-nav button:hover{background:rgba(255,255,255,.035);color:#d4cab9}
+  .team-bottom-nav button.active{
+    background:linear-gradient(90deg,rgba(210,166,76,.15),rgba(210,166,76,.055));
+    box-shadow:inset 3px 0 0 rgba(240,207,123,.78);
+    color:var(--gold2);
+  }
+  .team-bottom-nav button span{font-size:21px;width:26px;text-align:center}
+  .team-bottom-nav button small{font-size:12px;font-weight:850;letter-spacing:.01em}
+  .dash-footer{display:none}
+
+  /* Todos os painéis usam a área central de desktop. */
+  .team-panel{
+    width:min(1320px,calc(100% - 72px));
+    margin:0 auto;
+    padding:34px 0 18px;
+  }
+  #agendaPanel{padding-top:28px}
+  #productsPanel{padding-bottom:25px}
+
+  /* Cabeçalhos */
+  .welcome-line,
+  .performance-head,
+  .settings-head{padding:12px 2px 24px}
+  .welcome-line h1,
+  .performance-head h1,
+  .settings-head h1{
+    font-size:44px;
+    line-height:1.02;
+  }
+  .welcome-line p{
+    max-width:360px;
+    font-size:12px;
+    line-height:1.55;
+  }
+  .performance-head p,
+  .settings-head p{
+    max-width:720px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .role-pill{font-size:9px;padding:6px 10px}
+
+  /* Botões e filtros gerais */
+  .gold-btn,.soft-btn,.ghost-btn,.danger-btn,.icon-btn{
+    border-radius:13px;
+    font-size:12px;
+    padding:11px 15px;
+  }
+  .gold-btn.small{padding:12px 16px;font-size:12px}
+  .quick-actions{
+    justify-content:flex-start;
+    gap:11px;
+    margin-bottom:22px;
+  }
+  .quick-actions>*{flex:0 1 190px;min-height:44px}
+  .filter-wrap{margin-bottom:20px}
+  .filter-wrap>small{font-size:9px;margin-bottom:9px}
+  .chips{gap:9px}
+  .chip{padding:10px 15px;font-size:11px}
+
+  /* Agenda */
+  .date-card{
+    grid-template-columns:60px 1fr 60px;
+    width:min(720px,100%);
+    margin:0 auto 18px;
+    border-radius:20px;
+  }
+  .date-card>button{height:76px}
+  #prevDay,#nextDay{font-size:34px}
+  #dateButton small{font-size:9px}
+  #dateButton strong{font-size:21px}
+
+  .summary-grid{
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+    margin:18px 0 32px;
+  }
+  .summary-card{
+    border-radius:17px;
+    padding:17px 16px;
+  }
+  .summary-card small{font-size:9px}
+  .summary-card strong{font-size:24px;margin-top:7px}
+
+  .section-head{margin-bottom:17px}
+  .section-head small{font-size:9px}
+  .section-head h2{font-size:32px}
+  .agenda-list{gap:11px}
+  .agenda-item{
+    grid-template-columns:92px 1fr;
+    border-radius:19px;
+  }
+  .agenda-time{padding:18px 12px}
+  .agenda-time strong{font-size:23px}
+  .agenda-time small{font-size:9px}
+  .agenda-body{padding:17px 19px}
+  .agenda-top h3{font-size:23px}
+  .status{font-size:8px;padding:5px 8px}
+  .agenda-service{font-size:13px;margin-top:7px}
+  .agenda-meta{gap:8px;margin-top:10px}
+  .agenda-meta span{font-size:10px;padding:6px 8px}
+  .loading,.empty{padding:34px 20px;font-size:14px}
+
+  /* Resumo / desempenho */
+  .period-tabs{
+    width:min(520px,100%);
+    grid-template-columns:repeat(3,1fr);
+    margin-bottom:14px;
+  }
+  .period-tabs button{font-size:12px;padding:12px 10px}
+  .period-label{font-size:10px;margin:15px 2px 12px}
+  .performance-grid{
+    grid-template-columns:repeat(auto-fit,minmax(205px,1fr));
+    gap:13px;
+    margin-bottom:34px;
+  }
+  .performance-card{padding:20px;border-radius:19px}
+  .performance-card small{font-size:9px}
+  .performance-card strong{font-size:29px}
+  .performance-card em{font-size:10px}
+  .service-stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:11px;
+  }
+  .service-stat{padding:16px;border-radius:16px}
+  .service-stat h3{font-size:20px}
+  .service-stat p{font-size:11px}
+  .service-stat strong{font-size:18px}
+
+  /* Clientes */
+  .client-tabs{
+    width:min(620px,100%);
+    margin-bottom:22px;
+  }
+  .client-tabs button,.client-subtabs button{
+    font-size:11px;
+    padding:12px 10px;
+  }
+  .client-toolbar{
+    width:min(460px,100%);
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .client-search{max-width:720px;margin:16px 0 20px}
+  .client-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:11px;
+  }
+  .client-card,.campaign-card{
+    padding:17px 18px;
+    border-radius:17px;
+  }
+  .client-card h3,.campaign-card h3{font-size:21px}
+  .client-card p,.campaign-card p{font-size:11px}
+  .client-meta span{font-size:9px;padding:6px 8px}
+  .report-section{margin-top:34px}
+  .report-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .report-row{padding:16px;border-radius:16px}
+  .report-row h3{font-size:18px}
+  .report-row p,.report-values span{font-size:10px}
+  .report-row strong{font-size:17px}
+  .birthday-card strong{font-size:19px}
+  .birthday-card small,.birthday-card a{font-size:10px}
+
+  .campaign-builder{
+    max-width:920px;
+    gap:15px;
+  }
+  .campaign-selection,.campaign-history{gap:10px}
+  .campaign-help,.field-help{font-size:11px;line-height:1.55}
+
+  /* Formulários gerais */
+  .field{gap:8px;font-size:11px}
+  .field label{font-size:10px}
+  .field input,.field select,.field textarea,
+  .modal-card input,.modal-card select,.modal-card textarea{
+    min-height:48px;
+    padding:12px 13px;
+    font-size:13px;
+  }
+  .field textarea,.modal-card textarea{min-height:110px}
+
+  /* Financeiro */
+  .finance-controls{
+    grid-template-columns:repeat(3,minmax(180px,1fr));
+    gap:12px;
+    max-width:900px;
+    margin-bottom:18px;
+  }
+  .finance-tabs{
+    width:max-content;
+    max-width:100%;
+    gap:7px;
+    margin-bottom:22px;
+  }
+  .finance-tabs button{font-size:11px;padding:12px 16px}
+  .finance-summary{
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:12px;
+  }
+  .finance-kpi{padding:19px;border-radius:19px}
+  .finance-kpi small{font-size:9px}
+  .finance-kpi strong{font-size:28px}
+  .finance-kpi>span{font-size:10px}
+  .finance-section{margin-top:34px}
+  .finance-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:11px;
+  }
+  .finance-row,.plan-card,.cash-card,.goal-card{
+    padding:17px;
+    border-radius:18px;
+  }
+  .finance-row h3,.plan-card h3,.cash-card h3,.goal-card h3{font-size:20px}
+  .finance-row p,.plan-card p,.cash-card p,.goal-card p{font-size:11px}
+  .finance-row strong{font-size:18px}
+  .dre-card{padding:18px;border-radius:18px;gap:10px}
+  .dre-line{font-size:12px}
+  .finance-wide{width:auto;min-width:250px;padding-inline:20px}
+  .payment-line{padding:13px;gap:10px}
+  .payment-total{padding:15px}
+  .payment-total span{font-size:11px}
+  .payment-total strong{font-size:23px}
+
+  /* Equipe */
+  .team-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  .team-card{padding:17px;border-radius:19px;gap:15px}
+  .team-card img{width:62px;height:62px;border-radius:16px}
+  .team-card h3{font-size:22px}
+  .team-card p{font-size:11px}
+
+  /* Configurações */
+  .settings-toolbar{
+    display:flex;
+    align-items:end;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .settings-toolbar .field{width:min(360px,100%)}
+  .settings-tabs{
+    display:flex;
+    gap:7px;
+    overflow:visible;
+    margin-bottom:24px;
+  }
+  .settings-tabs button{
+    min-width:150px;
+    font-size:11px;
+    padding:12px 15px;
+  }
+  .settings-content{font-size:13px}
+  .rules-grid,.benefit-editor-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+
+  /* Produtos */
+  .product-grid{
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:18px;
+    margin-top:24px;
+  }
+  .product-card{padding:19px;border-radius:20px}
+  .product-card img,.product-placeholder{height:190px}
+  .product-card h3{font-size:21px}
+  .product-card p{font-size:14px;line-height:1.5}
+  .basket-item{padding:18px 0}
+  .basket-item input{width:86px;min-width:86px;font-size:14px}
+
+  /* Modais passam a ter proporção de desktop. */
+  .modal-backdrop{
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+  }
+  .modal-card{
+    width:min(900px,calc(100% - 60px));
+    max-height:90vh;
+    border-radius:25px;
+    padding:24px 26px 28px;
+    box-shadow:0 28px 90px rgba(0,0,0,.55);
+  }
+  .modal-head{
+    top:-24px;
+    padding:11px 0 16px;
+  }
+  .modal-head small{font-size:9px}
+  .modal-head h2{font-size:34px}
+  .modal-close{width:42px;height:42px;font-size:26px}
+  .modal-body{gap:17px}
+  .detail-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .detail-box{padding:14px;border-radius:15px}
+  .detail-box small{font-size:9px}
+  .detail-box strong{font-size:17px}
+  .detail-box.wide{grid-column:1/-1}
+  .detail-note{padding:15px}
+  .detail-note small{font-size:9px}
+  .detail-note p{font-size:13px}
+  .form-grid{gap:14px}
+  .form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form-section{padding:17px;border-radius:18px;gap:12px}
+  .form-section h3{font-size:22px}
+  .form-section p.help{font-size:11px}
+  .check-row{padding:12px;border-radius:13px}
+  .check-row span{font-size:12px}
+  .customer-results{max-height:260px;gap:8px}
+  .customer-result{padding:13px}
+  .customer-result strong{font-size:13px}
+  .customer-result small{font-size:10px}
+  .selected-customer{padding:14px}
+  .selected-customer strong{font-size:19px}
+  .selected-customer small{font-size:10px}
+  .price-preview{padding:14px}
+  .price-preview span{font-size:11px}
+  .price-preview strong{font-size:22px}
+  .switch-row{padding:14px}
+  .switch-row div strong{font-size:12px}
+  .switch-row div small{font-size:10px}
+  .permission-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+  .permission-item{padding:13px}
+  .permission-item span{font-size:12px}
+
+  .toast{
+    left:auto;
+    right:28px;
+    bottom:28px;
+    transform:translateY(18px);
+    max-width:420px;
+    font-size:12px;
+    padding:12px 16px;
+  }
+  .toast.show{transform:none}
+}
+
+@media (min-width:1400px){
+  .dashboard-view{padding-left:258px}
+  .team-bottom-nav,
+  .team-bottom-nav.one,
+  .team-bottom-nav.two,
+  .team-bottom-nav.four,
+  .team-bottom-nav.five,
+  .team-bottom-nav.six{width:258px}
+  .dash-head .brand-line{width:204px}
+  .team-panel{width:min(1420px,calc(100% - 88px))}
+}
