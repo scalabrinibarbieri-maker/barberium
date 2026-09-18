@@ -1,0 +1,56 @@
+BARBERIUM v12.16 — DESKTOP DA ÁREA DA EQUIPE
+
+Esta atualização é SOMENTE visual/responsiva.
+
+O QUE MUDA NO DESKTOP (>= 900px)
+- Área da Equipe deixa de ficar presa a 660px.
+- Navegação inferior vira menu lateral.
+- Cabeçalho fica no topo da área de trabalho.
+- Conteúdo central aproveita telas grandes.
+- Agenda continua cronológica em uma única coluna larga.
+- Resumo usa mais colunas.
+- Desempenho usa cards maiores e melhor distribuição.
+- Clientes podem aparecer em duas colunas.
+- Financeiro usa mais largura, KPIs em grade e listas maiores.
+- Produtos aproveitam melhor o espaço.
+- Equipe e permissões ganham grade.
+- Configurações ficam mais confortáveis.
+- Modais e formulários ficam maiores.
+- Login recebe proporção de desktop.
+
+O QUE NÃO MUDA
+- Mobile.
+- Área do cliente v12.15.
+- team.js.
+- agenda-cancelados-v12.8.js.
+- finance-reports.js.
+- settings.js.
+- overlays v12.9 / v12.10 / v12.13.
+- Supabase.
+- Regras de agenda.
+- Encaixe.
+- Financeiro.
+- Comissões.
+- Planos.
+- Produtos.
+- Clientes.
+- Permissões.
+
+Não há migration SQL.
+
+BASE CONFERIDA
+- equipe/index.html usado como base é exatamente o blob atual da main:
+  7a5f39fce428319fe18b10b218feb0d6ef7af8cb
+- sw.js usado como base é exatamente o blob atual da main:
+  bbd4f3047b95683c7bc922809ce95694426f7e19
+
+INSTALAÇÃO
+Extraia o ZIP na RAIZ do repositório Barberium.
+Substitua:
+- equipe/index.html
+- sw.js
+
+Adicione:
+- equipe/desktop-v12.16.css
+
+O cache passa de v12.15 para v12.16.
