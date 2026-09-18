@@ -1,0 +1,17 @@
+BARBERIUM v12.12 — BACKEND JÁ APLICADO
+
+Supabase project: Barberium
+Migration registrada: v12_12_multi_service_staff_booking
+Versão registrada no Supabase: 20260918194913
+
+Esta migration já está ativa no banco de produção.
+Este arquivo é apenas um marcador para o pacote de atualização.
+Não há SQL para executar manualmente.
+
+A migration:
+- adicionou item_kind em public.appointment_addons;
+- preservou 'addon' como padrão para todos os itens antigos;
+- acrescentou suporte seguro a item_kind='service';
+- criou RPCs staff v12.12 para slots/criação/edição com serviços extras;
+- atualizou detalhe/dashboard para exibir os serviços da comanda;
+- protegeu reagendamento público de comandas com múltiplos serviços.

@@ -1,0 +1,40 @@
+BARBERIUM v12.12 — MÚLTIPLOS SERVIÇOS NA MESMA COMANDA
+
+Esta atualização é cirúrgica e afeta somente o fluxo manual da Área da Equipe:
+- Novo horário
+- Novo encaixe
+- Edição de atendimento confirmado
+
+O que foi acrescentado:
+- Botão "+ Adicionar serviço" dentro do agendamento.
+- Permite dois ou mais serviços completos na mesma comanda.
+- Serviço adicional NÃO vira "adicional" e NÃO cria combo automaticamente.
+- Valor de tabela soma os serviços selecionados.
+- Duração do atendimento soma os serviços selecionados.
+- Disponibilidade de horários usa a duração total da comanda.
+- Ao editar, os serviços adicionais permanecem e podem ser removidos/trocados.
+- Na agenda e no detalhe, o nome aparece junto, por exemplo:
+  Corte + Barba Tradizionale.
+- Adicionais antigos continuam separados e com as mesmas regras anteriores.
+
+Escopo preservado:
+- Agendamento público do cliente não foi alterado.
+- Financeiro, produtos, planos, Agenda/Cancelados e demais módulos não foram reconstruídos.
+- Regras de acesso da equipe continuam sendo respeitadas.
+- Agendamento com múltiplos serviços não pode ser reagendado pelo próprio cliente no site;
+  nesse caso, o sistema orienta falar com a equipe, evitando perda de itens da comanda.
+
+SUPABASE:
+A migration de backend "v12_12_multi_service_staff_booking" JÁ FOI APLICADA
+no banco de produção. Não é necessário executar SQL manualmente.
+
+Validações realizadas:
+- Corte + Barba Tradizionale: R$ 165,00 e 95 minutos.
+- Edição para Corte + Barba Express: R$ 150,00 e 70 minutos.
+- Adicional antigo testado separadamente e permaneceu com a regra anterior.
+- RPCs novas: anon sem EXECUTE; authenticated com EXECUTE.
+- Todos os registros temporários dos testes foram removidos.
+
+COMO INSTALAR:
+Extraia este ZIP na raiz do repositório Barberium e substitua os arquivos
+de mesmo nome.
