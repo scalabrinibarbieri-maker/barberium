@@ -1,0 +1,30 @@
+BARBERIUM v12.10 — PRODUTOS NO RESUMO
+
+Suba o conteúdo deste ZIP na RAIZ do repositório, preservando as pastas e
+substituindo os arquivos de mesmo nome.
+
+Arquivos desta atualização:
+- equipe/index.html
+- equipe/barberium-v12.10.js
+- sw.js
+- migrations/20260918_v12_10_performance_products.sql
+
+Correção:
+- Faturamento realizado no Resumo passa a somar serviços + produtos concluídos.
+- Mostra quantidade de produtos vendidos.
+- Mostra faturamento de produtos separado.
+- Produtos aparecem no "Resumo do período" com nome, quantidade e valor.
+- Serviços continuam com a lógica anterior.
+- Produtos ligados a atendimento não são somados dentro do valor do serviço; entram uma única vez como venda de produto.
+- O período respeita Hoje / Semana / Mês e o escopo do profissional.
+
+Validação feita em 18/09/2026:
+- 1 venda de produto concluída.
+- 1 unidade vendida.
+- R$ 89,90 em produtos.
+- O backend retornou R$ 89,90 em "Faturamento realizado".
+- O produto foi retornado corretamente no detalhamento.
+
+IMPORTANTE:
+A migration do Supabase já foi aplicada no banco de produção. O SQL está no ZIP
+para manter o repositório e o backup completos.
