@@ -119,8 +119,10 @@ function v128ApplyAgendaMode(){
   try{
     const headSmall=section.querySelector('.section-head small');
     const headTitle=section.querySelector('.section-head h2');
-    if(headSmall)headSmall.textContent=v128AgendaMode==='cancelled'?'CANCELADOS':'HORÁRIOS';
-    if(headTitle)headTitle.textContent=v128AgendaMode==='cancelled'?'Cancelamentos do dia':'Agenda do dia';
+    const wantedSmall=v128AgendaMode==='cancelled'?'CANCELADOS':'HORÁRIOS';
+    const wantedTitle=v128AgendaMode==='cancelled'?'Cancelamentos do dia':'Agenda do dia';
+    if(headSmall&&headSmall.textContent!==wantedSmall)headSmall.textContent=wantedSmall;
+    if(headTitle&&headTitle.textContent!==wantedTitle)headTitle.textContent=wantedTitle;
 
     let generated=list.querySelector('#v128AgendaEmpty');
 
@@ -134,10 +136,12 @@ function v128ApplyAgendaMode(){
     }
 
     const originalEmpty=list.querySelector('.empty:not(#v128AgendaEmpty)');
+    const emptyText=v128AgendaMode==='cancelled'
+      ?'Nenhum cancelamento nesta data.'
+      :'Nenhum horário ou bloqueio nesta data.';
+
     if(originalEmpty&&items.length===0){
-      originalEmpty.textContent=v128AgendaMode==='cancelled'
-        ?'Nenhum cancelamento nesta data.'
-        :'Nenhum horário ou bloqueio nesta data.';
+      if(originalEmpty.textContent!==emptyText)originalEmpty.textContent=emptyText;
     }else if(items.length>0&&visible===0&&!list.querySelector('.loading')){
       if(!generated){
         generated=document.createElement('div');
@@ -145,9 +149,7 @@ function v128ApplyAgendaMode(){
         generated.className='empty';
         list.appendChild(generated);
       }
-      generated.textContent=v128AgendaMode==='cancelled'
-        ?'Nenhum cancelamento nesta data.'
-        :'Nenhum horário ou bloqueio nesta data.';
+      if(generated.textContent!==emptyText)generated.textContent=emptyText;
     }else if(generated){
       generated.remove();
     }
