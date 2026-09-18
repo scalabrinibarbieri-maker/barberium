@@ -1,0 +1,47 @@
+BARBERIUM v12.13 — MÚLTIPLOS SERVIÇOS COMPLETO
+
+USE ESTE ZIP NO LUGAR DA v12.12.
+Não é necessário instalar a v12.12 antes.
+
+O que esta versão faz:
+- "+ Adicionar serviço" em Novo horário / Novo encaixe / edição.
+- Dois ou mais serviços completos na mesma comanda.
+- Soma valor e duração.
+- Disponibilidade respeita a duração total.
+- Agenda/detalhe mostram todos os serviços.
+
+PRESERVAÇÃO DO QUE JÁ FUNCIONAVA:
+- Atendimento com um único serviço continua usando a lógica antiga.
+- Adicionais continuam separados e com a regra anterior.
+- DRE e totais financeiros continuam usando o valor total da comanda.
+- Relatório por serviço passa a dividir corretamente apenas quando há múltiplos serviços.
+- Comissão passa a usar a regra de cada serviço apenas quando há múltiplos serviços.
+- Comissão de atendimento comum (um serviço) continua exatamente como antes.
+
+EXEMPLO VALIDADO:
+Corte R$ 90,00 + Barba Tradizionale R$ 75,00
+- Comanda: R$ 165,00
+- Duração: 95 min
+- Relatório:
+  - Corte: R$ 90,00
+  - Barba Tradizionale: R$ 75,00
+- Total do relatório: R$ 165,00
+
+TESTE DE COMISSÃO VALIDADO:
+Com taxas temporárias apenas dentro de transação de teste:
+- Corte: base R$ 90,00 a 30% = R$ 27,00
+- Barba: base R$ 75,00 a 50% = R$ 37,50
+As taxas reais do Barberium NÃO foram alteradas.
+
+BANCO:
+- Backend v12.12 já aplicado.
+- Correção de relatório/comissão v12.13 já aplicada.
+- Nenhum SQL precisa ser executado manualmente.
+
+LIMPEZA:
+- Todos os agendamentos temporários usados em testes foram removidos.
+- Nenhum item multi-serviço de teste permaneceu no banco.
+
+INSTALAÇÃO:
+Extraia este ZIP na raiz do repositório Barberium e substitua os arquivos
+de mesmo nome.

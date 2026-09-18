@@ -1,0 +1,12 @@
+BARBERIUM v12.13 — SUPABASE JÁ ATUALIZADO
+
+Migrations já aplicadas em produção:
+- v12_12_multi_service_staff_booking
+- v12_13_multi_service_reporting_commission
+
+Não execute SQL manualmente.
+
+A v12.13 completa a v12.12:
+- relatório por serviço entende múltiplos serviços;
+- comissão entende múltiplos serviços;
+- comandas antigas de um serviço seguem a lógica antiga sem alteração.

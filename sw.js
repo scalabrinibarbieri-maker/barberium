@@ -1,6 +1,6 @@
-const CACHE='scalabrini-client-v12-12';
+const CACHE='scalabrini-client-v12-13';
 const PRECACHE=[
-  './','./index.html','./styles.css?v=12.4','./app.js?v=12.7.1','./push.js?v=12.4','./membership.css?v=11.2','./membership.js?v=11.2','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=12.3.1','./equipe/settings.css?v=12','./equipe/team.js?v=12.7','./equipe/agenda-cancelados-v12.8.js?v=12.8','./equipe/finance-reports.js?v=12.8.1','./equipe/settings.js?v=12.7.1','./equipe/barberium-v12.9.js?v=12.9','./equipe/barberium-v12.10.js?v=12.10','./equipe/barberium-v12.12.js?v=12.12',
+  './','./index.html','./styles.css?v=12.4','./app.js?v=12.7.1','./push.js?v=12.4','./membership.css?v=11.2','./membership.js?v=11.2','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=12.3.1','./equipe/settings.css?v=12','./equipe/team.js?v=12.7','./equipe/agenda-cancelados-v12.8.js?v=12.8','./equipe/finance-reports.js?v=12.8.1','./equipe/settings.js?v=12.7.1','./equipe/barberium-v12.9.js?v=12.9','./equipe/barberium-v12.10.js?v=12.10','./equipe/barberium-v12.13.js?v=12.13',
   './assets/corte-barba-sobrancelha.webp','./assets/combo-corte-barba.webp','./assets/combo-corte-barboterapia.webp',
   './assets/barba-express.webp','./assets/barba-tradizionale.webp','./assets/pezinho-detalhes.webp','./assets/sobrancelha.webp',
   './assets/vinicius-nunes.webp','./assets/barboterapia.webp','./assets/logo-sb.webp','./assets/cabeca-raspada.webp',
