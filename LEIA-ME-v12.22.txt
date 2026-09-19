@@ -1,0 +1,29 @@
+BARBERIUM v12.22 — CORREÇÃO DECIMAL DA COMISSÃO DE PLANOS
+
+CORRIGIDO NO BACKEND (JÁ APLICADO)
+- Acerto aberto do Jean corrigido de R$ 4.803,09 para R$ 258,99.
+- Comissão do pacote Testa rasata e Barba Ben Curata corrigida:
+  Cabeça Raspada: R$ 25,50 por atendimento.
+  Barba Tradizionale: R$ 20,40 por atendimento.
+- Versão 2 (contrato ativo do Augusto) e versão 3 (atual) corrigidas.
+
+CORREÇÃO DE INTERFACE
+O editor agora aceita tanto vírgula quanto ponto nos valores fixos de comissão por atendimento.
+Exemplos:
+- 25,50 -> R$ 25,50
+- 25.50 -> R$ 25,50
+
+Antes, 25.50 era interpretado pelo parser brasileiro como 2550 e acabava virando R$ 2.550,00.
+
+PRESERVADO
+- Cliente passageiro v12.21.
+- Uso de ficha por barbeiro v12.20.
+- Agenda/Resumo e demais regras.
+- Nenhuma alteração em team.js.
+
+INSTALAÇÃO
+Extraia na raiz do repositório e substitua:
+- equipe/barberium-v12.17.js
+- sw.js
+
+O cache passa para v12.22.
