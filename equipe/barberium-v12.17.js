@@ -361,3 +361,257 @@
   }, true);
 })();
 
+/* v12.23 · cancelamento concluído separa anulação operacional de reembolso real */
+(() => {
+  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
+  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
+  const AUTH_KEY='barberium_staff_auth_v1';
+  const $=(s,r=document)=>r.querySelector(s);
+  const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format((Number(n)||0)/100);
+  const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+  let lastAppointmentId=new URLSearchParams(location.search).get('appointment')||null;
+  let opening=false;
+
+  function getAuth(){
+    try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}
+  }
+  function saveAuth(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
+  async function authFetch(path,opts={}){
+    const session=getAuth();
+    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
+    if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
+    let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
+    if(r.status===401&&session?.refresh_token){
+      const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+        method:'POST',
+        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:session.refresh_token})
+      });
+      if(rr.ok){
+        const refreshed=await rr.json();
+        saveAuth(refreshed);
+        headers.Authorization=`Bearer ${refreshed.access_token}`;
+        r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
+      }
+    }
+    const text=await r.text();
+    let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+    if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
+    return data;
+  }
+  const rpc=(name,payload={})=>authFetch(`/rest/v1/rpc/${name}`,{
+    method:'POST',
+    body:JSON.stringify(payload)
+  });
+
+  function toast(msg){
+    const t=$('#toast');
+    if(!t)return;
+    t.textContent=msg;
+    t.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer=setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  function openModal(eyebrow,title,html){
+    const back=$('#modalBackdrop');
+    if(!back)return;
+    $('#modalEyebrow').textContent=eyebrow||'';
+    $('#modalTitle').textContent=title||'';
+    $('#modalBody').innerHTML=html;
+    back.classList.remove('hidden');
+    back.setAttribute('aria-hidden','false');
+  }
+
+  function closeModal(){
+    const back=$('#modalBackdrop');
+    if(!back)return;
+    back.classList.add('hidden');
+    back.setAttribute('aria-hidden','true');
+    $('#modalBody').innerHTML='';
+  }
+
+  function refreshAgenda(){
+    const input=$('#dateInput');
+    if(input?.value)input.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  async function openCompletedCancellation(id){
+    if(opening)return;
+    opening=true;
+    openModal(
+      'CANCELAR ATENDIMENTO CONCLUÍDO',
+      'Conferir cancelamento',
+      '<div class="loading">Conferindo pagamentos e produtos…</div>'
+    );
+
+    try{
+      const [d,f,p]=await Promise.all([
+        rpc('barberium_staff_appointment_detail',{p_appointment_id:id}),
+        rpc('barberium_staff_appointment_finance',{p_appointment_id:id}),
+        rpc('barberium_staff_appointment_products',{p_appointment_id:id})
+      ]);
+
+      const servicePaid=Math.max(0,Number(f.paid_cents||0)-Number(f.refunds_cents||0));
+      const productPaid=p.status==='completed'?Number(p.paid_cents||0):0;
+      const pending=Number(f.receivable?.remaining_cents||0)+(p.status==='completed'?Number(p.pending_cents||0):0);
+      const hasMembership=(f.uses||[]).some(u=>u.status==='consumed');
+
+      openModal('CANCELAR ATENDIMENTO CONCLUÍDO',d.customer?.name||'Atendimento',`
+        <form id="v1223CancelCompletedForm" class="form-grid">
+          <div class="detail-grid">
+            <div class="detail-box">
+              <small>Valor registrado no serviço</small>
+              <strong>${money(servicePaid)}</strong>
+            </div>
+            <div class="detail-box">
+              <small>Valor registrado em produtos</small>
+              <strong>${money(productPaid)}</strong>
+            </div>
+            <div class="detail-box wide">
+              <small>Total registrado na comanda</small>
+              <strong>${money(servicePaid+productPaid)}</strong>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tipo do cancelamento</label>
+            <select id="v1223CancellationKind">
+              <option value="booking_error">Engano / erro operacional</option>
+              <option value="regular">Cancelamento normal</option>
+            </select>
+          </div>
+
+          <label class="check-row">
+            <input id="v1223IsRefund" type="checkbox">
+            <span>ISTO FOI REEMBOLSO</span>
+          </label>
+
+          <p class="v128-cancel-help">
+            Marque somente se o dinheiro realmente entrou e depois foi devolvido ao cliente.
+            Se foi erro de lançamento/agendamento e o dinheiro nunca entrou, deixe desmarcado.
+          </p>
+
+          <div id="v1223NoRefundNote" class="detail-note">
+            <p><strong>Sem reembolso:</strong> o Barberium vai anular os recebimentos registrados por engano.
+            Eles não aparecerão como faturamento nem como reembolso.</p>
+          </div>
+
+          <div id="v1223RefundNote" class="detail-note hidden">
+            <p><strong>Com reembolso:</strong> o recebimento permanece no histórico e a devolução entra
+            no Financeiro como reembolso real.</p>
+          </div>
+
+          <div id="v1223RefundMethodWrap" class="field hidden">
+            <label>Forma da devolução</label>
+            <select id="v1223RefundMethod">
+              <option value="">Selecione</option>
+              <option value="pix">Pix</option>
+              <option value="cash">Dinheiro</option>
+              <option value="debit">Débito</option>
+              <option value="credit">Crédito</option>
+              <option value="transfer">Transferência</option>
+              <option value="other">Outro</option>
+            </select>
+          </div>
+
+          <div class="detail-note">
+            <p>O cancelamento reverte as comissões e devolve produtos ao estoque.
+            ${pending>0?` O saldo pendente de ${money(pending)} será cancelado.`:''}
+            ${hasMembership?' A ficha do plano/pacote será devolvida.':''}</p>
+          </div>
+
+          <div class="field">
+            <label>Motivo do cancelamento</label>
+            <textarea id="v1223Reason" minlength="3" required
+              placeholder="Ex.: atendimento lançado por engano"></textarea>
+          </div>
+
+          <button id="v1223ConfirmCancel" class="danger-btn finance-wide" type="submit">
+            Cancelar sem registrar reembolso
+          </button>
+        </form>
+      `);
+
+      const form=$('#v1223CancelCompletedForm');
+      const isRefund=$('#v1223IsRefund');
+      const refundWrap=$('#v1223RefundMethodWrap');
+      const refundMethod=$('#v1223RefundMethod');
+      const noRefundNote=$('#v1223NoRefundNote');
+      const refundNote=$('#v1223RefundNote');
+      const button=$('#v1223ConfirmCancel');
+
+      const sync=()=>{
+        const on=isRefund.checked;
+        refundWrap.classList.toggle('hidden',!on);
+        noRefundNote.classList.toggle('hidden',on);
+        refundNote.classList.toggle('hidden',!on);
+        refundMethod.required=on;
+        button.textContent=on
+          ?'Cancelar e registrar reembolso'
+          :'Cancelar sem registrar reembolso';
+      };
+      isRefund.addEventListener('change',sync);
+      sync();
+
+      form.onsubmit=async e=>{
+        e.preventDefault();
+        if(button.disabled)return;
+
+        const refund=isRefund.checked;
+        const method=refund?refundMethod.value:null;
+        if(refund&&!method){
+          toast('Selecione a forma da devolução.');
+          return;
+        }
+
+        button.disabled=true;
+        const oldText=button.textContent;
+        button.textContent='Cancelando…';
+
+        try{
+          await rpc('barberium_staff_cancel_completed_appointment_v12_23',{
+            p_appointment_id:id,
+            p_reason:$('#v1223Reason').value.trim(),
+            p_cancellation_kind:$('#v1223CancellationKind').value,
+            p_is_refund:refund,
+            p_refund_method:method
+          });
+
+          toast(refund
+            ?'Atendimento cancelado e reembolso registrado.'
+            :'Atendimento cancelado sem reembolso. Lançamentos incorretos foram anulados.'
+          );
+          closeModal();
+          refreshAgenda();
+        }catch(err){
+          toast(err?.message||'Não foi possível cancelar.');
+          button.disabled=false;
+          button.textContent=oldText;
+        }
+      };
+    }catch(err){
+      const body=$('#modalBody');
+      if(body)body.innerHTML=`<div class="empty">${esc(err?.message||'Não foi possível conferir o atendimento.')}</div>`;
+    }finally{
+      opening=false;
+    }
+  }
+
+  // Window captura antes do listener antigo do documento.
+  // Assim só substituímos o fluxo de "cancelar concluído", preservando todo o resto.
+  window.addEventListener('click',event=>{
+    const appointment=event.target.closest?.('[data-appt-id]');
+    if(appointment?.dataset?.apptId)lastAppointmentId=appointment.dataset.apptId;
+
+    const completedCancel=event.target.closest?.('#cancelCompletedAppointment');
+    if(!completedCancel||!lastAppointmentId)return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    openCompletedCancellation(lastAppointmentId);
+  },true);
+})();
+
