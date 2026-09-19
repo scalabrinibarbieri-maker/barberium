@@ -1,0 +1,30 @@
+BARBERIUM v12.33 — HORÁRIOS LIVRES + SUA COMISSÃO
+
+BACKEND
+As RPCs necessárias já foram criadas no Supabase:
+- barberium_staff_free_ranges
+- barberium_staff_performance_v12_33
+
+1) AGENDA → HORÁRIOS LIVRES
+- Novo botão “Horários livres” na Agenda.
+- Barbeiro vê somente as próprias faixas livres.
+- ADM em “Todos” vê os profissionais separados; com um barbeiro selecionado, vê somente ele.
+- Respeita expediente, horários especiais, bloqueios e agendamentos que bloqueiam a agenda.
+- No dia atual, não mostra horários que já passaram.
+- Mostra faixas contínuas, por exemplo 19:00–21:00 (2h livres).
+
+2) SEU DESEMPENHO → SUA COMISSÃO
+- Para barbeiros com permissão de visualizar as próprias comissões.
+- Novo cartão “Sua comissão”.
+- Usa os lançamentos reais de comissão.
+- Funciona em Hoje / Semana / Mês.
+- Não altera o desempenho do ADM.
+
+ARQUIVOS
+Suba mantendo as pastas:
+- equipe/index.html
+- equipe/staff-tools-v12.33.js
+- sw.js
+
+O sw.js parte da v12.32 e preserva o perfil do cliente.
+O equipe/index.html preserva as correções anteriores, inclusive v12.31.
