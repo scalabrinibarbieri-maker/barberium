@@ -176,3 +176,150 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,600);
 })();
+
+/* v12.21 · cliente passageiro em Novo horário / Novo encaixe */
+(() => {
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const previousFetch21=window.fetch.bind(window);
+  let observer21=null;
+
+  function passengerForm(){
+    const form=$('#bookingForm');
+    return form?.dataset.v1221Passenger==='1' ? form : null;
+  }
+
+  function extraServiceIds(){
+    return $$('[data-v1212-remove-service]')
+      .map(btn=>btn.dataset.v1212RemoveService)
+      .filter(Boolean);
+  }
+
+  window.fetch=async function(input,init={}){
+    const url=typeof input==='string'?input:input?.url;
+    const match=typeof url==='string'
+      ?url.match(/\/rest\/v1\/rpc\/(barberium_staff_create_appointment|barberium_staff_create_walk_in)(?:\?|$)/)
+      :null;
+
+    const form=passengerForm();
+    if(match&&form&&init?.body){
+      try{
+        const body=typeof init.body==='string'?JSON.parse(init.body):{...(init.body||{})};
+        const target=match[1]==='barberium_staff_create_walk_in'
+          ?'barberium_staff_create_walk_in_v12_21'
+          :'barberium_staff_create_appointment_v12_21';
+
+        const patched={
+          ...body,
+          p_customer_id:null,
+          p_full_name:null,
+          p_phone:null,
+          p_extra_service_ids:extraServiceIds(),
+          p_is_passenger:true
+        };
+
+        const nextUrl=url.replace(`/rpc/${match[1]}`,`/rpc/${target}`);
+        return previousFetch21(nextUrl,{...init,body:JSON.stringify(patched)});
+      }catch(e){
+        console.error('Barberium v12.21 passageiro:',e);
+      }
+    }
+
+    return previousFetch21(input,init);
+  };
+
+  function setPassenger(form,on){
+    const search=$('#customerSearch',form);
+    const searchField=search?.closest('.field');
+    const normalActions=$('#searchCustomerButton',form)?.closest('.action-row');
+    const newFields=$('#newCustomerFields',form);
+    const selected=$('#selectedCustomerWrap',form);
+    const results=$('#customerResults',form);
+    const name=$('#newCustomerName',form);
+    const phone=$('#newCustomerPhone',form);
+    const button=$('#v1221PassengerButton',form);
+
+    form.dataset.v1221Passenger=on?'1':'0';
+
+    if(on){
+      // Aciona o fluxo "novo cliente" já existente apenas para ajustar o estado
+      // interno do team.js. O request será redirecionado ao RPC passageiro.
+      $('#newCustomerButton',form)?.click();
+
+      if(name)name.value='Cliente passageiro';
+      if(phone)phone.value='';
+      if(search)search.value='';
+      if(results)results.innerHTML='';
+
+      searchField?.classList.add('hidden');
+      normalActions?.classList.add('hidden');
+      newFields?.classList.add('hidden');
+
+      if(selected)selected.innerHTML=`
+        <div class="selected-customer">
+          <strong>Cliente passageiro</strong>
+          <small>Sem nome, WhatsApp ou cadastro na base de clientes</small>
+        </div>`;
+
+      if(button)button.textContent='Usar cliente identificado';
+    }else{
+      searchField?.classList.remove('hidden');
+      normalActions?.classList.remove('hidden');
+      newFields?.classList.add('hidden');
+
+      if(name)name.value='';
+      if(phone)phone.value='';
+      if(selected)selected.innerHTML='';
+      if(results)results.innerHTML='';
+      if(button)button.textContent='Cliente passageiro';
+    }
+  }
+
+  function injectPassenger(){
+    const form=$('#bookingForm');
+    if(!form||form.dataset.v1221Ready==='1')return;
+
+    // Em edição o cliente do atendimento já existe; o recurso é para registrar
+    // novos horários/encaixes esquecidos ou sem identificação.
+    const newCustomer=$('#newCustomerButton',form);
+    const actionRow=newCustomer?.closest('.action-row');
+    if(!newCustomer||!actionRow)return;
+
+    form.dataset.v1221Ready='1';
+    form.dataset.v1221Passenger='0';
+
+    const wrap=document.createElement('div');
+    wrap.id='v1221PassengerWrap';
+    wrap.className='action-row';
+    wrap.innerHTML=`
+      <button id="v1221PassengerButton" class="soft-btn" type="button">
+        Cliente passageiro
+      </button>
+      <small style="align-self:center;opacity:.72">
+        Use quando não houver nome ou WhatsApp do cliente.
+      </small>
+    `;
+    actionRow.insertAdjacentElement('afterend',wrap);
+
+    $('#v1221PassengerButton',form).onclick=()=>{
+      const active=form.dataset.v1221Passenger==='1';
+      setPassenger(form,!active);
+    };
+  }
+
+  function boot21(){
+    const modal=$('#modalBody');
+    if(!modal||observer21)return;
+    observer21=new MutationObserver(()=>setTimeout(injectPassenger,20));
+    observer21.observe(modal,{childList:true,subtree:true});
+    injectPassenger();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot21);
+  }else{
+    boot21();
+  }
+  setTimeout(boot21,500);
+})();
+
