@@ -323,3 +323,41 @@
   setTimeout(boot21,500);
 })();
 
+/* v12.22 · valores decimais da comissão de planos aceitam ponto ou vírgula */
+(() => {
+  function normalizePlanCommissionMoney(value){
+    const s=String(value??'').trim();
+    if(!s || s.includes(',')) return s;
+    const dots=(s.match(/\./g)||[]).length;
+    if(dots!==1) return s;
+    const parts=s.split('.');
+    const left=parts[0],right=parts[1];
+    if(!/^-?\d+$/.test(left) || !/^\d{1,2}$/.test(right)) return s;
+    return `${left},${right}`;
+  }
+
+  function normalizeTarget(input){
+    if(!input) return;
+    const next=normalizePlanCommissionMoney(input.value);
+    if(next!==input.value) input.value=next;
+  }
+
+  document.addEventListener('blur', event => {
+    const input=event.target;
+    if(!(input instanceof HTMLInputElement)) return;
+    if(input.matches('[data-plan-commission-service],#planHourlyRate')) normalizeTarget(input);
+  }, true);
+
+  // Capture roda antes do onsubmit do team.js. Assim, 25.50 chega ao parser
+  // original como 25,50, sem alterar nenhuma outra lógica financeira.
+  document.addEventListener('submit', event => {
+    if(event.target?.id!=='planForm') return;
+    const type=document.querySelector('#planCommissionType')?.value;
+    if(type==='attendance'){
+      document.querySelectorAll('[data-plan-commission-service]').forEach(normalizeTarget);
+    }else if(type==='hour'){
+      normalizeTarget(document.querySelector('#planHourlyRate'));
+    }
+  }, true);
+})();
+
