@@ -1,0 +1,71 @@
+BARBERIUM v12.24 — AJUSTES + PERSONALIZAÇÃO DA ÁREA DO CLIENTE
+
+1. LOGIN DA EQUIPE
+- Remove o grande espaço vazio acima da logo.
+- A marca, título e formulário ficam mais próximos do topo.
+- Não altera autenticação nem credenciais.
+
+2. MENU DA EQUIPE
+- O item inferior “Equipe” passa a aparecer como “Ajustes”.
+- A área interna “Equipe e permissões” continua existindo normalmente.
+
+3. CONFIGURAÇÕES DA BARBEARIA > BARBEARIA > ÁREA DO CLIENTE
+Nova seção por unidade com:
+- Texto do topo.
+- Texto sobre a capa.
+- Título principal.
+- Logo exibida ao cliente.
+- Foto grande de capa.
+
+O nome principal da empresa continua usando o campo já existente:
+“Nome da barbearia”.
+
+As imagens usam o mesmo Storage já utilizado pelo Barberium para fotos
+de serviços e profissionais.
+
+4. ÁREA DO CLIENTE
+Agora passa a ler do catálogo público:
+- Nome da barbearia.
+- Texto do topo.
+- Texto da capa.
+- Título principal.
+- Logo.
+- Foto de capa.
+- Nome da unidade.
+- WhatsApp.
+- Google Maps.
+
+A confirmação de agendamento e os textos do perfil também deixam de ficar
+presos ao nome “Scalabrini Barbieri”.
+
+ARQUITETURA
+Nenhuma tabela nova foi criada.
+A aparência fica dentro de units.settings, por unidade:
+- client_header_subtitle
+- client_hero_label
+- client_hero_title
+- client_logo_url
+- client_hero_image_url
+
+Isso preserva a estrutura multiempresa/multiunidade já existente.
+
+SUPABASE
+Não há migration para executar.
+O RPC de unidade e o catálogo público existentes já suportam estes dados.
+Foi validado em transação com ROLLBACK.
+
+PRESERVADO
+- v12.23 reembolso explícito.
+- v12.22 decimal de comissão.
+- v12.21 cliente passageiro.
+- v12.20 ficha na comanda.
+- Agenda, Resumo, Financeiro, Planos, Comissões e Produtos.
+- Desktop e mobile.
+
+ARQUIVOS PARA SUBIR NA RAIZ
+- index.html
+- barberium-client-v12.24.js
+- equipe/barberium-v12.17.js
+- sw.js
+
+O cache passa de v12.23 para v12.24.
