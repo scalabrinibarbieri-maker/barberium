@@ -1,0 +1,2 @@
+Backend v12.21 já aplicado no projeto Supabase pmvvawbaqylspxfmxezw.
+Não execute migration manualmente.

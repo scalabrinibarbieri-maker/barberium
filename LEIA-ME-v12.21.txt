@@ -1,0 +1,45 @@
+BARBERIUM v12.21 — CLIENTE PASSAGEIRO
+
+NOVO RECURSO
+Na Área da Equipe, em:
+- + Novo horário
+- + Novo encaixe
+
+aparece a opção "Cliente passageiro".
+
+Use quando o atendimento aconteceu, mas a equipe não tem o nome ou o WhatsApp
+do cliente.
+
+COMPORTAMENTO
+- Funciona para ADM e barbeiro com permissão para criar atendimento.
+- Não exige nome, telefone ou aniversário.
+- O atendimento aparece como "Cliente passageiro".
+- Pode ser usado em encaixe retroativo, como já era permitido pelo Barberium.
+- Serviço, valor, pagamento, faturamento, comissão e desempenho continuam
+  funcionando normalmente.
+- Cada passageiro é tecnicamente separado; atendimentos diferentes não são
+  agrupados como se fossem a mesma pessoa.
+- Passageiros não aparecem na busca/base de clientes.
+- Passageiros não aumentam os números de clientes novos/recorrentes do CRM.
+- O faturamento dos atendimentos passageiro continua entrando normalmente.
+
+PRESERVADO
+- v12.20: barbeiro usando ficha na comanda.
+- v12.19: Agenda sem duplicar receita de planos.
+- v12.18: Resumo sem duplicar receita de planos.
+- v12.17: saldo de contratos atualizado.
+- múltiplos serviços.
+- encaixe.
+- mobile e desktop.
+- financeiro e comissões.
+- planos/pacotes.
+
+SUPABASE
+O backend v12.21 já foi aplicado. NÃO execute SQL manualmente.
+
+INSTALAÇÃO
+Extraia este ZIP na raiz do repositório e substitua:
+- equipe/barberium-v12.17.js
+- sw.js
+
+O cache passa de v12.20 para v12.21.
