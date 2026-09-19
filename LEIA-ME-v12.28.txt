@@ -1,0 +1,27 @@
+BARBERIUM v12.28 — apresentação personalizável da página inicial
+
+NOVO EM AJUSTES > BARBEARIA > ÁREA DO CLIENTE
+- Chamada da seção (ex.: Experiências)
+- Título da seção (ex.: Nossos serviços)
+- Texto de apresentação
+- Destaques, uma linha por item
+- Texto do botão
+
+Os dados são salvos em units.settings, sem tabela ou migration nova.
+A Scalabrini mantém exatamente os textos atuais como padrão até que você os altere.
+
+Chaves adicionadas:
+- client_services_kicker
+- client_services_title
+- client_services_intro
+- client_services_bullets
+- client_services_cta
+
+ARQUIVOS ALTERADOS/ADICIONADOS
+- index.html
+- barberium-client-v12.24.js
+- sw.js
+- equipe/index.html
+- equipe/presentation-settings-v12.28.js
+
+Não altera agenda, financeiro, planos, comissões, autenticação ou banco de dados.

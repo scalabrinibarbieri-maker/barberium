@@ -1,4 +1,4 @@
-/* Barberium v12.27 · personalização pública da área do cliente */
+/* Barberium v12.28 · personalização pública da área do cliente */
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
@@ -66,6 +66,39 @@
   function whatsappHref(v=''){
     const digits=String(v).replace(/\D/g,'');
     return digits?`https://wa.me/${digits}`:'';
+  }
+
+  function presentationBullets(value){
+    if(Array.isArray(value))return value.map(v=>String(v||'').trim()).filter(Boolean);
+    if(typeof value==='string')return value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+    return [
+      'Cortes, barba tradicional e barba express',
+      'Combos completos com barba, sobrancelha e barboterapia',
+      'Barboterapia, sobrancelha, pezinho detalhes e cabeça raspada'
+    ];
+  }
+
+  function applyPresentation(st={}){
+    const kicker=String(st.client_services_kicker||'Experiências').trim();
+    const title=String(st.client_services_title||'Nossos serviços').trim();
+    const intro=String(st.client_services_intro||'Trabalhamos com uma seleção premium de atendimentos para manter sua experiência mais prática e elegante. Ao tocar em Agendar agora, você verá todos os serviços disponíveis com seus respectivos valores e duração.').trim();
+    const bullets=presentationBullets(st.client_services_bullets);
+    const cta=String(st.client_services_cta||'Ver serviços e agendar →').trim();
+
+    setText($('.home-section .section-title span'),kicker);
+    setText($('.home-section .section-title h2'),title);
+    setText($('.services-summary-card > p'),intro);
+    const list=$('.services-summary-list');
+    if(list){
+      list.innerHTML='';
+      for(const item of bullets){
+        const li=document.createElement('li');
+        li.textContent=item;
+        list.appendChild(li);
+      }
+      list.hidden=bullets.length===0;
+    }
+    setText($('.inline-book-button'),cta);
   }
 
   function applyDynamicTexts(brand){
@@ -136,6 +169,8 @@
     const mapsLink=$('.unit-actions a[href*="maps"]');
     if(mapsLink&&u.maps_url)mapsLink.href=u.maps_url;
 
+    applyPresentation(st);
+
     const brand={shopName,unitName};
     applyDynamicTexts(brand);
 
@@ -158,8 +193,7 @@
       });
       applyBranding(catalog);
     }catch(err){
-      console.error('Barberium v12.27 branding:',err);
-      // Fallback: se a personalização não responder, a tela é liberada normalmente.
+      console.error('Barberium v12.28 branding:',err);
     }finally{
       revealBranding();
     }
