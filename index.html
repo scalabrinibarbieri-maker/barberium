@@ -4,20 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07140e">
-  <meta name="description" content="Agende seu horário na Scalabrini Barbieri — II Unidade, Bragança Paulista.">
+  <meta name="description" content="Agende seu horário na Scalabrini Barbiere — II Unidade, Bragança Paulista.">
+  <script>
+    document.documentElement.classList.add('barberium-branding-pending');
+    window.__barberiumBrandingFallbackTimer=setTimeout(()=>{
+      document.documentElement.classList.remove('barberium-branding-pending');
+    },1800);
+  </script>
+  <style>
+    html.barberium-branding-pending .brand-button strong,
+    html.barberium-branding-pending .brand-button small,
+    html.barberium-branding-pending .mini-logo,
+    html.barberium-branding-pending .hero-bg,
+    html.barberium-branding-pending .hero-logo,
+    html.barberium-branding-pending .hero-unit,
+    html.barberium-branding-pending .hero-content h1,
+    html.barberium-branding-pending .unit-logo-wrap img,
+    html.barberium-branding-pending .unit-card h2,
+    html.barberium-branding-pending .unit-info > div:nth-child(2) strong,
+    html.barberium-branding-pending .unit-actions{visibility:hidden}
+  </style>
   <link rel="icon" href="./assets/logo-sb.webp">
   <link rel="manifest" href="./site.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=12.4">
   <link rel="stylesheet" href="./membership.css?v=11.2">
   <link rel="stylesheet" href="./desktop-v12.15.css?v=12.15">
-  <title>Scalabrini Barbieri • Bragança Paulista</title>
+  <title>Scalabrini Barbiere • Bragança Paulista</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar" id="topbar">
       <button class="brand-button" type="button" data-nav="home" aria-label="Ir para o início">
         <img src="./assets/logo-sb.webp" alt="" class="mini-logo">
-        <span><strong>Scalabrini Barbieri</strong><small>II Unidade • Bragança Paulista</small></span>
+        <span><strong>Scalabrini Barbiere</strong><small>II Unidade • Bragança Paulista</small></span>
       </button>
       <nav class="desktop-nav" aria-label="Navegação principal no desktop">
         <button class="nav-item active" type="button" data-nav="home"><span class="nav-glyph">⌂</span><small>Início</small></button>
@@ -31,11 +50,11 @@
     <main id="main">
       <section class="view active" data-view="home">
         <section class="hero">
-          <img class="hero-bg" src="./assets/barbearia.webp" alt="Interior da Scalabrini Barbieri" fetchpriority="high">
+          <img class="hero-bg" src="./assets/barbearia.webp" alt="Interior da Scalabrini Barbiere" fetchpriority="high">
           <div class="hero-shade"></div>
           <div class="hero-content">
-            <img class="hero-logo" src="./assets/logo-sb.webp" alt="Scalabrini Barbieri">
-            <p class="hero-unit">II Unidade — Bragança Paulista</p>
+            <img class="hero-logo" src="./assets/logo-sb.webp" alt="Scalabrini Barbiere">
+            <p class="hero-unit">Casa Scalabrini</p>
             <h1>Agende seu horário.</h1>
             <p class="hero-welcome" id="heroWelcome"></p>
             <button class="gold-button hero-cta" type="button" data-action="start-booking"><span>Agendar agora</span><span aria-hidden="true">→</span></button>
@@ -78,7 +97,7 @@
 
       <section class="view" data-view="profile">
         <div class="page-pad standard-page">
-          <header class="page-heading"><span class="kicker">Seus dados</span><h1 id="profileGreeting">Meu perfil</h1><p>Os dados usados nos seus agendamentos da Scalabrini Barbieri.</p></header>
+          <header class="page-heading"><span class="kicker">Seus dados</span><h1 id="profileGreeting">Meu perfil</h1><p>Os dados usados nos seus agendamentos da Scalabrini Barbiere.</p></header>
           <div id="profileContent"></div>
         </div>
       </section>
@@ -94,7 +113,7 @@
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
   <div class="toast" id="toast" role="status"></div>
   <script type="module" src="./app.js?v=12.7.1"></script>
-  <script type="module" src="./barberium-client-v12.24.js?v=12.24"></script>
+  <script type="module" src="./barberium-client-v12.24.js?v=12.26"></script>
   <script src="./membership.js?v=11.2" defer></script>
 </body>
 </html>

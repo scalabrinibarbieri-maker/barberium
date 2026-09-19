@@ -1,14 +1,19 @@
-/* Barberium v12.24 · personalização pública da área do cliente */
+/* Barberium v12.26 · personalização pública da área do cliente */
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
   const SHOP_SLUG='scalabrini-barbieri';
   const UNIT_SLUG='braganca-paulista';
+  const BRANDING_PENDING_CLASS='barberium-branding-pending';
 
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const setText=(el,value)=>{if(el&&value!=null&&el.textContent!==String(value))el.textContent=String(value)};
   const setSrc=(el,value)=>{if(el&&value&&el.getAttribute('src')!==value)el.setAttribute('src',value)};
+  const revealBranding=()=>{
+    clearTimeout(window.__barberiumBrandingFallbackTimer);
+    document.documentElement.classList.remove(BRANDING_PENDING_CLASS);
+  };
 
   async function rpc(name,payload={}){
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
@@ -67,7 +72,7 @@
     $$('#profileContent p').forEach(p=>{
       if(!p.textContent)return;
       const current=p.textContent;
-      const next=current.replaceAll('Scalabrini Barbieri',shopName);
+      const next=current.replaceAll('Scalabrini Barbieri',shopName).replaceAll('Scalabrini Barbiere',shopName);
       if(next!==current)p.textContent=next;
     });
   }
@@ -77,10 +82,10 @@
     const u=catalog?.unit||{};
     const st=u.settings||{};
 
-    const shopName=String(b.name||'Scalabrini Barbieri').trim();
+    const shopName=String(b.name||'Scalabrini Barbiere').trim();
     const unitName=String(u.name||'II Unidade — Bragança Paulista').trim();
     const headerSubtitle=String(st.client_header_subtitle||headerDefault(u)||unitName).trim();
-    const heroLabel=String(st.client_hero_label||unitName).trim();
+    const heroLabel=String(st.client_hero_label||'Casa Scalabrini').trim();
     const heroTitle=String(st.client_hero_title||'Agende seu horário.').trim();
     const logo=String(st.client_logo_url||'./assets/logo-sb.webp').trim();
     const heroImage=String(st.client_hero_image_url||'./assets/barbearia.webp').trim();
@@ -137,8 +142,10 @@
       });
       applyBranding(catalog);
     }catch(err){
-      console.error('Barberium v12.24 branding:',err);
-      // Fallback: o HTML original continua funcionando exatamente como antes.
+      console.error('Barberium v12.26 branding:',err);
+      // Fallback: os valores estáticos atuais continuam visíveis se a personalização não carregar.
+    }finally{
+      revealBranding();
     }
   }
 

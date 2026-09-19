@@ -1,0 +1,15 @@
+BARBERIUM v12.26 — correção do flash da personalização
+
+Arquivos alterados:
+- index.html
+- barberium-client-v12.24.js
+- sw.js
+
+O que muda:
+1. O conteúdo personalizável fica temporariamente oculto enquanto o catálogo atual é carregado, evitando exibir textos/imagens antigos por alguns milissegundos.
+2. Assim que a personalização é aplicada, o conteúdo é revelado.
+3. Se o Supabase não responder, um fallback automático libera a interface após 1,8 s.
+4. O fallback estático atual foi alinhado com Scalabrini Barbiere / Casa Scalabrini.
+5. Cache do Service Worker atualizado para v12.26.
+
+Não altera agendamento, financeiro, equipe, banco de dados ou regras de negócio.
