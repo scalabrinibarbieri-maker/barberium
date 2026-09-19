@@ -615,3 +615,350 @@
   },true);
 })();
 
+/* v12.24 · login mais alto + Ajustes + personalização da área do cliente */
+(() => {
+  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
+  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
+  const AUTH_KEY='barberium_staff_auth_v1';
+
+  const $=(s,r=document)=>r.querySelector(s);
+  const esc=(v='')=>String(v??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[c]));
+
+  const baseFetch=window.fetch.bind(window);
+  const appearanceByUnit=new Map();
+  let injecting=false;
+
+  function injectStyles(){
+    if($('#v1224Style'))return;
+    const style=document.createElement('style');
+    style.id='v1224Style';
+    style.textContent=`
+      .login-view{justify-content:flex-start!important}
+      .login-view .back-link{margin-bottom:16px!important}
+      .login-view .login-brand{margin:8px 0 22px!important}
+      .v1224-client-note{margin:-2px 0 14px;color:#8f887b;font-size:11px;line-height:1.5;text-transform:none;letter-spacing:0;font-weight:500}
+      .v1224-media-grid{display:grid;grid-template-columns:1fr;gap:14px}
+      .v1224-media-card{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;background:rgba(255,255,255,.018)}
+      .v1224-media-card>label{display:block;margin-bottom:8px;color:#aaa194;font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:800}
+      .v1224-media-preview{display:block;width:100%;height:170px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:#07160f;margin-bottom:10px}
+      .v1224-logo-preview{height:120px;object-fit:contain}
+      .v1224-media-card input[type=file]{width:100%;font-size:11px;color:#aaa194}
+      .v1224-helper{display:block;margin-top:7px;color:#80796e;font-size:10px;line-height:1.45}
+      @media(min-width:700px){.v1224-media-grid{grid-template-columns:1fr 1.4fr}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function relabelNav(){
+    const label=$('#teamNav small');
+    if(label&&label.textContent!=='Ajustes')label.textContent='Ajustes';
+  }
+
+  function session(){
+    try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}
+  }
+  function saveSession(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
+
+  async function apiFetch(path,opts={}){
+    let s=session();
+    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
+    if(s?.access_token)headers.Authorization=`Bearer ${s.access_token}`;
+
+    let r=await baseFetch(`${SUPABASE_URL}${path}`,{...opts,headers});
+    if(r.status===401&&s?.refresh_token){
+      const rr=await baseFetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+        method:'POST',
+        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:s.refresh_token})
+      });
+      if(rr.ok){
+        s=await rr.json();
+        saveSession(s);
+        headers.Authorization=`Bearer ${s.access_token}`;
+        r=await baseFetch(`${SUPABASE_URL}${path}`,{...opts,headers});
+      }
+    }
+
+    const text=await r.text();
+    let data=null;
+    try{data=text?JSON.parse(text):null}catch{data=text}
+    if(!r.ok)throw new Error(data?.message||data?.error_description||data?.error||`Erro ${r.status}`);
+    return data;
+  }
+
+  const rpc=(name,payload={})=>apiFetch(`/rest/v1/rpc/${name}`,{
+    method:'POST',
+    body:JSON.stringify(payload)
+  });
+
+  function toast(msg){
+    const t=$('#toast');
+    if(!t)return;
+    t.textContent=msg;
+    t.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer=setTimeout(()=>t.classList.remove('show'),3200);
+  }
+
+  function appearanceOnly(settings={}){
+    return {
+      client_header_subtitle:settings.client_header_subtitle||'',
+      client_hero_label:settings.client_hero_label||'',
+      client_hero_title:settings.client_hero_title||'',
+      client_logo_url:settings.client_logo_url||'',
+      client_hero_image_url:settings.client_hero_image_url||''
+    };
+  }
+
+  // Protege a personalização caso o formulário antigo da unidade seja salvo
+  // depois deste novo card, mantendo as chaves visuais dentro de settings.
+  window.fetch=async function(input,init={}){
+    const url=typeof input==='string'?input:input?.url;
+    if(typeof url==='string'&&/\/rest\/v1\/rpc\/barberium_staff_save_unit(?:\?|$)/.test(url)&&init?.body){
+      try{
+        const body=typeof init.body==='string'?JSON.parse(init.body):{...(init.body||{})};
+        const id=body?.p_unit_id;
+        const keep=id?appearanceByUnit.get(id):null;
+        if(keep){
+          body.p_settings={...(body.p_settings||{}),...keep};
+          init={...init,body:JSON.stringify(body)};
+        }
+      }catch(err){
+        console.error('Barberium v12.24 preservação de aparência:',err);
+      }
+    }
+    return baseFetch(input,init);
+  };
+
+  function defaultHeader(unit){
+    return String(unit?.name||'').replace(/\s+[—–-]\s+/,' • ');
+  }
+
+  function mediaUrl(v,fallback){
+    return String(v||fallback);
+  }
+
+  async function uploadImage(file,barbershopId,unitId,folder){
+    if(!file)throw new Error('Selecione uma imagem.');
+    if(file.size>5*1024*1024)throw new Error('A imagem deve ter no máximo 5 MB.');
+
+    const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer());
+    const ascii=(a,b)=>String.fromCharCode(...bytes.slice(a,b));
+    const mime=
+      bytes[0]===255&&bytes[1]===216&&bytes[2]===255?'image/jpeg':
+      bytes[0]===137&&ascii(1,4)==='PNG'?'image/png':
+      ascii(0,4)==='RIFF'&&ascii(8,12)==='WEBP'?'image/webp':null;
+
+    if(!mime)throw new Error('Use uma imagem JPG, PNG ou WebP válida.');
+
+    const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
+    const path=`${barbershopId}/${unitId}/client/${folder}/${crypto.randomUUID()}.${ext}`;
+
+    await apiFetch(`/storage/v1/object/barberium-service-images/${path}`,{
+      method:'POST',
+      headers:{'Content-Type':mime,'x-upsert':'false'},
+      body:file
+    });
+
+    return `${SUPABASE_URL}/storage/v1/object/public/barberium-service-images/${path}`;
+  }
+
+  function bindUpload(input,hidden,preview,barbershopId,unitId,folder,form){
+    input.addEventListener('change',async()=>{
+      const file=input.files?.[0];
+      if(!file)return;
+      if(form.dataset.uploading==='1')return;
+
+      form.dataset.uploading='1';
+      input.disabled=true;
+      const save=form.querySelector('[type=submit]');
+      if(save)save.disabled=true;
+      toast('Enviando imagem…');
+
+      try{
+        const url=await uploadImage(file,barbershopId,unitId,folder);
+        hidden.value=url;
+        preview.src=url;
+        toast('Imagem enviada. Toque em Salvar personalização.');
+      }catch(err){
+        toast(err?.message||'Não foi possível enviar a imagem.');
+      }finally{
+        delete form.dataset.uploading;
+        input.disabled=false;
+        if(save)save.disabled=false;
+      }
+    });
+  }
+
+  async function injectAppearance(){
+    if(injecting)return;
+
+    const content=$('#settingsContent');
+    const shopForm=$('#shopSettingsForm');
+    const unitSelect=$('#settingsUnitSelect');
+    if(!content||!shopForm||!unitSelect||$('#v1224ClientAppearance'))return;
+
+    injecting=true;
+    try{
+      const boot=await rpc('barberium_staff_settings_bootstrap');
+      const unitId=unitSelect.value;
+      const unit=(boot.units||[]).find(u=>u.id===unitId);
+      const barbershop=boot.barbershop||{};
+      if(!unit)return;
+
+      const st=unit.settings||{};
+      appearanceByUnit.set(unit.id,appearanceOnly(st));
+
+      const defaultTop=defaultHeader(unit)||unit.name||'';
+      const defaultHero=unit.name||'';
+      const logo=mediaUrl(st.client_logo_url,'../assets/logo-sb.webp');
+      const hero=mediaUrl(st.client_hero_image_url,'../assets/barbearia.webp');
+
+      const form=document.createElement('form');
+      form.id='v1224ClientAppearance';
+      form.className='settings-card';
+      form.innerHTML=`
+        <div class="settings-card-head">
+          <div>
+            <h2>Área do cliente</h2>
+            <p>Personalize a identidade pública desta unidade.</p>
+          </div>
+          <span class="tag">SITE</span>
+        </div>
+
+        <p class="v1224-client-note">
+          Unidade selecionada: <strong>${esc(unit.name)}</strong>.
+          O nome principal da barbearia vem do campo “Nome da barbearia” logo acima.
+        </p>
+
+        <div class="settings-two">
+          <div class="field">
+            <label>Texto no topo</label>
+            <input id="v1224HeaderSubtitle" value="${esc(st.client_header_subtitle||defaultTop)}"
+              placeholder="Ex.: II Unidade • Bragança Paulista">
+          </div>
+          <div class="field">
+            <label>Texto sobre a capa</label>
+            <input id="v1224HeroLabel" value="${esc(st.client_hero_label||defaultHero)}"
+              placeholder="Ex.: II Unidade — Bragança Paulista">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Título principal</label>
+          <input id="v1224HeroTitle" value="${esc(st.client_hero_title||'Agende seu horário.')}"
+            placeholder="Ex.: Agende seu horário.">
+        </div>
+
+        <div class="v1224-media-grid">
+          <div class="v1224-media-card">
+            <label>Logo exibida ao cliente</label>
+            <img id="v1224LogoPreview" class="v1224-media-preview v1224-logo-preview"
+              src="${esc(logo)}" alt="">
+            <input id="v1224LogoFile" type="file" accept="image/jpeg,image/png,image/webp">
+            <input id="v1224LogoUrl" type="hidden" value="${esc(st.client_logo_url||'')}">
+            <small class="v1224-helper">JPG, PNG ou WebP · máximo 5 MB.</small>
+          </div>
+
+          <div class="v1224-media-card">
+            <label>Foto grande de capa</label>
+            <img id="v1224HeroPreview" class="v1224-media-preview"
+              src="${esc(hero)}" alt="">
+            <input id="v1224HeroFile" type="file" accept="image/jpeg,image/png,image/webp">
+            <input id="v1224HeroUrl" type="hidden" value="${esc(st.client_hero_image_url||'')}">
+            <small class="v1224-helper">Esta é a foto que ocupa o fundo da tela inicial.</small>
+          </div>
+        </div>
+
+        <button class="gold-btn" type="submit">Salvar personalização</button>
+      `;
+
+      shopForm.insertAdjacentElement('afterend',form);
+
+      bindUpload(
+        $('#v1224LogoFile',form),$('#v1224LogoUrl',form),$('#v1224LogoPreview',form),
+        barbershop.id,unit.id,'logo',form
+      );
+      bindUpload(
+        $('#v1224HeroFile',form),$('#v1224HeroUrl',form),$('#v1224HeroPreview',form),
+        barbershop.id,unit.id,'hero',form
+      );
+
+      form.onsubmit=async event=>{
+        event.preventDefault();
+        if(form.dataset.uploading==='1'){
+          toast('Aguarde o envio da imagem terminar.');
+          return;
+        }
+
+        const button=form.querySelector('[type=submit]');
+        button.disabled=true;
+        button.textContent='Salvando…';
+
+        try{
+          const visual={
+            client_header_subtitle:$('#v1224HeaderSubtitle',form).value.trim(),
+            client_hero_label:$('#v1224HeroLabel',form).value.trim(),
+            client_hero_title:$('#v1224HeroTitle',form).value.trim()||'Agende seu horário.',
+            client_logo_url:$('#v1224LogoUrl',form).value.trim(),
+            client_hero_image_url:$('#v1224HeroUrl',form).value.trim()
+          };
+          const merged={...(unit.settings||{}),...visual};
+
+          await rpc('barberium_staff_save_unit',{
+            p_unit_id:unit.id,
+            p_name:unit.name,
+            p_city:unit.city||null,
+            p_state:unit.state||null,
+            p_whatsapp:unit.whatsapp||null,
+            p_maps_url:unit.maps_url||null,
+            p_is_active:unit.is_active!==false,
+            p_settings:merged
+          });
+
+          unit.settings=merged;
+          appearanceByUnit.set(unit.id,visual);
+          toast('Personalização salva. A área do cliente já pode usar estes dados.');
+          button.textContent='Salvo ✓';
+          setTimeout(()=>{if(form.isConnected){button.disabled=false;button.textContent='Salvar personalização'}},1400);
+        }catch(err){
+          toast(err?.message||'Não foi possível salvar a personalização.');
+          button.disabled=false;
+          button.textContent='Salvar personalização';
+        }
+      };
+    }catch(err){
+      console.error('Barberium v12.24 personalização:',err);
+    }finally{
+      injecting=false;
+    }
+  }
+
+  function boot(){
+    injectStyles();
+    relabelNav();
+    injectAppearance();
+
+    const settings=$('#settingsContent');
+    if(settings&&!settings.dataset.v1224Observed){
+      settings.dataset.v1224Observed='1';
+      new MutationObserver(()=>setTimeout(injectAppearance,30))
+        .observe(settings,{childList:true,subtree:true});
+    }
+
+    const nav=$('#teamBottomNav');
+    if(nav&&!nav.dataset.v1224Observed){
+      nav.dataset.v1224Observed='1';
+      new MutationObserver(relabelNav).observe(nav,{childList:true,subtree:true});
+    }
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+
+  setTimeout(boot,500);
+  setTimeout(boot,1400);
+})();
+
