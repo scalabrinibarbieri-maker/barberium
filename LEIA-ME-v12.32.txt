@@ -1,0 +1,17 @@
+BARBERIUM v12.32 — PERFIL DO CLIENTE
+
+Regra aplicada:
+- Nome + WhatsApp abrem/criam o perfil.
+- Todo agendamento concluído passa a devolver acesso válido ao perfil, mesmo se o cliente já existia.
+- Em outro navegador, o cliente pode abrir Meu perfil e informar nome + WhatsApp.
+- Ao abrir o perfil, os horários vinculados ao número são carregados.
+- O botão "Acessar em outro aparelho" passa a usar nome + WhatsApp.
+
+O backend do Supabase já foi atualizado.
+Para publicar o frontend, envie os 3 arquivos deste pacote para a RAIZ do repositório:
+- index.html
+- sw.js
+- client-profile-v12.32.js
+
+Substitua index.html e sw.js quando solicitado.
+Não é necessário editar nenhum arquivo manualmente.
