@@ -40,14 +40,6 @@ jobs:
           cp -R assets dist/
           cp -R equipe dist/
 
-      - name: Ensure Cloudflare Pages project exists
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! npx --yes wrangler@latest pages project list --json | jq -e '.[] | select(.name == "barberium")' >/dev/null; then
-            npx --yes wrangler@latest pages project create barberium --production-branch=main
-          fi
-
       - name: Deploy production
         shell: bash
         run: |
