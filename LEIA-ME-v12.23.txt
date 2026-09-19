@@ -1,0 +1,66 @@
+BARBERIUM v12.23 — REEMBOLSO EXPLÍCITO
+
+PROBLEMA CORRIGIDO
+Cancelamentos de atendimentos concluídos estavam sendo tratados automaticamente
+como reembolso, mesmo quando o atendimento/comanda havia sido lançado por engano
+e nenhum dinheiro tinha realmente entrado.
+
+NOVO FLUXO
+Ao cancelar um atendimento concluído, aparece a opção:
+
+  ISTO FOI REEMBOLSO
+
+Ela vem DESMARCADA por padrão.
+
+DESMARCADA
+- É uma anulação/correção operacional.
+- Os recebimentos lançados por engano são anulados.
+- Não entram como faturamento.
+- Não entram como reembolso.
+- Comissão é revertida.
+- Produto volta ao estoque.
+- Ficha de plano/pacote é devolvida, quando aplicável.
+- O evento continua registrado para auditoria.
+
+MARCADA
+- Significa que o dinheiro realmente entrou e depois foi devolvido.
+- O recebimento permanece no histórico.
+- É obrigatório escolher a forma da devolução.
+- O valor entra no Financeiro como reembolso real.
+
+LIMPEZA HISTÓRICA JÁ FEITA NO SUPABASE
+Os 4 falsos reembolsos existentes, total de R$ 404,90, foram corrigidos.
+Antes:
+- Receita bruta: R$ 2.493,70
+- Reembolsos: R$ 404,90
+- Líquido: R$ 2.088,80
+
+Depois:
+- Receita bruta: R$ 2.088,80
+- Reembolsos: R$ 0,00
+- Líquido: R$ 2.088,80
+
+Ou seja: o resultado líquido não mudou; só foi removida a conta artificial.
+
+BACKEND
+A função v12.23 já está aplicada no Supabase.
+NÃO execute SQL manualmente.
+
+ARQUIVOS ALTERADOS
+- equipe/barberium-v12.17.js
+- sw.js
+
+PRESERVADO
+- cliente passageiro v12.21
+- correção decimal de comissão v12.22
+- ficha de plano na comanda v12.20
+- Agenda/Cancelados
+- Resumo
+- Financeiro
+- comissão
+- planos
+- desktop/mobile
+
+INSTALAÇÃO
+Extraia na raiz do repositório, substituindo os dois arquivos.
+O cache passa de v12.22 para v12.23.

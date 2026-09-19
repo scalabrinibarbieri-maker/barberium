@@ -1,0 +1,2 @@
+Backend v12.23 e limpeza dos falsos reembolsos já aplicados no Supabase.
+Não execute SQL manualmente.
