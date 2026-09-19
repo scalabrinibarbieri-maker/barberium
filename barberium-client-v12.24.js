@@ -1,19 +1,33 @@
-/* Barberium v12.26 · personalização pública da área do cliente */
+/* Barberium v12.27 · personalização pública da área do cliente */
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
   const SHOP_SLUG='scalabrini-barbieri';
   const UNIT_SLUG='braganca-paulista';
-  const BRANDING_PENDING_CLASS='barberium-branding-pending';
+  const SPLASH_PENDING_CLASS='barberium-splash-pending';
+  const LOGO_CACHE_KEY=`barberium:brand-logo:${SHOP_SLUG}:${UNIT_SLUG}`;
+  const MIN_SPLASH_MS=360;
 
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const setText=(el,value)=>{if(el&&value!=null&&el.textContent!==String(value))el.textContent=String(value)};
   const setSrc=(el,value)=>{if(el&&value&&el.getAttribute('src')!==value)el.setAttribute('src',value)};
-  const revealBranding=()=>{
-    clearTimeout(window.__barberiumBrandingFallbackTimer);
-    document.documentElement.classList.remove(BRANDING_PENDING_CLASS);
-  };
+
+  function cacheSplashLogo(value){
+    if(!value)return;
+    try{localStorage.setItem(LOGO_CACHE_KEY,value)}catch{}
+    setSrc($('#barberiumSplashLogo'),value);
+  }
+
+  function revealBranding(){
+    clearTimeout(window.__barberiumSplashFallbackTimer);
+    const started=Number(window.__barberiumSplashStartedAt)||0;
+    const elapsed=started?performance.now()-started:MIN_SPLASH_MS;
+    const wait=Math.max(0,MIN_SPLASH_MS-elapsed);
+    setTimeout(()=>{
+      document.documentElement.classList.remove(SPLASH_PENDING_CLASS);
+    },wait);
+  }
 
   async function rpc(name,payload={}){
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
@@ -90,6 +104,8 @@
     const logo=String(st.client_logo_url||'./assets/logo-sb.webp').trim();
     const heroImage=String(st.client_hero_image_url||'./assets/barbearia.webp').trim();
 
+    cacheSplashLogo(logo);
+
     document.title=`${shopName} • ${u.city||unitName}`;
     const meta=$('meta[name="description"]');
     if(meta)meta.setAttribute('content',`${heroTitle.replace(/\.$/,'')} na ${shopName} — ${unitName}.`);
@@ -142,8 +158,8 @@
       });
       applyBranding(catalog);
     }catch(err){
-      console.error('Barberium v12.26 branding:',err);
-      // Fallback: os valores estáticos atuais continuam visíveis se a personalização não carregar.
+      console.error('Barberium v12.27 branding:',err);
+      // Fallback: se a personalização não responder, a tela é liberada normalmente.
     }finally{
       revealBranding();
     }

@@ -6,23 +6,37 @@
   <meta name="theme-color" content="#07140e">
   <meta name="description" content="Agende seu horário na Scalabrini Barbiere — II Unidade, Bragança Paulista.">
   <script>
-    document.documentElement.classList.add('barberium-branding-pending');
-    window.__barberiumBrandingFallbackTimer=setTimeout(()=>{
-      document.documentElement.classList.remove('barberium-branding-pending');
-    },1800);
+    (() => {
+      const key='barberium:brand-logo:scalabrini-barbieri:braganca-paulista';
+      let logo='./assets/logo-sb.webp';
+      try{logo=localStorage.getItem(key)||logo}catch{}
+      window.__barberiumSplashLogo=logo;
+      window.__barberiumSplashStartedAt=performance.now();
+      document.documentElement.classList.add('barberium-splash-pending');
+      window.__barberiumSplashFallbackTimer=setTimeout(()=>{
+        document.documentElement.classList.remove('barberium-splash-pending');
+      },2200);
+    })();
   </script>
   <style>
-    html.barberium-branding-pending .brand-button strong,
-    html.barberium-branding-pending .brand-button small,
-    html.barberium-branding-pending .mini-logo,
-    html.barberium-branding-pending .hero-bg,
-    html.barberium-branding-pending .hero-logo,
-    html.barberium-branding-pending .hero-unit,
-    html.barberium-branding-pending .hero-content h1,
-    html.barberium-branding-pending .unit-logo-wrap img,
-    html.barberium-branding-pending .unit-card h2,
-    html.barberium-branding-pending .unit-info > div:nth-child(2) strong,
-    html.barberium-branding-pending .unit-actions{visibility:hidden}
+    #barberiumSplash{
+      position:fixed;inset:0;z-index:9999;display:grid;place-items:center;
+      background:#020704;opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .22s ease,visibility .22s ease
+    }
+    #barberiumSplash img{
+      width:min(34vw,132px);height:min(34vw,132px);object-fit:contain;
+      filter:drop-shadow(0 12px 30px rgba(0,0,0,.34));
+      transform:scale(.985);transition:transform .22s ease
+    }
+    html.barberium-splash-pending #barberiumSplash{opacity:1;visibility:visible;pointer-events:auto}
+    html.barberium-splash-pending #barberiumSplash img{transform:scale(1)}
+    html.barberium-splash-pending .app-shell,
+    html.barberium-splash-pending #modalBackdrop,
+    html.barberium-splash-pending #toast{visibility:hidden}
+    @media(prefers-reduced-motion:reduce){
+      #barberiumSplash,#barberiumSplash img{transition:none}
+    }
   </style>
   <link rel="icon" href="./assets/logo-sb.webp">
   <link rel="manifest" href="./site.webmanifest">
@@ -32,6 +46,16 @@
   <title>Scalabrini Barbiere • Bragança Paulista</title>
 </head>
 <body>
+  <div id="barberiumSplash" aria-hidden="true">
+    <img id="barberiumSplashLogo" src="./assets/logo-sb.webp" alt="">
+  </div>
+  <script>
+    (() => {
+      const img=document.getElementById('barberiumSplashLogo');
+      if(img&&window.__barberiumSplashLogo)img.src=window.__barberiumSplashLogo;
+    })();
+  </script>
+
   <div class="app-shell">
     <header class="topbar" id="topbar">
       <button class="brand-button" type="button" data-nav="home" aria-label="Ir para o início">
@@ -113,7 +137,7 @@
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
   <div class="toast" id="toast" role="status"></div>
   <script type="module" src="./app.js?v=12.7.1"></script>
-  <script type="module" src="./barberium-client-v12.24.js?v=12.26"></script>
+  <script type="module" src="./barberium-client-v12.24.js?v=12.27"></script>
   <script src="./membership.js?v=11.2" defer></script>
 </body>
 </html>

@@ -1,0 +1,13 @@
+BARBERIUM v12.27 — splash de personalização
+
+Alterações estritamente visuais na abertura da área do cliente:
+- Enquanto a personalização carrega, mostra apenas fundo escuro + logo.
+- A página principal fica oculta até os dados atuais estarem aplicados.
+- Fade curto ao revelar o site.
+- A logo personalizada usa o campo client_logo_url já existente.
+- A URL da logo atual é guardada localmente para aparecer imediatamente nas próximas visitas.
+- Em primeiro acesso sem logo personalizada em cache, usa a logo padrão da barbearia.
+- Fallback de segurança libera o site se a personalização falhar ou demorar demais.
+- Cache do Service Worker atualizado para v12.27.
+
+Não altera agendamento, financeiro, equipe, banco de dados ou regras de negócio.
