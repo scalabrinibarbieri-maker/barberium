@@ -1,0 +1,19 @@
+BARBERIUM v12.34 — TESTE DE ANIMAÇÃO DOS PROFISSIONAIS
+
+Substitua apenas:
+client-profile-v12.32.js
+
+O arquivo mantém toda a lógica v12.32 do perfil e acrescenta somente a apresentação
+da etapa "Escolha o profissional":
+
+- entrada dos cards com fade + slide;
+- entrada escalonada entre profissionais;
+- movimento suave de "respiração" na foto;
+- micro-parallax no toque/mouse;
+- destaque com elevação, escala e sombra ao selecionar;
+- respeito automático a "reduzir animações" do aparelho.
+
+Nenhuma lógica de agendamento, preço, profissional ou disponibilidade foi alterada.
+
+Esta é uma versão de teste visual. Se aprovada, depois podemos separar a animação
+em um módulo próprio.
