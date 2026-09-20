@@ -1,0 +1,22 @@
+BARBERIUM v12.37 — CTA FLUTUANTE NA ESCOLHA DE SERVIÇOS
+
+Ao selecionar um serviço:
+- aparece uma barra flutuante acima da navegação;
+- mostra o nome do serviço e o valor total atual;
+- traz o botão "Continuar →" sempre visível;
+- se houver adicionais, aparece uma vez a dica:
+  "Veja também os adicionais abaixo ↓";
+- o card selecionado recebe um microefeito de confirmação.
+
+Ao selecionar adicionais, o valor da barra é atualizado automaticamente.
+
+A rolagem não é alterada e a lógica original do agendamento permanece intacta.
+O botão original #serviceNext continua existindo como fallback; o botão flutuante
+apenas aciona o botão original.
+
+ARQUIVOS NA RAIZ
+- index.html
+- sw.js
+- service-cta-v12.37.js
+
+O workflow da Cloudflare já publica todos os .js da raiz.
