@@ -1,0 +1,25 @@
+BARBERIUM v12.35b — CORREÇÃO DO DEPLOY DA CLOUDFLARE
+
+CAUSA ENCONTRADA
+O workflow copiava apenas uma lista fixa de arquivos JS para dist/.
+Por isso módulos novos que existiam no GitHub não chegavam ao site publicado.
+
+Isso afetava:
+- client-profile-v12.32.js
+- professional-motion-v12.35.js
+
+CORREÇÃO
+O workflow agora usa:
+cp ./*.js dist/
+
+Assim, todos os arquivos JavaScript da raiz são publicados automaticamente,
+inclusive módulos futuros.
+
+COMO APLICAR
+No GitHub:
+1. Abra .github
+2. Abra workflows
+3. Substitua cloudflare-pages.yml pelo arquivo deste pacote.
+4. Faça o commit na main.
+
+Esse commit já dispara um novo deploy automaticamente.

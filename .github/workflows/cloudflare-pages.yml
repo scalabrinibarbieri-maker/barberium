@@ -29,14 +29,11 @@ jobs:
           cp index.html dist/
           cp styles.css dist/
           cp desktop-v12.15.css dist/
-          cp app.js dist/
-          cp push.js dist/
           cp membership.css dist/
-          cp membership.js dist/
-          cp barberium-client-v12.24.js dist/
           cp site.webmanifest dist/
           cp sw.js dist/
           cp barberium.svg dist/
+          cp ./*.js dist/
           cp -R assets dist/
           cp -R equipe dist/
 
