@@ -1,0 +1,19 @@
+BARBERIUM v12.38 — CORREÇÃO DA BARRA CONTINUAR
+
+CORRIGIDO
+A barra flutuante de "Continuar" agora só pode aparecer quando a tela
+"Agendar" estiver realmente ativa.
+
+Ela desaparece imediatamente ao:
+- voltar para Início;
+- abrir Meus horários;
+- abrir Meu perfil;
+- sair da etapa de serviços;
+- usar a seta de voltar do agendamento.
+
+A seleção do serviço continua preservada normalmente.
+
+ARQUIVOS NA RAIZ
+- index.html
+- sw.js
+- service-cta-v12.38.js
