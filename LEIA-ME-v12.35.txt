@@ -1,0 +1,32 @@
+BARBERIUM v12.35 — TESTE 2 DA ANIMAÇÃO DOS PROFISSIONAIS
+
+CORREÇÃO DO TESTE ANTERIOR
+A v12.34 alterou o conteúdo de client-profile-v12.32.js, mas index.html e sw.js
+continuaram chamando a URL antiga ?v=12.32. Isso podia manter a versão antiga no cache.
+
+Nesta versão:
+- client-profile-v12.32.js volta ao conteúdo limpo da v12.32;
+- a animação foi separada em professional-motion-v12.35.js;
+- index.html chama explicitamente a v12.35;
+- sw.js usa cache v12.35;
+- o sw.js continua preservando staff-tools-v12.33.js.
+
+EFEITO
+- entrada dos cards com fade + subida mais perceptível;
+- fotos fazem um zoom/pan suave contínuo;
+- brilho sutil passa pelo card;
+- toque no profissional dá resposta de elevação/escala;
+- borda dourada e sombra ficam mais fortes na seleção.
+
+ARQUIVOS — TODOS NA RAIZ
+- index.html
+- sw.js
+- client-profile-v12.32.js
+- professional-motion-v12.35.js
+
+Substitua os três existentes e adicione professional-motion-v12.35.js.
+Não coloque nenhum deles dentro de equipe/ ou assets/.
+
+Observação:
+Se o aparelho estiver com a opção de acessibilidade "reduzir/remover animações",
+o Barberium respeita essa configuração e não executa os movimentos.
