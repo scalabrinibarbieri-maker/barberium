@@ -161,3 +161,122 @@
     return previousFetch(input,init);
   };
 })();
+
+
+/* Barberium v12.42 · correção do salvamento da aparência pública
+   Evita que a proteção antiga de settings substitua logo/capa/títulos novos
+   pelos valores anteriores ao salvar a personalização da Área do Cliente. */
+(() => {
+  const previousFetch=window.fetch.bind(window);
+  const TARGET=/\/rest\/v1\/rpc\/barberium_staff_save_unit(?:\?|$)/;
+  const $=(s,r=document)=>r.querySelector(s);
+
+  function headersObject(headers){
+    if(!headers)return {};
+    if(headers instanceof Headers)return Object.fromEntries(headers.entries());
+    if(Array.isArray(headers))return Object.fromEntries(headers);
+    return {...headers};
+  }
+
+  function xhrResponse(url,init={}){
+    return new Promise((resolve,reject)=>{
+      const xhr=new XMLHttpRequest();
+      xhr.open(init.method||'POST',url,true);
+      xhr.timeout=15000;
+
+      for(const [key,value] of Object.entries(headersObject(init.headers))){
+        if(value!=null)xhr.setRequestHeader(key,String(value));
+      }
+
+      if(init.signal){
+        if(init.signal.aborted){
+          xhr.abort();
+          reject(new DOMException('Abortado','AbortError'));
+          return;
+        }
+        init.signal.addEventListener('abort',()=>xhr.abort(),{once:true});
+      }
+
+      xhr.onload=()=>{
+        const responseHeaders=new Headers();
+        const raw=xhr.getAllResponseHeaders().trim();
+        if(raw){
+          for(const line of raw.split(/[\r\n]+/)){
+            const i=line.indexOf(':');
+            if(i>0)responseHeaders.append(line.slice(0,i).trim(),line.slice(i+1).trim());
+          }
+        }
+        resolve(new Response(xhr.responseText,{
+          status:xhr.status,
+          statusText:xhr.statusText,
+          headers:responseHeaders
+        }));
+      };
+      xhr.onerror=()=>reject(new TypeError('Falha de conexão ao salvar a personalização.'));
+      xhr.ontimeout=()=>reject(new Error('A conexão demorou mais que o esperado.'));
+      xhr.onabort=()=>reject(new DOMException('Abortado','AbortError'));
+
+      xhr.send(init.body??null);
+    });
+  }
+
+  function applyCurrentAppearance(body){
+    const form=$('#v1224ClientAppearance');
+    const selectedUnit=$('#settingsUnitSelect')?.value;
+
+    if(!form||!selectedUnit||String(body?.p_unit_id||'')!==String(selectedUnit)){
+      return body;
+    }
+
+    const settings={...(body.p_settings||{})};
+
+    const header=$('#v1224HeaderSubtitle',form);
+    const label=$('#v1224HeroLabel',form);
+    const title=$('#v1224HeroTitle',form);
+    const logo=$('#v1224LogoUrl',form);
+    const hero=$('#v1224HeroUrl',form);
+
+    if(header)settings.client_header_subtitle=header.value.trim();
+    if(label)settings.client_hero_label=label.value.trim();
+    if(title)settings.client_hero_title=title.value.trim()||'Agende seu horário.';
+    if(logo)settings.client_logo_url=logo.value.trim();
+    if(hero)settings.client_hero_image_url=hero.value.trim();
+
+    body.p_settings=settings;
+    return body;
+  }
+
+  window.fetch=async function(input,init={}){
+    const url=typeof input==='string'?input:input?.url;
+
+    if(typeof url!=='string'||!TARGET.test(url)||!init?.body){
+      return previousFetch(input,init);
+    }
+
+    let body;
+    try{
+      body=typeof init.body==='string'?JSON.parse(init.body):{...(init.body||{})};
+    }catch{
+      return previousFetch(input,init);
+    }
+
+    const form=$('#v1224ClientAppearance');
+    const selectedUnit=$('#settingsUnitSelect')?.value;
+
+    // Fora do card de aparência, mantém exatamente o fluxo anterior.
+    if(!form||!selectedUnit||String(body?.p_unit_id||'')!==String(selectedUnit)){
+      return previousFetch(input,init);
+    }
+
+    body=applyCurrentAppearance(body);
+
+    // XHR direto somente neste save: evita o interceptor antigo que recolocava
+    // os valores visuais anteriores.
+    const response=await xhrResponse(url,{
+      ...init,
+      body:JSON.stringify(body)
+    });
+
+    return response;
+  };
+})();
