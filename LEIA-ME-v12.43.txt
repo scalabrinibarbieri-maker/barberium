@@ -1,0 +1,38 @@
+BARBERIUM v12.43 — CAPA SEM PISCAR + SALVAMENTO + ANIMAÇÃO ITALIANA
+
+1. CAPA SEM PISCAR
+Antes:
+- o HTML já abria com assets/barbearia.webp;
+- o catálogo buscava a capa personalizada;
+- o site trocava para a nova;
+- durante alguns milissegundos a antiga podia aparecer.
+
+Agora:
+- enquanto o catálogo é carregado, a capa do HTML fica invisível atrás do splash;
+- o Barberium recebe a URL correta;
+- espera a imagem correta terminar de carregar;
+- somente depois revela a home.
+
+Portanto uma capa antiga não deve mais aparecer antes da personalizada.
+
+2. SALVAMENTO DA CAPA
+Mantida a correção v12.42:
+a proteção antiga não sobrescreve mais capa/logo/títulos novos ao salvar.
+
+3. ANIMAÇÃO ITALIANA
+Mantido o teste:
+Corte → Taglio → Corte
+Sobrancelha → Sopracciglia → Sobrancelha
+etc.
+
+ARQUIVOS PARA SUBSTITUIR
+
+NA RAIZ:
+- barberium-client-v12.24.js
+- service-cta-v12.38.js
+
+DENTRO DE equipe/:
+- presentation-settings-v12.28.js
+
+Não mexe em app.js, preços, serviços, agenda, financeiro ou Supabase.
+A foto nova que já havia sido enviada permanece configurada no banco.

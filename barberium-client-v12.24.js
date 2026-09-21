@@ -1,10 +1,13 @@
-/* Barberium v12.28 · personalização pública da área do cliente */
+/* Barberium v12.43 · personalização pública da área do cliente
+   Correção: a capa correta é carregada antes da home ser revelada.
+*/
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
   const SHOP_SLUG='scalabrini-barbieri';
   const UNIT_SLUG='braganca-paulista';
   const SPLASH_PENDING_CLASS='barberium-splash-pending';
+  const HERO_PENDING_CLASS='barberium-hero-pending';
   const LOGO_CACHE_KEY=`barberium:brand-logo:${SHOP_SLUG}:${UNIT_SLUG}`;
   const MIN_SPLASH_MS=360;
 
@@ -12,6 +15,23 @@
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const setText=(el,value)=>{if(el&&value!=null&&el.textContent!==String(value))el.textContent=String(value)};
   const setSrc=(el,value)=>{if(el&&value&&el.getAttribute('src')!==value)el.setAttribute('src',value)};
+
+  document.documentElement.classList.add(HERO_PENDING_CLASS);
+
+  (() => {
+    if(document.getElementById('barberiumHeroReadyV1243'))return;
+    const style=document.createElement('style');
+    style.id='barberiumHeroReadyV1243';
+    style.textContent=`
+      .hero-bg{
+        transition:opacity .20s ease!important;
+      }
+      html.${HERO_PENDING_CLASS} .hero-bg{
+        opacity:0!important;
+      }
+    `;
+    document.head.appendChild(style);
+  })();
 
   function cacheSplashLogo(value){
     if(!value)return;
@@ -44,6 +64,50 @@
     try{data=text?JSON.parse(text):null}catch{data=text}
     if(!r.ok)throw new Error(data?.message||data?.error||`Erro ${r.status}`);
     return data;
+  }
+
+  function waitForImage(img,url,timeout=5000){
+    return new Promise(resolve=>{
+      if(!img||!url){resolve(false);return}
+
+      let done=false;
+      const finish=ok=>{
+        if(done)return;
+        done=true;
+        clearTimeout(timer);
+        img.removeEventListener('load',onLoad);
+        img.removeEventListener('error',onError);
+        resolve(ok);
+      };
+      const onLoad=()=>finish(true);
+      const onError=()=>finish(false);
+      const timer=setTimeout(()=>finish(false),timeout);
+
+      img.addEventListener('load',onLoad,{once:true});
+      img.addEventListener('error',onError,{once:true});
+
+      if(img.getAttribute('src')!==url)img.setAttribute('src',url);
+
+      if(img.complete&&img.naturalWidth>0){
+        queueMicrotask(()=>finish(true));
+      }
+    });
+  }
+
+  async function prepareHero(url){
+    const hero=$('.hero-bg');
+    if(!hero){
+      document.documentElement.classList.remove(HERO_PENDING_CLASS);
+      return;
+    }
+
+    let ok=await waitForImage(hero,url,5000);
+
+    if(!ok&&url!=='./assets/barbearia.webp'){
+      ok=await waitForImage(hero,'./assets/barbearia.webp',2500);
+    }
+
+    document.documentElement.classList.remove(HERO_PENDING_CLASS);
   }
 
   function headerDefault(unit){
@@ -88,6 +152,7 @@
     setText($('.home-section .section-title span'),kicker);
     setText($('.home-section .section-title h2'),title);
     setText($('.services-summary-card > p'),intro);
+
     const list=$('.services-summary-list');
     if(list){
       list.innerHTML='';
@@ -98,6 +163,7 @@
       }
       list.hidden=bullets.length===0;
     }
+
     setText($('.inline-book-button'),cta);
   }
 
@@ -119,12 +185,14 @@
     $$('#profileContent p').forEach(p=>{
       if(!p.textContent)return;
       const current=p.textContent;
-      const next=current.replaceAll('Scalabrini Barbieri',shopName).replaceAll('Scalabrini Barbiere',shopName);
+      const next=current
+        .replaceAll('Scalabrini Barbieri',shopName)
+        .replaceAll('Scalabrini Barbiere',shopName);
       if(next!==current)p.textContent=next;
     });
   }
 
-  function applyBranding(catalog){
+  async function applyBranding(catalog){
     const b=catalog?.barbershop||{};
     const u=catalog?.unit||{};
     const st=u.settings||{};
@@ -140,8 +208,14 @@
     cacheSplashLogo(logo);
 
     document.title=`${shopName} • ${u.city||unitName}`;
+
     const meta=$('meta[name="description"]');
-    if(meta)meta.setAttribute('content',`${heroTitle.replace(/\.$/,'')} na ${shopName} — ${unitName}.`);
+    if(meta){
+      meta.setAttribute(
+        'content',
+        `${heroTitle.replace(/\.$/,'')} na ${shopName} — ${unitName}.`
+      );
+    }
 
     setText($('.brand-button strong'),shopName);
     setText($('.brand-button small'),headerSubtitle);
@@ -152,10 +226,10 @@
     setSrc($('.mini-logo'),logo);
     setSrc($('.hero-logo'),logo);
     setSrc($('.unit-logo-wrap img'),logo);
-    setSrc($('.hero-bg'),heroImage);
 
     const heroBg=$('.hero-bg');
     if(heroBg)heroBg.alt=`Interior da ${shopName}`;
+
     const heroLogo=$('.hero-logo');
     if(heroLogo)heroLogo.alt=shopName;
 
@@ -183,6 +257,12 @@
         timer=setTimeout(()=>applyDynamicTexts(brand),20);
       }).observe(main,{childList:true,subtree:true});
     }
+
+    /*
+      Só libera a capa depois da imagem correta estar pronta.
+      Enquanto isso, a imagem antiga fica invisível atrás do splash.
+    */
+    await prepareHero(heroImage);
   }
 
   async function boot(){
@@ -191,14 +271,20 @@
         p_barbershop_slug:SHOP_SLUG,
         p_unit_slug:UNIT_SLUG
       });
-      applyBranding(catalog);
+
+      await applyBranding(catalog);
     }catch(err){
-      console.error('Barberium v12.28 branding:',err);
+      console.error('Barberium v12.43 branding:',err);
+      await prepareHero('./assets/barbearia.webp');
     }finally{
+      document.documentElement.classList.remove(HERO_PENDING_CLASS);
       revealBranding();
     }
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
-  else boot();
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot,{once:true});
+  }else{
+    boot();
+  }
 })();
