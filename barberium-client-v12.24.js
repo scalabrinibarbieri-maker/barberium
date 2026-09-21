@@ -288,3 +288,336 @@
     boot();
   }
 })();
+
+/* Barberium v12.44 · entrada cinematográfica da hero / logo
+   Somente apresentação visual da home.
+*/
+(() => {
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+  let started=false;
+
+  function injectStyles(){
+    if(document.getElementById('barberiumHeroMotionV1244'))return;
+
+    const style=document.createElement('style');
+    style.id='barberiumHeroMotionV1244';
+    style.textContent=`
+      @keyframes v1244LogoEnter{
+        0%{opacity:0;transform:translateY(12px) scale(.92);filter:blur(2px)}
+        68%{opacity:1;transform:translateY(-2px) scale(1.018);filter:blur(0)}
+        100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+      }
+
+      @keyframes v1244LineDraw{
+        0%{opacity:0;transform:scaleX(0)}
+        25%{opacity:.9}
+        100%{opacity:.72;transform:scaleX(1)}
+      }
+
+      @keyframes v1244CopyIn{
+        0%{opacity:0;transform:translateY(15px);filter:blur(1.5px)}
+        100%{opacity:1;transform:translateY(0);filter:blur(0)}
+      }
+
+      @keyframes v1244Breathe{
+        0%,20%,100%{transform:scale(1)}
+        43%{transform:scale(1.022)}
+        58%{transform:scale(1.008)}
+      }
+
+      @keyframes v1244Glint{
+        0%,78%{
+          opacity:0;
+          clip-path:polygon(-28% 0,-12% 0,-30% 100%,-46% 100%);
+        }
+        81%{opacity:0}
+        84%{
+          opacity:.54;
+          clip-path:polygon(2% 0,18% 0,0 100%,-16% 100%);
+        }
+        88%{
+          opacity:.44;
+          clip-path:polygon(82% 0,98% 0,80% 100%,64% 100%);
+        }
+        91%,100%{
+          opacity:0;
+          clip-path:polygon(128% 0,144% 0,126% 100%,110% 100%);
+        }
+      }
+
+      .v1244-logo-stage{
+        position:relative;
+        display:grid;
+        place-items:center;
+        width:94px;
+        height:94px;
+        margin-bottom:18px;
+        isolation:isolate;
+        transform-origin:50% 52%;
+      }
+
+      .v1244-logo-stage .hero-logo,
+      .v1244-logo-glint{
+        grid-area:1/1;
+        width:100%!important;
+        height:100%!important;
+        margin:0!important;
+        object-fit:contain;
+      }
+
+      .v1244-logo-stage .hero-logo{
+        position:relative;
+        z-index:1;
+      }
+
+      .v1244-logo-glint{
+        position:absolute;
+        inset:0;
+        z-index:2;
+        pointer-events:none;
+        opacity:0;
+        filter:
+          brightness(1.82)
+          sepia(.78)
+          saturate(1.65)
+          drop-shadow(0 0 8px rgba(229,196,119,.24));
+      }
+
+      .v1244-logo-stage::after{
+        content:"";
+        position:absolute;
+        z-index:3;
+        left:4px;
+        bottom:-11px;
+        width:54px;
+        height:1px;
+        border-radius:999px;
+        background:linear-gradient(
+          90deg,
+          rgba(229,196,119,.95),
+          rgba(229,196,119,.38),
+          transparent
+        );
+        transform-origin:left center;
+        opacity:0;
+        transform:scaleX(0);
+        box-shadow:0 0 10px rgba(229,196,119,.16);
+      }
+
+      .hero-content.v1244-intro .v1244-logo-stage,
+      .hero-content.v1244-intro .hero-unit,
+      .hero-content.v1244-intro > h1,
+      .hero-content.v1244-intro .hero-welcome,
+      .hero-content.v1244-intro .hero-cta{
+        opacity:0;
+      }
+
+      .hero-content.v1244-intro .hero-unit,
+      .hero-content.v1244-intro > h1,
+      .hero-content.v1244-intro .hero-welcome,
+      .hero-content.v1244-intro .hero-cta{
+        transform:translateY(15px);
+      }
+
+      .hero-content.v1244-play .v1244-logo-stage{
+        animation:v1244LogoEnter .70s cubic-bezier(.16,.82,.24,1) both;
+      }
+
+      .hero-content.v1244-play .v1244-logo-stage::after{
+        animation:v1244LineDraw .54s .36s cubic-bezier(.2,.8,.25,1) both;
+      }
+
+      .hero-content.v1244-play .hero-unit{
+        animation:v1244CopyIn .52s .48s cubic-bezier(.2,.8,.25,1) both;
+      }
+
+      .hero-content.v1244-play > h1{
+        animation:v1244CopyIn .68s .64s cubic-bezier(.18,.82,.25,1) both;
+      }
+
+      .hero-content.v1244-play .hero-welcome{
+        animation:v1244CopyIn .52s .78s cubic-bezier(.2,.8,.25,1) both;
+      }
+
+      .hero-content.v1244-play .hero-cta{
+        animation:v1244CopyIn .56s .91s cubic-bezier(.18,.82,.25,1) both;
+      }
+
+      .hero-content.v1244-done .v1244-logo-stage,
+      .hero-content.v1244-done .hero-unit,
+      .hero-content.v1244-done > h1,
+      .hero-content.v1244-done .hero-welcome,
+      .hero-content.v1244-done .hero-cta{
+        opacity:1;
+        transform:none;
+        filter:none;
+      }
+
+      .hero-content.v1244-done .v1244-logo-stage{
+        animation:v1244Breathe 8.8s 1.8s ease-in-out infinite;
+      }
+
+      .hero-content.v1244-done .v1244-logo-stage::after{
+        opacity:.72;
+        transform:scaleX(1);
+      }
+
+      .hero-content.v1244-done .v1244-logo-glint{
+        animation:v1244Glint 8.8s 1.8s ease-in-out infinite;
+      }
+
+      @media(min-width:700px){
+        .v1244-logo-stage{
+          width:112px;
+          height:112px;
+          margin-bottom:22px;
+        }
+        .v1244-logo-stage::after{
+          width:66px;
+          bottom:-12px;
+        }
+      }
+
+      @media(prefers-reduced-motion:reduce){
+        .hero-content.v1244-intro .v1244-logo-stage,
+        .hero-content.v1244-intro .hero-unit,
+        .hero-content.v1244-intro > h1,
+        .hero-content.v1244-intro .hero-welcome,
+        .hero-content.v1244-intro .hero-cta{
+          opacity:1!important;
+          transform:none!important;
+          filter:none!important;
+        }
+
+        .hero-content.v1244-play .v1244-logo-stage,
+        .hero-content.v1244-play .hero-unit,
+        .hero-content.v1244-play > h1,
+        .hero-content.v1244-play .hero-welcome,
+        .hero-content.v1244-play .hero-cta,
+        .hero-content.v1244-done .v1244-logo-stage,
+        .hero-content.v1244-done .v1244-logo-glint,
+        .hero-content.v1244-logo-stage::after{
+          animation:none!important;
+        }
+
+        .v1244-logo-glint{display:none!important}
+        .v1244-logo-stage::after{
+          opacity:.72!important;
+          transform:scaleX(1)!important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function prepareLogo(){
+    const logo=document.querySelector('.hero-content .hero-logo');
+    if(!logo)return null;
+
+    let stage=logo.closest('.v1244-logo-stage');
+    if(stage)return stage;
+
+    stage=document.createElement('span');
+    stage.className='v1244-logo-stage';
+    stage.setAttribute('aria-hidden','false');
+
+    logo.parentNode.insertBefore(stage,logo);
+    stage.appendChild(logo);
+
+    const glint=logo.cloneNode(false);
+    glint.className='v1244-logo-glint';
+    glint.removeAttribute('alt');
+    glint.setAttribute('aria-hidden','true');
+    stage.appendChild(glint);
+
+    const sync=()=>{glint.src=logo.currentSrc||logo.src};
+    sync();
+
+    new MutationObserver(sync).observe(logo,{
+      attributes:true,
+      attributeFilter:['src','srcset']
+    });
+
+    return stage;
+  }
+
+  function finish(){
+    const content=document.querySelector('.hero-content');
+    if(!content)return;
+
+    content.classList.remove('v1244-intro','v1244-play');
+    content.classList.add('v1244-done');
+  }
+
+  function play(){
+    if(started)return;
+    started=true;
+
+    const content=document.querySelector('.hero-content');
+    if(!content)return;
+
+    if(reduced){
+      finish();
+      return;
+    }
+
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        content.classList.add('v1244-play');
+      });
+    });
+
+    setTimeout(finish,1650);
+  }
+
+  function readyToPlay(){
+    return !document.documentElement.classList.contains('barberium-splash-pending')
+      && !document.documentElement.classList.contains('barberium-hero-pending');
+  }
+
+  function boot(){
+    injectStyles();
+
+    const content=document.querySelector('.hero-content');
+    if(!content)return;
+
+    prepareLogo();
+
+    if(!content.classList.contains('v1244-done')){
+      content.classList.add('v1244-intro');
+    }
+
+    if(readyToPlay()){
+      play();
+      return;
+    }
+
+    if(document.documentElement.dataset.v1244Observed!=='1'){
+      document.documentElement.dataset.v1244Observed='1';
+
+      const observer=new MutationObserver(()=>{
+        if(readyToPlay()){
+          observer.disconnect();
+          play();
+        }
+      });
+
+      observer.observe(document.documentElement,{
+        attributes:true,
+        attributeFilter:['class']
+      });
+    }
+
+    // Failsafe visual: nunca deixa conteúdo preso invisível.
+    setTimeout(()=>{
+      if(!started)play();
+    },5200);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+
