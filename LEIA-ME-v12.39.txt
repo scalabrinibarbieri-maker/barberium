@@ -1,0 +1,48 @@
+BARBERIUM v12.39 — SALDOS RÁPIDOS POR PERÍODO
+
+BACKEND
+A RPC barberium_staff_balance_quick já foi aplicada e validada no Supabase.
+
+NOVA ABA
+Financeiro → Saldos
+
+FILTROS
+- De / Até
+- Hoje
+- Ontem
+- 7 dias
+- Este mês
+- Unidade (ADM)
+
+ADM
+Mostra:
+- Serviços
+- Produtos
+- Assinaturas
+- Casa
+- comissão de cada profissional
+
+CASA
+Casa = recebido líquido no período (receitas - estornos - taxas) - comissões.
+Não desconta as demais despesas gerais nem o custo dos produtos; isso continua
+no DRE/relatório financeiro completo.
+
+BARBEIRO
+Se tiver permissão "Ver as próprias comissões", vê somente:
+- seu card;
+- sua comissão no período;
+- divisão entre serviços, produtos e assinaturas;
+- detalhamento das entradas.
+
+DETALHAMENTO
+Toque em Casa ou em qualquer profissional para abrir o detalhamento do período.
+
+ARQUIVOS
+Na raiz:
+- sw.js
+
+Dentro de equipe/:
+- index.html
+- balances-v12.39.js
+
+Suba preservando exatamente essas pastas.

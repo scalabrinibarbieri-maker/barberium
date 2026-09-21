@@ -1,0 +1,12 @@
+-- Barberium v12.39
+-- A migration staff_quick_balances_period_v12_39 já foi aplicada no Supabase.
+-- RPC pública para o frontend:
+-- public.barberium_staff_balance_quick(p_start date, p_end date, p_unit_id uuid)
+--
+-- Regras:
+-- • owner/admin: Casa + todos os profissionais + receitas por categoria;
+-- • barbeiro com view_own_commission: somente a própria comissão;
+-- • filtros usam o timezone cadastrado da barbearia;
+-- • Casa = recebido líquido (receitas - estornos - taxas) - comissões.
+--
+-- Esta nota acompanha o pacote apenas como registro da alteração de backend.
