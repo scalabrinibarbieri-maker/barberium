@@ -1,0 +1,40 @@
+BARBERIUM v12.42 — CAPA DO CLIENTE + ANIMAÇÃO ITALIANA
+
+CORREÇÃO DA FOTO PRINCIPAL
+Foi identificado o bug:
+- o upload da nova capa chegava ao Supabase Storage;
+- o painel mostrava a imagem nova;
+- na hora de salvar, uma proteção antiga recolocava o valor anterior;
+- por isso client_hero_image_url terminava vazio e o site usava a foto padrão antiga.
+
+A foto que você já enviou foi recuperada no Supabase e já foi recolocada na
+configuração da II Unidade. Não precisa fazer upload dela novamente.
+
+A v12.42 impede que a proteção antiga sobrescreva:
+- foto grande de capa;
+- logo;
+- texto no topo;
+- texto sobre a capa;
+- título principal.
+
+ANIMAÇÃO ITALIANA
+O arquivo service-cta-v12.38.js já inclui o teste:
+Português → Italiano → Português ao selecionar um serviço.
+
+Exemplos:
+Corte → Taglio
+Corte Clássico → Taglio Classico
+Sobrancelha → Sopracciglia
+Cabeça Raspada → Testa Rasata
+Barboterapia → Trattamento Barba
+Combo Corte + Barba → Combo Taglio + Barba
+
+ARQUIVOS PARA SUBIR
+Na raiz:
+- service-cta-v12.38.js
+
+Dentro de equipe/:
+- presentation-settings-v12.28.js
+
+Substitua os dois arquivos existentes.
+Nenhum index.html, sw.js ou banco precisa ser alterado por este ZIP.

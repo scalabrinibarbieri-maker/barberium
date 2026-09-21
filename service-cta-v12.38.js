@@ -329,3 +329,165 @@
   setTimeout(boot,250);
   setTimeout(boot,800);
 })();
+
+/* Barberium v12.41 · assinatura italiana na seleção de serviços
+   Somente visual: o nome real do serviço continua em português.
+*/
+(() => {
+  const STAGE_ID='bookingStage';
+
+  function italianize(name=''){
+    let out=String(name).trim();
+    const replacements=[
+      [/\bCabeça Raspada\b/gi,'Testa Rasata'],
+      [/\bPezinho Detalhes\b/gi,'Rifinitura Contorni'],
+      [/\bBarboterapia\b/gi,'Trattamento Barba'],
+      [/\bSobrancelha\b/gi,'Sopracciglia'],
+      [/\bCorte Clássico\b/gi,'Taglio Classico'],
+      [/\bCorte\b/gi,'Taglio'],
+      [/\bPezinho\b/gi,'Rifinitura']
+    ];
+    for(const [rx,to] of replacements)out=out.replace(rx,to);
+    return out;
+  }
+
+  function injectItalianStyles(){
+    if(document.getElementById('barberiumItalianServicesV1241'))return;
+
+    const style=document.createElement('style');
+    style.id='barberiumItalianServicesV1241';
+    style.textContent=`
+      @keyframes v1241ItalianIn{
+        0%{opacity:0;transform:translateY(9px);filter:blur(2px)}
+        100%{opacity:1;transform:translateY(0);filter:blur(0)}
+      }
+      @keyframes v1241ItalianOut{
+        0%{opacity:1;transform:translateY(0);filter:blur(0)}
+        100%{opacity:0;transform:translateY(-8px);filter:blur(2px)}
+      }
+      @keyframes v1241ItalianLine{
+        0%{transform:scaleX(0);opacity:0}
+        35%{opacity:1}
+        100%{transform:scaleX(1);opacity:.78}
+      }
+
+      #${STAGE_ID} .choice-service > span{
+        position:relative;
+      }
+
+      #${STAGE_ID} .choice-service h3{
+        position:relative;
+        transition:color .20s ease,transform .20s ease,opacity .20s ease;
+      }
+
+      #${STAGE_ID} .choice-service.v1241-italian h3{
+        color:transparent!important;
+        transform:translateY(-4px);
+        opacity:.05;
+      }
+
+      .v1241-italian-name{
+        position:absolute;
+        z-index:4;
+        left:0;
+        right:0;
+        top:0;
+        pointer-events:none;
+        color:var(--gold2,#e2ba63);
+        font-family:inherit;
+        font-size:inherit;
+        line-height:inherit;
+        font-weight:inherit;
+        letter-spacing:inherit;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        opacity:0;
+        transform:translateY(9px);
+      }
+
+      .v1241-italian-name.show{
+        animation:v1241ItalianIn .26s cubic-bezier(.2,.8,.25,1) forwards;
+      }
+
+      .v1241-italian-name.out{
+        animation:v1241ItalianOut .22s ease forwards;
+      }
+
+      .v1241-italian-name::after{
+        content:"";
+        display:block;
+        width:34px;
+        height:1px;
+        margin-top:4px;
+        background:linear-gradient(90deg,var(--gold2,#e2ba63),transparent);
+        transform-origin:left center;
+        animation:v1241ItalianLine .34s .06s ease both;
+      }
+
+      @media (prefers-reduced-motion:reduce){
+        #${STAGE_ID} .choice-service h3{transition:none!important}
+        .v1241-italian-name.show,
+        .v1241-italian-name.out,
+        .v1241-italian-name::after{animation:none!important}
+        .v1241-italian-name.show{opacity:1;transform:none}
+        .v1241-italian-name.out{opacity:0;transform:none}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function animateItalian(serviceId){
+    const stage=document.getElementById(STAGE_ID);
+    if(!stage)return;
+
+    const card=[...stage.querySelectorAll('.choice-service')]
+      .find(x=>x.dataset.service===serviceId);
+
+    if(!card||!card.classList.contains('selected'))return;
+
+    const h3=card.querySelector('h3');
+    const copy=h3?.parentElement;
+    if(!h3||!copy)return;
+
+    const original=h3.textContent.trim();
+    const italian=italianize(original);
+    if(!italian||italian.toLowerCase()===original.toLowerCase())return;
+
+    copy.querySelector('.v1241-italian-name')?.remove();
+
+    const label=document.createElement('span');
+    label.className='v1241-italian-name';
+    label.textContent=italian;
+    label.setAttribute('aria-hidden','true');
+    copy.appendChild(label);
+
+    card.classList.add('v1241-italian');
+
+    requestAnimationFrame(()=>label.classList.add('show'));
+
+    setTimeout(()=>{
+      label.classList.remove('show');
+      label.classList.add('out');
+      card.classList.remove('v1241-italian');
+    },850);
+
+    setTimeout(()=>label.remove(),1150);
+  }
+
+  document.addEventListener('click',e=>{
+    const card=e.target.closest?.(`#${STAGE_ID} .choice-service`);
+    if(!card)return;
+    const id=card.dataset.service;
+    if(!id)return;
+
+    // O app redesenha os cards ao selecionar; anima o novo card já selecionado.
+    setTimeout(()=>animateItalian(id),30);
+  },true);
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',injectItalianStyles,{once:true});
+  }else{
+    injectItalianStyles();
+  }
+})();
