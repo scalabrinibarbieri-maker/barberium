@@ -29,7 +29,8 @@
       title:st.client_services_title||'Nossos serviços',
       intro:st.client_services_intro||'Trabalhamos com uma seleção premium de atendimentos para manter sua experiência mais prática e elegante. Ao tocar em Agendar agora, você verá todos os serviços disponíveis com seus respectivos valores e duração.',
       bullets:Array.isArray(st.client_services_bullets)?st.client_services_bullets.join('\n'):(st.client_services_bullets||'Cortes, barba tradicional e barba express\nCombos completos com barba, sobrancelha e barboterapia\nBarboterapia, sobrancelha, pezinho detalhes e cabeça raspada'),
-      cta:st.client_services_cta||'Ver serviços e agendar →'
+      cta:st.client_services_cta||'Ver serviços e agendar →',
+      showProfessionalDuration:st.client_show_professional_service_duration!==false
     };
   }
 
@@ -57,7 +58,9 @@
         </div>
         <div class="field"><label>Texto de apresentação</label><textarea id="v1228ServicesIntro" rows="5" placeholder="Conte ao cliente como é a experiência da barbearia.">${esc(d.intro)}</textarea></div>
         <div class="field"><label>Destaques</label><textarea id="v1228ServicesBullets" rows="5" placeholder="Uma linha por destaque">${esc(d.bullets)}</textarea><small class="v1224-helper">Deixe vazio se não quiser mostrar a lista.</small></div>
-        <div class="field"><label>Texto do botão</label><input id="v1228ServicesCta" value="${esc(d.cta)}" placeholder="Ex.: Ver serviços e agendar →"></div>`;
+        <div class="field"><label>Texto do botão</label><input id="v1228ServicesCta" value="${esc(d.cta)}" placeholder="Ex.: Ver serviços e agendar →"></div>
+        <label class="permission-item"><span>Mostrar duração do serviço ao escolher o profissional</span><input id="v1246ShowProfessionalDuration" type="checkbox" ${d.showProfessionalDuration?'checked':''}></label>
+        <small class="v1224-helper">Ligado: exibe “R$ 90,00 · 40 min”. Desligado: exibe somente o valor.</small>`;
       form.insertBefore(block,media);
 
       form.onsubmit=async event=>{
@@ -81,7 +84,8 @@
             client_services_title:$('#v1228ServicesTitle',form).value.trim()||'Nossos serviços',
             client_services_intro:$('#v1228ServicesIntro',form).value.trim(),
             client_services_bullets:bullets,
-            client_services_cta:$('#v1228ServicesCta',form).value.trim()||'Ver serviços e agendar →'
+            client_services_cta:$('#v1228ServicesCta',form).value.trim()||'Ver serviços e agendar →',
+            client_show_professional_service_duration:$('#v1246ShowProfessionalDuration',form).checked
           };
           await rpc('barberium_staff_save_unit',{
             p_unit_id:u.id,p_name:u.name,p_city:u.city||null,p_state:u.state||null,p_whatsapp:u.whatsapp||null,p_maps_url:u.maps_url||null,p_is_active:u.is_active!==false,p_settings:merged
