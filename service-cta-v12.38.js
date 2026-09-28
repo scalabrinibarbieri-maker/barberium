@@ -491,3 +491,75 @@
     injectItalianStyles();
   }
 })();
+
+/* Barberium v12.46 · visibilidade da duração por profissional
+   Configuração da unidade: client_show_professional_service_duration.
+   Atua somente na etapa "Escolha o profissional".
+*/
+(() => {
+  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
+  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
+  const SHOP_SLUG='scalabrini-barbieri';
+  const UNIT_SLUG='braganca-paulista';
+  let hideDuration=false;
+  let configReady=false;
+
+  async function loadSetting(){
+    try{
+      const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/barberium_get_catalog`,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          apikey:SUPABASE_KEY,
+          Authorization:`Bearer ${SUPABASE_KEY}`
+        },
+        body:JSON.stringify({
+          p_barbershop_slug:SHOP_SLUG,
+          p_unit_slug:UNIT_SLUG
+        })
+      });
+      if(!response.ok)throw new Error(`HTTP ${response.status}`);
+      const catalog=await response.json();
+      const value=catalog?.unit?.settings?.client_show_professional_service_duration;
+      hideDuration=value===false||value==='false';
+    }catch(err){
+      console.error('Barberium v12.46 duração pública:',err);
+      hideDuration=false;
+    }finally{
+      configReady=true;
+      apply();
+    }
+  }
+
+  function apply(){
+    if(!configReady||!hideDuration)return;
+    const stage=document.getElementById('bookingStage');
+    if(!stage)return;
+
+    stage.querySelectorAll('.pro-choice .pro-choice-copy small').forEach(label=>{
+      if(label.dataset.v1246DurationHidden==='1')return;
+      const original=String(label.textContent||'').trim();
+      const priceOnly=original.replace(/\s*[·•]\s*\d+\s*min(?:utos?)?\s*$/i,'').trim();
+      if(priceOnly&&priceOnly!==original){
+        label.dataset.v1246FullLabel=original;
+        label.dataset.v1246DurationHidden='1';
+        label.textContent=priceOnly;
+      }
+    });
+  }
+
+  function boot(){
+    const stage=document.getElementById('bookingStage');
+    if(stage&&stage.dataset.v1246DurationObserver!=='1'){
+      stage.dataset.v1246DurationObserver='1';
+      new MutationObserver(apply).observe(stage,{childList:true,subtree:true});
+    }
+    loadSetting();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot,{once:true});
+  }else{
+    boot();
+  }
+})();
