@@ -1,4 +1,4 @@
-/* Barberium v12.43 · personalização pública da área do cliente
+/* Barberium v12.47 · personalização pública + modo manutenção
    Correção: a capa correta é carregada antes da home ser revelada.
 */
 (() => {
@@ -132,6 +132,201 @@
     return digits?`https://wa.me/${digits}`:'';
   }
 
+  function maintenanceEnabled(st={}){
+    /*
+      Primeiro deploy da v12.47:
+      se a chave ainda não existe, começa BLOQUEADO.
+      Depois que o ADM salvar, true/false passa a ser obedecido normalmente.
+    */
+    return st.client_maintenance_mode==null
+      ? true
+      : st.client_maintenance_mode===true;
+  }
+
+  function maintenanceMessage(st={}){
+    return String(
+      st.client_maintenance_message||
+      'Estamos realizando uma atualização. Os agendamentos online voltarão em breve.'
+    ).trim();
+  }
+
+  function showMaintenance({shopName,unitName,logo,whatsapp,message}){
+    document.body.classList.add('barberium-maintenance-active');
+    document.title=`${shopName} • Temporariamente indisponível`;
+
+    let style=document.getElementById('barberiumMaintenanceV1247');
+    if(!style){
+      style=document.createElement('style');
+      style.id='barberiumMaintenanceV1247';
+      style.textContent=`
+        body.barberium-maintenance-active{
+          overflow:hidden!important;
+          background:#020704!important;
+        }
+
+        body.barberium-maintenance-active .app-shell{
+          display:none!important;
+        }
+
+        #barberiumMaintenance{
+          position:fixed;
+          inset:0;
+          z-index:9998;
+          display:grid;
+          place-items:center;
+          overflow:auto;
+          padding:
+            calc(34px + env(safe-area-inset-top))
+            24px
+            calc(34px + env(safe-area-inset-bottom));
+          background:
+            radial-gradient(circle at 50% 22%,rgba(202,160,73,.09),transparent 31%),
+            radial-gradient(circle at 50% 110%,rgba(24,77,51,.22),transparent 42%),
+            #020704;
+          color:#f3ead7;
+          text-align:center;
+        }
+
+        .v1247-maintenance-card{
+          width:min(100%,520px);
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+        }
+
+        .v1247-maintenance-logo{
+          width:104px;
+          height:104px;
+          object-fit:contain;
+          margin-bottom:25px;
+          filter:drop-shadow(0 14px 34px rgba(0,0,0,.42));
+          animation:v1247LogoIn .65s cubic-bezier(.18,.82,.25,1) both;
+        }
+
+        .v1247-maintenance-line{
+          width:58px;
+          height:1px;
+          margin:0 auto 24px;
+          background:linear-gradient(90deg,transparent,#dfb95f,transparent);
+          opacity:.85;
+        }
+
+        .v1247-maintenance-kicker{
+          margin:0 0 10px;
+          color:#d6ae5b;
+          font:800 11px/1.3 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          letter-spacing:.22em;
+          text-transform:uppercase;
+        }
+
+        .v1247-maintenance-card h1{
+          margin:0;
+          max-width:470px;
+          color:#f3ead7;
+          font-family:Georgia,"Times New Roman",serif;
+          font-size:clamp(34px,9vw,53px);
+          line-height:1.02;
+          font-weight:700;
+          letter-spacing:-.025em;
+        }
+
+        .v1247-maintenance-copy{
+          max-width:430px;
+          margin:20px auto 0;
+          color:#aea692;
+          font:500 15px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        }
+
+        .v1247-maintenance-unit{
+          margin:12px 0 0;
+          color:#716b5f;
+          font:700 10px/1.3 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          letter-spacing:.11em;
+          text-transform:uppercase;
+        }
+
+        .v1247-maintenance-actions{
+          width:100%;
+          max-width:360px;
+          margin-top:30px;
+        }
+
+        .v1247-maintenance-wa{
+          min-height:54px;
+          width:100%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border:1px solid rgba(226,186,99,.32);
+          border-radius:16px;
+          background:linear-gradient(135deg,#d6ae5b,#e5c477);
+          color:#102016;
+          text-decoration:none;
+          font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          box-shadow:0 12px 30px rgba(214,174,91,.14);
+        }
+
+        .v1247-maintenance-foot{
+          margin-top:38px;
+          color:#49473f;
+          font:600 10px/1.3 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          letter-spacing:.07em;
+        }
+
+        @keyframes v1247LogoIn{
+          0%{opacity:0;transform:translateY(10px) scale(.94)}
+          100%{opacity:1;transform:none}
+        }
+
+        @media(prefers-reduced-motion:reduce){
+          .v1247-maintenance-logo{animation:none}
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    let gate=document.getElementById('barberiumMaintenance');
+    if(!gate){
+      gate=document.createElement('section');
+      gate.id='barberiumMaintenance';
+      gate.setAttribute('role','status');
+      gate.setAttribute('aria-live','polite');
+      document.body.appendChild(gate);
+    }
+
+    const wa=whatsappHref(whatsapp);
+    gate.innerHTML=`
+      <div class="v1247-maintenance-card">
+        <img class="v1247-maintenance-logo" src="${logo}" alt="${shopName}">
+        <div class="v1247-maintenance-line"></div>
+        <p class="v1247-maintenance-kicker">Área do cliente</p>
+        <h1>Agendamentos temporariamente indisponíveis.</h1>
+        <p class="v1247-maintenance-copy">${String(message||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}</p>
+        <p class="v1247-maintenance-unit">${String(unitName||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}</p>
+        ${wa?`<div class="v1247-maintenance-actions"><a class="v1247-maintenance-wa" href="${wa}" target="_blank" rel="noopener">Falar pelo WhatsApp</a></div>`:''}
+        <p class="v1247-maintenance-foot">Barberium • acesso temporariamente suspenso</p>
+      </div>
+    `;
+
+    const app=document.querySelector('.app-shell');
+    if(app){
+      app.setAttribute('aria-hidden','true');
+      try{app.inert=true}catch{}
+    }
+  }
+
+  function clearMaintenance(){
+    document.body.classList.remove('barberium-maintenance-active');
+    document.getElementById('barberiumMaintenance')?.remove();
+
+    const app=document.querySelector('.app-shell');
+    if(app){
+      app.removeAttribute('aria-hidden');
+      try{app.inert=false}catch{}
+    }
+  }
+
   function presentationBullets(value){
     if(Array.isArray(value))return value.map(v=>String(v||'').trim()).filter(Boolean);
     if(typeof value==='string')return value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
@@ -204,8 +399,23 @@
     const heroTitle=String(st.client_hero_title||'Agende seu horário.').trim();
     const logo=String(st.client_logo_url||'./assets/logo-sb.webp').trim();
     const heroImage=String(st.client_hero_image_url||'./assets/barbearia.webp').trim();
+    const maintenance=maintenanceEnabled(st);
 
     cacheSplashLogo(logo);
+
+    if(maintenance){
+      showMaintenance({
+        shopName,
+        unitName,
+        logo,
+        whatsapp:u.whatsapp,
+        message:maintenanceMessage(st)
+      });
+      document.documentElement.classList.remove(HERO_PENDING_CLASS);
+      return;
+    }
+
+    clearMaintenance();
 
     document.title=`${shopName} • ${u.city||unitName}`;
 
@@ -274,8 +484,15 @@
 
       await applyBranding(catalog);
     }catch(err){
-      console.error('Barberium v12.43 branding:',err);
-      await prepareHero('./assets/barbearia.webp');
+      console.error('Barberium v12.47 branding:',err);
+      showMaintenance({
+        shopName:'Scalabrini Barbiere',
+        unitName:'II Unidade — Bragança Paulista',
+        logo:window.__barberiumSplashLogo||'./assets/logo-sb.webp',
+        whatsapp:'',
+        message:'Estamos realizando uma atualização. Os agendamentos online voltarão em breve.'
+      });
+      document.documentElement.classList.remove(HERO_PENDING_CLASS);
     }finally{
       document.documentElement.classList.remove(HERO_PENDING_CLASS);
       revealBranding();

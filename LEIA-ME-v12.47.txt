@@ -1,0 +1,40 @@
+BARBERIUM v12.47 — MODO MANUTENÇÃO DA ÁREA DO CLIENTE
+
+OBJETIVO
+Interromper temporariamente o uso do site pelos clientes sem derrubar a Área da Equipe.
+
+COMO FICA NO PRIMEIRO DEPLOY
+A manutenção entra LIGADA por padrão.
+Assim que estes arquivos forem publicados, a Área do Cliente fica bloqueada.
+
+O CLIENTE VÊ
+- logo da barbearia;
+- “Agendamentos temporariamente indisponíveis”;
+- mensagem configurável;
+- botão de WhatsApp, quando a unidade possui WhatsApp cadastrado.
+
+O CLIENTE NÃO CONSEGUE USAR
+- Agendar;
+- Meus horários;
+- Meu perfil;
+- navegação da Área do Cliente.
+
+A ÁREA DA EQUIPE CONTINUA NORMAL
+/equipe/ não é bloqueada.
+
+PARA REABRIR
+Área da Equipe → Ajustes → Barbearia → Área do cliente
+Desligue:
+“Modo manutenção da Área do Cliente”
+e salve a personalização.
+
+ARQUIVOS PARA SUBSTITUIR
+Na raiz:
+- barberium-client-v12.24.js
+
+Dentro de equipe/:
+- presentation-settings-v12.28.js
+
+OBSERVAÇÃO DE SEGURANÇA
+Esta versão bloqueia o uso normal do site e falha de forma fechada: se o catálogo
+público não carregar, a tela de manutenção permanece. A Área da Equipe não é alterada.
