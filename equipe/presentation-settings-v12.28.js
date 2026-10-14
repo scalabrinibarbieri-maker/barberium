@@ -1,4 +1,4 @@
-/* Barberium v12.28 · apresentação personalizável da página inicial */
+/* Barberium v12.47 · apresentação + modo manutenção da Área do Cliente */
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
@@ -30,7 +30,8 @@
       intro:st.client_services_intro||'Trabalhamos com uma seleção premium de atendimentos para manter sua experiência mais prática e elegante. Ao tocar em Agendar agora, você verá todos os serviços disponíveis com seus respectivos valores e duração.',
       bullets:Array.isArray(st.client_services_bullets)?st.client_services_bullets.join('\n'):(st.client_services_bullets||'Cortes, barba tradicional e barba express\nCombos completos com barba, sobrancelha e barboterapia\nBarboterapia, sobrancelha, pezinho detalhes e cabeça raspada'),
       cta:st.client_services_cta||'Ver serviços e agendar →',
-      showProfessionalDuration:st.client_show_professional_service_duration!==false
+      maintenance:st.client_maintenance_mode==null?true:st.client_maintenance_mode===true,
+      maintenanceMessage:st.client_maintenance_message||'Estamos realizando uma atualização. Os agendamentos online voltarão em breve.'
     };
   }
 
@@ -50,6 +51,18 @@
       const block=document.createElement('div');
       block.id='v1228PresentationFields';
       block.innerHTML=`
+        <h3 class="settings-section-title">Disponibilidade da Área do Cliente</h3>
+        <p class="settings-hint">Use esta opção para interromper temporariamente o acesso dos clientes sem afetar a Área da Equipe.</p>
+        <label class="permission-item">
+          <span><strong>Modo manutenção da Área do Cliente</strong><small>Quando ligado, clientes não conseguem acessar o agendamento, perfil ou horários.</small></span>
+          <input id="v1247MaintenanceMode" type="checkbox" ${d.maintenance?'checked':''}>
+        </label>
+        <div class="field">
+          <label>Mensagem durante a manutenção</label>
+          <textarea id="v1247MaintenanceMessage" rows="3" placeholder="Ex.: Voltaremos em breve.">${esc(d.maintenanceMessage)}</textarea>
+          <small class="v1224-helper">Se houver WhatsApp cadastrado na unidade, o cliente verá um botão para falar com a barbearia.</small>
+        </div>
+
         <h3 class="settings-section-title">Apresentação da página inicial</h3>
         <p class="settings-hint">Personalize o bloco que apresenta os serviços ao cliente. Em “Destaques”, use uma linha para cada item.</p>
         <div class="settings-two">
@@ -58,9 +71,7 @@
         </div>
         <div class="field"><label>Texto de apresentação</label><textarea id="v1228ServicesIntro" rows="5" placeholder="Conte ao cliente como é a experiência da barbearia.">${esc(d.intro)}</textarea></div>
         <div class="field"><label>Destaques</label><textarea id="v1228ServicesBullets" rows="5" placeholder="Uma linha por destaque">${esc(d.bullets)}</textarea><small class="v1224-helper">Deixe vazio se não quiser mostrar a lista.</small></div>
-        <div class="field"><label>Texto do botão</label><input id="v1228ServicesCta" value="${esc(d.cta)}" placeholder="Ex.: Ver serviços e agendar →"></div>
-        <label class="permission-item"><span>Mostrar duração do serviço ao escolher o profissional</span><input id="v1246ShowProfessionalDuration" type="checkbox" ${d.showProfessionalDuration?'checked':''}></label>
-        <small class="v1224-helper">Ligado: exibe “R$ 90,00 · 40 min”. Desligado: exibe somente o valor.</small>`;
+        <div class="field"><label>Texto do botão</label><input id="v1228ServicesCta" value="${esc(d.cta)}" placeholder="Ex.: Ver serviços e agendar →"></div>`;
       form.insertBefore(block,media);
 
       form.onsubmit=async event=>{
@@ -85,7 +96,8 @@
             client_services_intro:$('#v1228ServicesIntro',form).value.trim(),
             client_services_bullets:bullets,
             client_services_cta:$('#v1228ServicesCta',form).value.trim()||'Ver serviços e agendar →',
-            client_show_professional_service_duration:$('#v1246ShowProfessionalDuration',form).checked
+            client_maintenance_mode:$('#v1247MaintenanceMode',form).checked,
+            client_maintenance_message:$('#v1247MaintenanceMessage',form).value.trim()||'Estamos realizando uma atualização. Os agendamentos online voltarão em breve.'
           };
           await rpc('barberium_staff_save_unit',{
             p_unit_id:u.id,p_name:u.name,p_city:u.city||null,p_state:u.state||null,p_whatsapp:u.whatsapp||null,p_maps_url:u.maps_url||null,p_is_active:u.is_active!==false,p_settings:merged
