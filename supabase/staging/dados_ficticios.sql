@@ -186,6 +186,12 @@ insert into public.barbershop_members (barbershop_id, auth_user_id, role)
 values ('a0b9b1f2-487d-4f66-b04f-f3ebc4cd0c46', '5a000000-0000-4000-8000-000000000003', 'admin')
 on conflict (barbershop_id, auth_user_id) do nothing;
 
+-- No teste, o site do cliente começa aberto. Sem a chave, o site trata como "em manutenção";
+-- se alguém salvar a opção pela Área da Equipe de teste, o valor salvo é respeitado.
+update public.units
+   set settings = coalesce(settings, '{}'::jsonb) || '{"client_maintenance_mode": false}'::jsonb
+ where not (coalesce(settings, '{}'::jsonb) ? 'client_maintenance_mode');
+
 -- Clientes fictícios (telefones da faixa 9000-00xx, que não existe).
 insert into public.customers (barbershop_id, full_name, phone_e164)
 select b.id, format('Cliente Teste %s', lpad(n::text, 2, '0')),

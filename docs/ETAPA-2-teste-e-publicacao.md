@@ -89,6 +89,15 @@ Versões fixas: wrangler 4.146.0 (de 01/10/2026), Node 22, `actions/checkout@v6`
 | O que aconteceu | Causa | Correção |
 | --- | --- | --- |
 | A primeira rodada de "Publicar no teste" falhou ao conectar no banco de teste: `missing "=" after "::add-mask::***"` | O aviso que esconde a senha nos logs saía dentro de `$(url_staging)` e foi parar no começo da URL. O teste local não pegou porque rodou sem `GITHUB_ACTIONS=true` | O aviso agora sai quando o `conexao.sh` é carregado, fora da URL. Testado com os passos exatos dos dois workflows, `GITHUB_ACTIONS=true` e um pooler simulado (aws-0 recusa, aws-1 responde). O teste rodou do banco vazio até o site montado, e a produção até a conferência final, com uma migration nova de exemplo |
+| O site do cliente de teste abriu em "manutenção" | Quando a opção nunca foi salva, o site trata como ligada. Na produção ela também está assim | Os dados fictícios agora gravam "manutenção desligada" no teste, mas só quando a opção ainda não existe. Um valor salvo depois pela Área da Equipe de teste é respeitado (testado: salvar "ligada" na Aurora e rodar de novo mantém ligada). A produção não muda |
+
+## Validação final (19/10)
+
+| Quando | O quê | Resultado |
+| --- | --- | --- |
+| 17h25 | Publicar no teste #2 | Verde. O banco de teste foi montado do zero com 92 migrations e ficou idêntico ao reconstruído. Os dados fictícios foram criados. O site de teste aponta só para o banco de teste; o site real continua apontando para a produção |
+| 17h30 | Dono na Área da Equipe de teste | Login com o ADM de teste ok; agenda com os horários fictícios |
+| 20h30 | Publicar em produção #47 (sem nada novo para publicar) | Verde nos 3 passos (conferência 4 s, testes 32 s, publicação 39 s). A produção continua com as mesmas 92 migrations (mesmo md5 da lista). O site real foi publicado pela lista explícita e sem nenhuma marca de teste |
 
 ## Pendências
 
