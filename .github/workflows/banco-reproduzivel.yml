@@ -19,6 +19,7 @@ on:
       - main
     paths:
       - 'supabase/**'
+      - '.github/workflows/banco-reproduzivel.yml'
   schedule:
     - cron: '23 9 * * 1'
   workflow_dispatch:
@@ -71,14 +72,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${SUPABASE_DB_URL}" ]; then
+          # O segredo foi colado com uma quebra de linha no fim. O Supabase CLI do backup
+          # ignora isso, mas o psql não: procuraria o banco "postgres\n". Uma URL de
+          # conexão nunca tem espaço nem quebra de linha, então tudo isso é removido.
+          url="$(printf '%s' "${SUPABASE_DB_URL}" | tr -d '[:space:]')"
+          if [ -z "${url}" ]; then
             echo "::error::Falta o segredo SUPABASE_DB_URL."
             exit 1
           fi
-          "$PSQL" "$SUPABASE_DB_URL" -X -q -At -v ON_ERROR_STOP=1 \
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
             -c 'set default_transaction_read_only = on' \
             -f supabase/reconstrucao/impressao_digital.sql > fp_producao.json
-          "$PSQL" "$SUPABASE_DB_URL" -X -q -At -v ON_ERROR_STOP=1 \
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
             -c 'set default_transaction_read_only = on' \
             -c 'select version from supabase_migrations.schema_migrations order by 1' > versoes_producao.txt
           test -s fp_producao.json

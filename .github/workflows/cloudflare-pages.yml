@@ -4,10 +4,19 @@ on:
   push:
     branches:
       - main
+    # Etapa 1: o envio de um pacote-*.zip não publica nada sozinho. O workflow
+    # "Aplicar pacote" descompacta, faz o commit e dispara este deploy depois.
+    paths-ignore:
+      - 'pacote-*.zip'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# Um deploy por vez, na ordem: um deploy antigo nunca termina depois de um novo.
+concurrency:
+  group: deploy-cloudflare-pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -47,6 +56,13 @@ jobs:
 
       - name: Deploy production
         shell: bash
+        env:
+          # Etapa 1: a mensagem do commit entra por variável, nunca colada direto no script.
+          COMMIT_MSG: ${{ github.event.head_commit.message || 'Manual deploy' }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@latest pages deploy dist             --project-name=barberium             --branch=main             --commit-hash="${GITHUB_SHA}"             --commit-message="${{ github.event.head_commit.message || 'Manual deploy' }}"
+          npx --yes wrangler@latest pages deploy dist \
+            --project-name=barberium \
+            --branch=main \
+            --commit-hash="${GITHUB_SHA}" \
+            --commit-message="${COMMIT_MSG%%$'\n'*}"
