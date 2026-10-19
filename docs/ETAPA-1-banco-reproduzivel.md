@@ -76,8 +76,17 @@ Status: aguardando sua aprovação.
 - **Mudança nova no banco:** sempre como arquivo `supabase/migrations/<AAAAMMDDHHMMSS>_<nome>.sql`, testado antes numa transação desfeita.
 - **Não rode** `supabase db push`, `supabase config push` nem `supabase test db --linked` à mão. A aplicação automática fica para a etapa 2.
 
+## Ajustes depois da subida (19/10)
+
+| O que aconteceu | Causa | Correção |
+| --- | --- | --- |
+| A primeira rodada de "Banco reproduzível" falhou em 23 s, na leitura da produção | O segredo `SUPABASE_DB_URL` termina com uma quebra de linha. O psql procurou o banco `"postgres\n"`; o login em si funcionou (log do pooler do Supabase às 19:20 UTC). O CLI do backup ignora a quebra, por isso o backup roda | O workflow agora remove espaços e quebras de linha da URL antes de conectar. Testado localmente com a mesma URL quebrada: o erro foi reproduzido e corrigido |
+| O deploy apareceu duplicado: `cloudflare-pages.yml` (antigo) e `cloudflare-pages-2.yml` | O celular renomeou o arquivo baixado, porque já havia um com o mesmo nome | Apagar `cloudflare-pages-2.yml` e reenviar `cloudflare-pages.yml` com o nome exato (agora dentro de um ZIP, que preserva os nomes) |
+| A Área da Equipe antiga (v11.2) continuava no ar em `scalabrinibarbieri-maker.github.io/barberium/assets/` | O GitHub Pages está ligado neste repositório e publica tudo o que está nele. A etapa 0 tirou esses arquivos só do Cloudflare | Este pacote apaga `assets/index.html`, `assets/team.js` e `assets/finance-reports.js` do repositório (ficam no histórico do Git). O Cloudflare não muda, porque já não os publicava. Recomendado também desligar o GitHub Pages, que mantém uma cópia não oficial do site |
+
 ## Pendências
 
 1. Registrar as 2 migrations no histórico da produção (aguarda aprovação).
-2. Tornar o repositório privado no fim da estabilização. Os workflows continuam funcionando, dentro do limite de minutos do plano.
-3. Etapa 2: ambiente de testes (staging) e aplicação de migrations pelo GitHub Actions.
+2. Desligar o GitHub Pages (Settings > Pages), se ninguém usa o endereço `github.io`.
+3. Tornar o repositório privado no fim da estabilização. Os workflows continuam funcionando, dentro do limite de minutos do plano.
+4. Etapa 2: ambiente de testes (staging) e aplicação de migrations pelo GitHub Actions.
