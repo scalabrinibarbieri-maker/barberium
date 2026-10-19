@@ -1,0 +1,153 @@
+name: Publicar no teste
+
+# Etapa 2 (19/10/2026). Toda mudança passa primeiro por aqui:
+#   1. testes: o workflow "Banco reproduzível" (produção bate com o repositório e as
+#      migrations novas rodam num banco reconstruído);
+#   2. aplica as migrations novas no banco de TESTE (projeto barberium-staging) e confere que
+#      ele ficou igual ao banco reconstruído;
+#   3. cria/atualiza os dados fictícios (Scalabrini de teste e Barbearia Aurora);
+#   4. publica o site apontando para o banco de teste em https://staging.barberium.pages.dev,
+#      com a faixa "AMBIENTE DE TESTE".
+# Depois de conferir o site de teste, a produção é publicada à mão pelo workflow
+# "Publicar em produção". Nada aqui toca no banco ou no site de produção.
+#
+# Roda a cada push na main que mude o site ou o banco, à mão, e segunda e quinta de manhã
+# (o banco grátis do Supabase dorme depois de uma semana sem uso).
+# Segredos: SUPABASE_DB_URL (só leitura, nos testes), STAGING_DB_SENHA, STAGING_SENHA_TESTE,
+# CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID.
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'pacote-*.zip'
+  schedule:
+    - cron: '41 10 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar-teste
+  cancel-in-progress: false
+
+jobs:
+  testes:
+    uses: ./.github/workflows/banco-reproduzivel.yml
+    secrets: inherit
+
+  publicar:
+    needs: testes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      STAGING_DB_SENHA: ${{ secrets.STAGING_DB_SENHA }}
+      STAGING_SENHA_TESTE: ${{ secrets.STAGING_SENHA_TESTE }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PORTA: '55432'
+      PSQL: /usr/lib/postgresql/17/bin/psql
+      WRANGLER: wrangler@4.146.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Conferir segredos
+        shell: bash
+        run: |
+          set -euo pipefail
+          falta=0
+          for s in STAGING_DB_SENHA STAGING_SENHA_TESTE CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!s}" ]; then echo "::error::Falta o segredo $s."; falta=1; fi
+          done
+          exit $falta
+
+      - name: Instalar Postgres 17 e pg_cron
+        shell: bash
+        run: bash supabase/pipeline/instalar_postgres.sh
+
+      - name: Banco esperado (reconstruído com todas as migrations)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash supabase/reconstrucao/reconstruir.sh "$PORTA"
+          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -At -v ON_ERROR_STOP=1 \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_esperado.json
+
+      - name: Aplicar as migrations novas no banco de teste
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          url="$(url_staging)"
+          bash supabase/pipeline/aplicar_migrations.sh --url "$url" --autor pipeline-teste
+
+      - name: Dados fictícios
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          url="$(url_staging)"
+          "$PSQL" "$url" -X -q -v ON_ERROR_STOP=1 -v senha="$STAGING_SENHA_TESTE" \
+            -f supabase/staging/dados_ficticios.sql
+
+      - name: Conferir o banco de teste
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          url="$(url_staging)"
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_teste.json
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
+            -c 'select version from supabase_migrations.schema_migrations order by 1' > versoes_teste.txt
+          python3 supabase/reconstrucao/comparar_impressao.py fp_teste.json fp_esperado.json \
+            --migrations supabase/migrations --versoes-producao versoes_teste.txt \
+            --alvo teste --exigir-todas --titulo "Banco de teste"
+
+      - name: Montar o site de teste
+        shell: bash
+        run: bash deploy/montar_site.sh dist teste
+
+      - name: Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Publicar o site de teste
+        shell: bash
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message || github.event_name }}
+        run: |
+          set -euo pipefail
+          npx --yes "$WRANGLER" pages deploy dist \
+            --project-name=barberium \
+            --branch=staging \
+            --commit-hash="${GITHUB_SHA}" \
+            --commit-message="Teste: ${COMMIT_MSG%%$'\n'*}"
+          # shellcheck disable=SC1091
+          . supabase/staging/projeto.env
+          {
+            echo "## Site de teste publicado"
+            echo
+            echo "${STAGING_SITE}  (Área da Equipe: ${STAGING_SITE}/equipe/)"
+            echo
+            echo "Confira e, se estiver tudo certo, rode **Publicar em produção**."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar as impressões digitais (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: impressoes-digitais-teste
+          path: |
+            fp_teste.json
+            fp_esperado.json
+            versoes_teste.txt
+          retention-days: 7
+          if-no-files-found: ignore

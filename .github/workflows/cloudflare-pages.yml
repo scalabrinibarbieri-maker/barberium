@@ -1,68 +1,161 @@
-name: Deploy Barberium to Cloudflare Pages
+name: Publicar em produção
+
+# Etapa 2 (19/10/2026). Publica na produção exatamente o que já foi conferido no teste.
+# Antes era automático a cada push; agora só roda à mão:
+#   Actions > Publicar em produção > Run workflow > marcar "Já conferi o site de teste".
+# (O arquivo continua com o nome antigo, cloudflare-pages.yml, para que o envio dele
+#  substitua o deploy automático antigo sem precisar apagar nada.)
+#
+# Passos, e cada um só roda se o anterior passou:
+#   1. a versão atual da main precisa ter passado em "Publicar no teste";
+#   2. testes ("Banco reproduzível");
+#   3. ensaio: roda as migrations novas na produção e desfaz tudo (rollback);
+#   4. aplica as migrations novas na produção, todas numa transação só;
+#   5. confere que a produção ficou igual ao banco reconstruído;
+#   6. publica o site (lista explícita de arquivos, wrangler com versão fixa).
+#
+# Para voltar o site: Cloudflare > Workers & Pages > barberium > Deployments >
+# deploy anterior > "Rollback to this deployment". Para o banco: migration de volta.
 
 on:
-  push:
-    branches:
-      - main
-    # Etapa 1: o envio de um pacote-*.zip não publica nada sozinho. O workflow
-    # "Aplicar pacote" descompacta, faz o commit e dispara este deploy depois.
-    paths-ignore:
-      - 'pacote-*.zip'
   workflow_dispatch:
+    inputs:
+      conferido:
+        description: 'Já conferi o site de teste'
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
-# Um deploy por vez, na ordem: um deploy antigo nunca termina depois de um novo.
 concurrency:
   group: deploy-cloudflare-pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
+  conferir:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v6
-
-      - name: Prepare public site
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          cp index.html dist/
-          cp styles.css dist/
-          cp desktop-v12.15.css dist/
-          cp membership.css dist/
-          cp site.webmanifest dist/
-          cp sw.js dist/
-          cp barberium.svg dist/
-          cp ./*.js dist/
-          cp -R assets dist/
-          # Etapa 0 (19/10/2026): a Área da Equipe antiga (v11.2) que ficava em assets/
-          # não pode ser publicada. assets/ é só para imagens.
-          rm -f dist/assets/index.html dist/assets/team.js dist/assets/finance-reports.js
-          if find dist/assets -type f \( -name '*.html' -o -name '*.js' \) | grep -q .; then
-            echo "assets/ não pode conter HTML ou JS publicado:"
-            find dist/assets -type f \( -name '*.html' -o -name '*.js' \)
-            exit 1
-          fi
-          cp -R equipe dist/
-
-      - name: Deploy production
+      - name: Confirmação e teste da mesma versão
         shell: bash
         env:
-          # Etapa 1: a mensagem do commit entra por variável, nunca colada direto no script.
-          COMMIT_MSG: ${{ github.event.head_commit.message || 'Manual deploy' }}
+          GH_TOKEN: ${{ github.token }}
+          CONFERIDO: ${{ inputs.conferido }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@latest pages deploy dist \
+          if [ "$CONFERIDO" != "true" ]; then
+            echo "::error::Marque 'Já conferi o site de teste' para publicar."
+            exit 1
+          fi
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Só a branch main vai para a produção."
+            exit 1
+          fi
+          ok="$(gh run list -R "$GITHUB_REPOSITORY" --workflow staging.yml --branch main --status success \
+                 --limit 20 --json headSha -q "[.[] | select(.headSha == \"$GITHUB_SHA\")] | length")"
+          if [ "${ok:-0}" -lt 1 ]; then
+            echo "::error::Esta versão da main ($GITHUB_SHA) ainda não passou em 'Publicar no teste'. Publique e confira no teste primeiro."
+            exit 1
+          fi
+          echo "Versão $GITHUB_SHA conferida no teste."
+
+  testes:
+    needs: conferir
+    uses: ./.github/workflows/banco-reproduzivel.yml
+    secrets: inherit
+
+  publicar:
+    needs: testes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PORTA: '55432'
+      PSQL: /usr/lib/postgresql/17/bin/psql
+      WRANGLER: wrangler@4.146.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Instalar Postgres 17 e pg_cron
+        shell: bash
+        run: bash supabase/pipeline/instalar_postgres.sh
+
+      - name: Banco esperado (reconstruído com todas as migrations)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash supabase/reconstrucao/reconstruir.sh "$PORTA"
+          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -At -v ON_ERROR_STOP=1 \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_esperado.json
+
+      - name: Montar o site (antes de mexer no banco, para falhar cedo)
+        shell: bash
+        run: bash deploy/montar_site.sh dist producao
+
+      - name: Ensaio das migrations na produção (tudo desfeito)
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          bash supabase/pipeline/aplicar_migrations.sh --url "$(url_producao)" --ensaio
+
+      - name: Aplicar as migrations na produção
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          bash supabase/pipeline/aplicar_migrations.sh --url "$(url_producao)" --autor pipeline-producao
+
+      - name: Conferir a produção
+        shell: bash
+        run: |
+          set -euo pipefail
+          source supabase/pipeline/conexao.sh
+          url="$(url_producao)"
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 -c 'set default_transaction_read_only = on' \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_producao.json
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 -c 'set default_transaction_read_only = on' \
+            -c 'select version from supabase_migrations.schema_migrations order by 1' > versoes_producao.txt
+          python3 supabase/reconstrucao/comparar_impressao.py fp_producao.json fp_esperado.json \
+            --migrations supabase/migrations --versoes-producao versoes_producao.txt \
+            --exigir-todas --titulo "Banco de produção depois da publicação"
+
+      - name: Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Publicar o site de produção
+        shell: bash
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --format=%s)"
+          npx --yes "$WRANGLER" pages deploy dist \
             --project-name=barberium \
             --branch=main \
             --commit-hash="${GITHUB_SHA}" \
-            --commit-message="${COMMIT_MSG%%$'\n'*}"
+            --commit-message="Produção: ${msg}"
+          {
+            echo "## Produção publicada"
+            echo
+            echo "Versão ${GITHUB_SHA}. Site: https://scalabrinibarbiere.com"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar as impressões digitais (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: impressoes-digitais-producao
+          path: |
+            fp_producao.json
+            fp_esperado.json
+            versoes_producao.txt
+          retention-days: 7
+          if-no-files-found: ignore

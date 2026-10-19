@@ -1,35 +1,29 @@
 name: Banco reproduzível
 
-# Etapa 1 (19/10/2026). Prova que o repositório descreve o banco inteiro:
-#   1. cria um Postgres 17 vazio;
-#   2. aplica supabase/reconstrucao/plataforma_supabase.sql (o que o Supabase já traz pronto)
-#      e todas as migrations de supabase/migrations, em ordem;
-#   3. gera a "impressão digital" do schema (funções, tabelas, colunas, índices, triggers,
-#      permissões, jobs agendados, buckets) e compara com a da produção.
-# A produção é lida em modo somente leitura: este workflow não altera nada no banco.
-# Qualquer diferença faz o workflow falhar e o log mostra exatamente o que mudou.
+# Etapa 1 (19/10/2026), revisto na etapa 2. Faz duas conferências, sem alterar a produção:
+#   1. Reconstrói num Postgres 17 vazio só as migrations que a produção já tem e compara a
+#      "impressão digital" do schema com a da produção. Diferença = alguém mexeu no banco sem
+#      migration (pelo painel do Supabase, por exemplo).
+#   2. Aplica por cima as migrations novas, que ainda não foram publicadas, para provar que
+#      elas rodam. É o mesmo script que depois as aplica no banco de teste e na produção.
 #
-# Roda quando algo em supabase/ muda, toda segunda de manhã (pega mudanças feitas direto
-# no painel do Supabase) e à mão em Actions > Banco reproduzível > Run workflow.
-# Segredo usado: SUPABASE_DB_URL (o mesmo do backup).
+# Roda toda segunda de manhã, à mão (Actions > Banco reproduzível > Run workflow) e como
+# primeiro passo dos workflows "Publicar no teste" e "Publicar em produção".
+# Segredo usado: SUPABASE_DB_URL (o mesmo do backup), sempre em modo somente leitura.
 
 on:
+  schedule:
+    - cron: '23 9 * * 1'
+  workflow_dispatch:
+  workflow_call:
   push:
     branches:
       - main
     paths:
-      - 'supabase/**'
       - '.github/workflows/banco-reproduzivel.yml'
-  schedule:
-    - cron: '23 9 * * 1'
-  workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: banco-reproduzivel
-  cancel-in-progress: true
 
 jobs:
   comparar:
@@ -46,57 +40,45 @@ jobs:
 
       - name: Instalar Postgres 17 e pg_cron
         shell: bash
-        run: |
-          set -euo pipefail
-          sudo install -d /etc/postgresql-common/createcluster.d
-          echo 'create_main_cluster = false' | sudo tee /etc/postgresql-common/createcluster.d/00-barberium.conf >/dev/null
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-common >/dev/null
-          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
-          sudo apt-get install -y -qq postgresql-17 postgresql-17-cron >/dev/null
-          /usr/lib/postgresql/17/bin/postgres --version
+        run: bash supabase/pipeline/instalar_postgres.sh
 
-      - name: Reconstruir o banco do zero
-        shell: bash
-        run: bash supabase/reconstrucao/reconstruir.sh "$PORTA"
-
-      - name: Impressão digital do banco reconstruído
+      - name: Ler a produção (somente leitura)
         shell: bash
         run: |
           set -euo pipefail
-          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -At -v ON_ERROR_STOP=1 \
-            -f supabase/reconstrucao/impressao_digital.sql > fp_reconstruido.json
-          test -s fp_reconstruido.json
-
-      - name: Impressão digital da produção (somente leitura)
-        shell: bash
-        run: |
-          set -euo pipefail
-          # O segredo foi colado com uma quebra de linha no fim. O Supabase CLI do backup
-          # ignora isso, mas o psql não: procuraria o banco "postgres\n". Uma URL de
-          # conexão nunca tem espaço nem quebra de linha, então tudo isso é removido.
-          url="$(printf '%s' "${SUPABASE_DB_URL}" | tr -d '[:space:]')"
-          if [ -z "${url}" ]; then
-            echo "::error::Falta o segredo SUPABASE_DB_URL."
-            exit 1
-          fi
-          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
-            -c 'set default_transaction_read_only = on' \
+          source supabase/pipeline/conexao.sh
+          url="$(url_producao)"
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 -c 'set default_transaction_read_only = on' \
             -f supabase/reconstrucao/impressao_digital.sql > fp_producao.json
-          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 \
-            -c 'set default_transaction_read_only = on' \
+          "$PSQL" "$url" -X -q -At -v ON_ERROR_STOP=1 -c 'set default_transaction_read_only = on' \
             -c 'select version from supabase_migrations.schema_migrations order by 1' > versoes_producao.txt
           test -s fp_producao.json
+          echo "Produção: $(wc -l < versoes_producao.txt) migrations no histórico."
 
-      - name: Comparar
+      - name: Reconstruir como a produção está
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash supabase/reconstrucao/reconstruir.sh "$PORTA" versoes_producao.txt
+          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -At -v ON_ERROR_STOP=1 \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_reconstruido.json
+
+      - name: Comparar com a produção
         shell: bash
         run: |
           python3 supabase/reconstrucao/comparar_impressao.py fp_producao.json fp_reconstruido.json \
             --migrations supabase/migrations --versoes-producao versoes_producao.txt
 
+      - name: Migrations novas rodam no banco reconstruído
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash supabase/pipeline/aplicar_migrations.sh \
+            --url "postgresql://postgres@127.0.0.1:${PORTA}/postgres" --autor reconstrucao
+
       - name: Guardar as impressões digitais (se falhar)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: impressoes-digitais
           path: |
