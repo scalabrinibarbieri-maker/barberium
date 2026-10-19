@@ -84,6 +84,12 @@ Versões fixas: wrangler 4.146.0 (de 01/10/2026), Node 22, `actions/checkout@v6`
 - **Teste:** apagar o projeto `barberium-staging` no Supabase e os segredos `STAGING_*`. Não afeta a produção.
 - **Site de produção:** usar o rollback do Cloudflare (está no [COMO-PUBLICAR.md](COMO-PUBLICAR.md)).
 
+## Ajustes depois da subida (19/10)
+
+| O que aconteceu | Causa | Correção |
+| --- | --- | --- |
+| A primeira rodada de "Publicar no teste" falhou ao conectar no banco de teste: `missing "=" after "::add-mask::***"` | O aviso que esconde a senha nos logs saía dentro de `$(url_staging)` e foi parar no começo da URL. O teste local não pegou porque rodou sem `GITHUB_ACTIONS=true` | O aviso agora sai quando o `conexao.sh` é carregado, fora da URL. Testado com os passos exatos dos dois workflows, `GITHUB_ACTIONS=true` e um pooler simulado (aws-0 recusa, aws-1 responde). O teste rodou do banco vazio até o site montado, e a produção até a conferência final, com uma migration nova de exemplo |
+
 ## Pendências
 
 1. A edge function de notificações não está no teste. Para publicá-la lá, é preciso um token de acesso do Supabase como segredo. Sem ela, as notificações ficam desligadas no teste.

@@ -10,6 +10,15 @@ _limpar() {
   printf '%s' "$s"
 }
 
+_codificar() { python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+
+# No GitHub, esconde dos logs a senha do teste na forma em que ela entra na URL.
+# Isto roda ao carregar o arquivo (fora de qualquer "$(...)"), porque o aviso ao GitHub
+# precisa sair na saída normal do passo. Dentro de "$(url_staging)" ele iria parar na URL.
+if [ -n "${GITHUB_ACTIONS:-}" ] && [ -n "${STAGING_DB_SENHA:-}" ]; then
+  echo "::add-mask::$(_codificar "$(_limpar "$STAGING_DB_SENHA")")"
+fi
+
 # Produção: o segredo SUPABASE_DB_URL já é a URL completa (pooler, modo session).
 url_producao() {
   local u; u="$(_limpar "${SUPABASE_DB_URL:-}")"
@@ -26,8 +35,7 @@ url_staging() {
   . "$raiz/staging/projeto.env"
   senha="$(_limpar "${STAGING_DB_SENHA:-}")"
   [ -n "$senha" ] || { echo "Falta o segredo STAGING_DB_SENHA." >&2; return 1; }
-  enc="$(python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$senha")"
-  if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::add-mask::$enc"; fi
+  enc="$(_codificar "$senha")"
   for host in aws-0 aws-1 aws-2; do
     u="postgresql://postgres.${STAGING_REF}:${enc}@${host}-${STAGING_REGIAO}.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=10"
     if "${PSQL:-psql}" "$u" -X -q -At -c 'select 1' >/dev/null 2>&1; then
