@@ -32,12 +32,30 @@ alter default privileges for role postgres in schema public grant all on sequenc
 create schema if not exists auth authorization supabase_admin;
 grant usage on schema auth to anon, authenticated, service_role, postgres;
 create type auth.aal_level as enum ('aal1','aal2','aal3');
+-- Mesmas colunas de auth.users e auth.identities da produção (lidas em 19/10/2026),
+-- para os dados fictícios do banco de teste poderem ser testados aqui também.
 create table auth.users(
   instance_id uuid, id uuid primary key, aud varchar(255), role varchar(255), email varchar(255),
-  encrypted_password varchar(255), email_confirmed_at timestamptz, created_at timestamptz, updated_at timestamptz,
-  phone text default null, raw_app_meta_data jsonb, raw_user_meta_data jsonb, last_sign_in_at timestamptz,
+  encrypted_password varchar(255), email_confirmed_at timestamptz, invited_at timestamptz,
+  confirmation_token varchar(255), confirmation_sent_at timestamptz, recovery_token varchar(255),
+  recovery_sent_at timestamptz, email_change_token_new varchar(255), email_change varchar(255),
+  email_change_sent_at timestamptz, last_sign_in_at timestamptz, raw_app_meta_data jsonb,
+  raw_user_meta_data jsonb, is_super_admin boolean, created_at timestamptz, updated_at timestamptz,
+  phone text default null, phone_confirmed_at timestamptz, phone_change text default '',
+  phone_change_token varchar(255) default '', phone_change_sent_at timestamptz,
+  confirmed_at timestamptz generated always as (least(email_confirmed_at, phone_confirmed_at)) stored,
+  email_change_token_current varchar(255) default '', email_change_confirm_status smallint default 0,
+  banned_until timestamptz, reauthentication_token varchar(255) default '', reauthentication_sent_at timestamptz,
   is_sso_user boolean not null default false, deleted_at timestamptz, is_anonymous boolean not null default false
 );
+create table auth.identities(
+  provider_id text not null, user_id uuid not null references auth.users(id) on delete cascade,
+  identity_data jsonb not null, provider text not null, last_sign_in_at timestamptz,
+  created_at timestamptz, updated_at timestamptz,
+  email text generated always as (lower(identity_data ->> 'email')) stored,
+  id uuid primary key default gen_random_uuid(), unique (provider_id, provider)
+);
+grant select, insert, update, delete on auth.users, auth.identities to postgres;
 create table auth.sessions(
   id uuid primary key, user_id uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz, updated_at timestamptz, aal auth.aal_level, not_after timestamptz,

@@ -41,7 +41,7 @@ A pasta de conferência se chama `supabase/reconstrucao/` e não `supabase/tests
 
 Nenhuma função, permissão, tabela ou dado foi alterado. Mudam só duas linhas na tabela de controle do Supabase (`supabase_migrations.schema_migrations`): as 2 migrations novas ficam **registradas sem serem executadas**, porque a produção já está no estado que elas descrevem.
 
-Status: aguardando sua aprovação.
+Status: feito em 19/10/2026 às 16h45. O pedido de permissão não aparece no celular, então o próprio dono rodou o comando no SQL Editor do Supabase. O comando tinha sido testado antes numa transação desfeita. Nas 2 linhas do histórico ficou uma nota apontando para o arquivo no repositório, no lugar do SQL completo. Repositório e produção têm as mesmas 92 versões (conferido pelo md5 da lista).
 
 ## Testes executados
 
@@ -86,7 +86,7 @@ Status: aguardando sua aprovação.
 
 ## Pendências
 
-1. Registrar as 2 migrations no histórico da produção (aguarda aprovação).
+1. ~~Registrar as 2 migrations no histórico da produção.~~ Feito em 19/10.
 2. Desligar o GitHub Pages (Settings > Pages), se ninguém usa o endereço `github.io`.
 3. Tornar o repositório privado no fim da estabilização. Os workflows continuam funcionando, dentro do limite de minutos do plano.
 4. Etapa 2: ambiente de testes (staging) e aplicação de migrations pelo GitHub Actions.

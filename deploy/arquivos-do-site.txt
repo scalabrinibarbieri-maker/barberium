@@ -1,0 +1,61 @@
+# Arquivos publicados no site (Cloudflare Pages), um por linha, caminho a partir da raiz do repositório.
+# Só o que está aqui vai para o ar. Arquivo novo do site precisa entrar nesta lista;
+# o deploy confere se tudo o que as páginas e o service worker carregam está publicado.
+#
+# Etapa 2 (19/10/2026): lista igual ao que o deploy antigo publicava ("cp ./*.js" e pastas inteiras),
+# menos as .gitkeep. Os três marcados "sem uso" não são carregados por nenhuma página e saem na etapa 9.
+
+# Site do cliente
+index.html
+styles.css
+desktop-v12.15.css
+membership.css
+site.webmanifest
+sw.js
+barberium.svg
+app.js
+push.js
+membership.js
+barberium-client-v12.24.js
+client-profile-v12.32.js
+professional-motion-v12.35.js
+service-cta-v12.38.js
+service-cta-v12.37.js   # sem uso
+barber-commissions-v12.30.js   # sem uso (a equipe usa equipe/barber-commissions-v12.30.js)
+
+# Imagens
+assets/barba-express.webp
+assets/barba-tradizionale.webp
+assets/barbearia.webp
+assets/barboterapia.webp
+assets/cabeca-raspada.webp
+assets/combo-corte-barba.webp
+assets/combo-corte-barboterapia.webp
+assets/corte-barba-express.webp
+assets/corte-barba-sobrancelha.webp
+assets/corte.webp
+assets/jean-dalarmi.webp
+assets/logo-sb.webp
+assets/pezinho-detalhes.webp
+assets/sobrancelha.webp
+assets/vinicius-nunes.webp
+
+# Área da Equipe
+equipe/agenda-cancelados-v12.8.js
+equipe/balances-v12.39.js
+equipe/barber-commissions-v12.30.js
+equipe/barberium-v12.10.js
+equipe/barberium-v12.12.js   # sem uso
+equipe/barberium-v12.13.js
+equipe/barberium-v12.17.js
+equipe/barberium-v12.9.js
+equipe/cancel-permission-v12.45.js
+equipe/desktop-v12.16.css
+equipe/finance-reports.js
+equipe/index.html
+equipe/presentation-settings-v12.28.js
+equipe/settings.css
+equipe/settings.js
+equipe/staff-tools-v12.33.js
+equipe/team.css
+equipe/team.js
