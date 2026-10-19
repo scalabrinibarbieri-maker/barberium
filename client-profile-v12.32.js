@@ -114,7 +114,10 @@
         location.href=`${location.pathname}?view=appointments`;
       }catch(err){
         console.error('Acesso ao perfil:',err);
-        toast('Não foi possível abrir o perfil agora. Tente novamente.');
+        // Etapa 0: o acesso só por nome + WhatsApp foi suspenso no servidor até existir verificação.
+        toast(String(err?.message||'').includes('PROFILE_VERIFICATION_REQUIRED')
+          ?'Por segurança, este acesso está pausado. Fale com a barbearia pelo WhatsApp para ver seus horários.'
+          :'Não foi possível abrir o perfil agora. Tente novamente.');
         btn.disabled=false;
         btn.textContent='Acessar meu perfil';
       }

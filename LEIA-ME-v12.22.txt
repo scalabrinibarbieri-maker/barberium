@@ -5,7 +5,7 @@ CORRIGIDO NO BACKEND (JÁ APLICADO)
 - Comissão do pacote Testa rasata e Barba Ben Curata corrigida:
   Cabeça Raspada: R$ 25,50 por atendimento.
   Barba Tradizionale: R$ 20,40 por atendimento.
-- Versão 2 (contrato ativo do Augusto) e versão 3 (atual) corrigidas.
+- Versão 2 (contrato ativo de um cliente) e versão 3 (atual) corrigidas.
 
 CORREÇÃO DE INTERFACE
 O editor agora aceita tanto vírgula quanto ponto nos valores fixos de comissão por atendimento.
