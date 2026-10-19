@@ -47,7 +47,8 @@ jobs:
       - name: Instalar Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versão fixa: "latest" consulta a API do GitHub e falha por limite de uso.
+          version: 2.120.0
 
       - name: Gerar dump
         shell: bash
