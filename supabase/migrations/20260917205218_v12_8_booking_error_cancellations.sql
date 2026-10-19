@@ -1,0 +1,278 @@
+alter table public.appointments
+  add column if not exists cancellation_kind text,
+  add column if not exists cancellation_reason text;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid='public.appointments'::regclass
+      and conname='appointments_cancellation_kind_check'
+  ) then
+    alter table public.appointments
+      add constraint appointments_cancellation_kind_check
+      check (cancellation_kind is null or cancellation_kind in ('regular','booking_error'));
+  end if;
+end $$;
+
+update public.appointments
+set cancellation_kind='regular'
+where status='cancelled' and cancellation_kind is null;
+
+create or replace function barberium.normalize_appointment_cancellation_meta()
+returns trigger
+language plpgsql
+set search_path to 'public','barberium','pg_temp'
+as $$
+begin
+  if new.status='cancelled' then
+    new.cancellation_kind:=coalesce(new.cancellation_kind,'regular');
+  else
+    new.cancellation_kind:=null;
+    new.cancellation_reason:=null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_appointments_normalize_cancellation_meta on public.appointments;
+create trigger trg_appointments_normalize_cancellation_meta
+before insert or update of status,cancellation_kind,cancellation_reason on public.appointments
+for each row execute function barberium.normalize_appointment_cancellation_meta();
+
+create or replace function public.barberium_staff_cancel_appointment_v2(
+  p_appointment_id uuid,
+  p_cancellation_kind text default 'regular',
+  p_reason text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'public','barberium','auth','pg_temp'
+as $$
+declare
+  m record;
+  r jsonb;
+  v_kind text:=coalesce(nullif(btrim(p_cancellation_kind),''),'regular');
+  v_reason text:=nullif(btrim(coalesce(p_reason,'')),'');
+  v_event_id uuid;
+begin
+  if auth.uid() is null then raise exception 'Não autenticado'; end if;
+  if v_kind not in ('regular','booking_error') then raise exception 'Tipo de cancelamento inválido'; end if;
+  if v_reason is null or length(v_reason)<3 then raise exception 'Informe o motivo do cancelamento'; end if;
+
+  r:=public.barberium_staff_set_appointment_status(p_appointment_id,'cancelled');
+  select * into m from barberium.staff_membership();
+  if m.member_id is null then raise exception 'Usuário sem acesso à equipe'; end if;
+
+  update public.appointments
+  set cancellation_kind=v_kind,
+      cancellation_reason=v_reason,
+      updated_at=now()
+  where id=p_appointment_id and barbershop_id=m.barbershop_id;
+
+  select e.id into v_event_id
+  from public.appointment_events e
+  where e.appointment_id=p_appointment_id and e.event_type='status_changed'
+  order by e.created_at desc,e.id desc
+  limit 1;
+
+  if v_event_id is not null then
+    update public.appointment_events
+    set details=coalesce(details,'{}'::jsonb)||jsonb_build_object(
+      'cancellation_kind',v_kind,
+      'reason',v_reason
+    )
+    where id=v_event_id;
+  end if;
+
+  return coalesce(r,'{}'::jsonb)||jsonb_build_object(
+    'cancellation_kind',v_kind,
+    'reason',v_reason
+  );
+end;
+$$;
+
+create or replace function public.barberium_staff_cancel_completed_appointment_v2(
+  p_appointment_id uuid,
+  p_reason text,
+  p_refund_method text,
+  p_cancellation_kind text default 'regular'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'public','barberium','auth','pg_temp'
+as $$
+declare
+  m record;
+  r jsonb;
+  v_kind text:=coalesce(nullif(btrim(p_cancellation_kind),''),'regular');
+  v_reason text:=nullif(btrim(coalesce(p_reason,'')),'');
+  v_event_id uuid;
+begin
+  if auth.uid() is null then raise exception 'Não autenticado'; end if;
+  if v_kind not in ('regular','booking_error') then raise exception 'Tipo de cancelamento inválido'; end if;
+  if v_reason is null or length(v_reason)<3 then raise exception 'Informe o motivo do cancelamento'; end if;
+
+  r:=public.barberium_staff_cancel_completed_appointment(
+    p_appointment_id,
+    v_reason,
+    p_refund_method
+  );
+
+  select * into m from barberium.staff_membership();
+  if m.member_id is null or m.role not in ('owner','admin') then raise exception 'Somente o ADM pode cancelar um atendimento concluído'; end if;
+
+  update public.appointments
+  set cancellation_kind=v_kind,
+      cancellation_reason=v_reason,
+      updated_at=now()
+  where id=p_appointment_id and barbershop_id=m.barbershop_id;
+
+  select e.id into v_event_id
+  from public.appointment_events e
+  where e.appointment_id=p_appointment_id and e.event_type='cancelled_with_refund'
+  order by e.created_at desc,e.id desc
+  limit 1;
+
+  if v_event_id is not null then
+    update public.appointment_events
+    set details=coalesce(details,'{}'::jsonb)||jsonb_build_object(
+      'cancellation_kind',v_kind
+    )
+    where id=v_event_id;
+  end if;
+
+  return coalesce(r,'{}'::jsonb)||jsonb_build_object(
+    'cancellation_kind',v_kind,
+    'reason',v_reason
+  );
+end;
+$$;
+
+create or replace function public.barberium_staff_booking_error_count(
+  p_start date default (current_date-'90 days'::interval)::date,
+  p_end date default current_date
+)
+returns integer
+language plpgsql
+security definer
+set search_path to 'public','barberium','auth','pg_temp'
+as $$
+declare
+  m record;
+  v_count integer:=0;
+begin
+  if auth.uid() is null then raise exception 'Não autenticado'; end if;
+  if p_start is null or p_end is null or p_end<p_start then raise exception 'Período inválido'; end if;
+  select * into m from barberium.staff_membership();
+  if m.member_id is null then raise exception 'Sem acesso'; end if;
+
+  select count(*)::int into v_count
+  from public.appointments a
+  where a.barbershop_id=m.barbershop_id
+    and a.cancellation_kind='booking_error'
+    and a.cancelled_at::date between p_start and p_end
+    and (m.role in ('owner','admin') or a.professional_id=m.professional_id);
+
+  return v_count;
+end;
+$$;
+
+create or replace function public.barberium_staff_my_commissions(
+  p_start date default (current_date-'90 days'::interval)::date,
+  p_end date default current_date
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'public','barberium','auth','pg_temp'
+as $$
+declare
+  m record;
+  prof uuid;
+  v_unsettled int;
+  v_settlement_due int;
+  v_booking_errors int;
+begin
+  if auth.uid() is null then raise exception 'Não autenticado'; end if;
+  select * into m from barberium.staff_membership();
+  if m.member_id is null then raise exception 'Sem acesso'; end if;
+  prof:=m.professional_id;
+  if prof is null then
+    return jsonb_build_object(
+      'entries','[]'::jsonb,
+      'settlements','[]'::jsonb,
+      'open_cents',0,
+      'unsettled_cents',0,
+      'in_settlement_cents',0,
+      'booking_error_cancellations',0
+    );
+  end if;
+
+  select coalesce(sum(amount_cents),0)::int into v_unsettled
+  from public.commission_entries
+  where professional_id=prof and status='open' and settlement_id is null;
+
+  select coalesce(sum(greatest(0,total_cents-paid_cents)),0)::int into v_settlement_due
+  from public.commission_settlements
+  where professional_id=prof and status in ('open','partial');
+
+  select count(*)::int into v_booking_errors
+  from public.appointments a
+  where a.professional_id=prof
+    and a.barbershop_id=m.barbershop_id
+    and a.cancellation_kind='booking_error'
+    and a.cancelled_at::date between p_start and p_end;
+
+  return jsonb_build_object(
+    'open_cents',v_unsettled+v_settlement_due,
+    'unsettled_cents',v_unsettled,
+    'in_settlement_cents',v_settlement_due,
+    'booking_error_cancellations',v_booking_errors,
+    'entries',coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id',ce.id,
+        'amount_cents',ce.amount_cents,
+        'description',ce.description,
+        'created_at',ce.created_at,
+        'status',ce.status,
+        'settlement_id',ce.settlement_id
+      ) order by ce.created_at desc)
+      from public.commission_entries ce
+      left join public.appointments a on a.id=ce.appointment_id
+      where ce.professional_id=prof
+        and ce.created_at::date between p_start and p_end
+        and coalesce(a.cancellation_kind,'regular')<>'booking_error'
+    ),'[]'::jsonb),
+    'settlements',coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id',cs.id,
+        'period_start',cs.period_start,
+        'period_end',cs.period_end,
+        'base_cents',cs.base_cents,
+        'adjustment_cents',cs.adjustment_cents,
+        'total_cents',cs.total_cents,
+        'paid_cents',cs.paid_cents,
+        'remaining_cents',greatest(0,cs.total_cents-cs.paid_cents),
+        'status',cs.status,
+        'note',cs.note,
+        'created_at',cs.created_at,
+        'closed_at',cs.closed_at
+      ) order by cs.period_end desc,cs.created_at desc)
+      from public.commission_settlements cs
+      where cs.professional_id=prof
+        and cs.period_end>=p_start and cs.period_start<=p_end
+    ),'[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function public.barberium_staff_cancel_appointment_v2(uuid,text,text) from public,anon;
+revoke all on function public.barberium_staff_cancel_completed_appointment_v2(uuid,text,text,text) from public,anon;
+revoke all on function public.barberium_staff_booking_error_count(date,date) from public,anon;
+grant execute on function public.barberium_staff_cancel_appointment_v2(uuid,text,text) to authenticated;
+grant execute on function public.barberium_staff_cancel_completed_appointment_v2(uuid,text,text,text) to authenticated;
+grant execute on function public.barberium_staff_booking_error_count(date,date) to authenticated;
+

@@ -1,0 +1,8 @@
+CREATE OR REPLACE FUNCTION public.barberium_staff_set_permissions(p_professional_id uuid, p_permissions jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'barberium', 'auth', 'pg_temp'
+AS $function$ declare m record; clean jsonb; k text; allowed text[]:=array['sell_products','view_product_stock','create_appointment','cancel_appointment','edit_service','edit_addons','edit_date','edit_time','edit_value','create_block','create_recurring_block','edit_internal_note','mark_completed','mark_no_show','view_phone','view_full_name','view_value','view_internal_note','view_customer_history','view_birthday','view_own_revenue','view_own_commission','leave_payment_pending','register_expense','cash_withdrawal','cash_supply','open_cash','close_cash','confirm_membership_payment']; begin if auth.uid() is null then raise exception 'Não autenticado'; end if; select * into m from barberium.staff_membership(); if m.member_id is null or m.role not in ('owner','admin') then raise exception 'Acesso somente para ADM'; end if; if not exists(select 1 from public.professionals p where p.id=p_professional_id and p.barbershop_id=m.barbershop_id) then raise exception 'Profissional inválido'; end if; clean:='{}'::jsonb; foreach k in array allowed loop clean:=clean||jsonb_build_object(k,coalesce((p_permissions->>k)::boolean,false)); end loop; insert into public.professional_permissions(professional_id,barbershop_id,permissions,updated_at) values(p_professional_id,m.barbershop_id,clean,now()) on conflict(professional_id) do update set permissions=excluded.permissions,updated_at=now(); return jsonb_build_object('ok',true,'permissions',clean); end $function$
+;
+

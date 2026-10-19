@@ -81,7 +81,7 @@ Também foram simulados localmente: a etapa de preparo do deploy (só imagens em
 
 ## Pendências desta etapa
 
-1. Criar os segredos `SUPABASE_DB_URL` e `BACKUP_PASSPHRASE` no GitHub e rodar o backup uma vez à mão.
-2. Tornar o repositório privado.
+1. ~~Criar os segredos `SUPABASE_DB_URL` e `BACKUP_PASSPHRASE` no GitHub e rodar o backup uma vez à mão.~~ Feito em 19/10. Para não depender da API do GitHub, a versão do CLI ficou fixa em 2.120.0. O backup rodou com sucesso e está agendado para todo dia.
+2. Tornar o repositório privado: fica para o fim da estabilização, por decisão do dono.
 3. Backup das imagens do Storage: fica para a etapa 2 (precisa da chave de serviço como segredo).
 4. Deploys antigos do Cloudflare Pages continuam acessíveis pelo endereço próprio de cada deploy (`*.barberium.pages.dev`). Não expõem dados além do que a API já controla, mas podem ser apagados no painel do Cloudflare.

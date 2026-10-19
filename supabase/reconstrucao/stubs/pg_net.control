@@ -1,0 +1,5 @@
+# Barberium · simulação do pg_net para testes de reconstrução (não faz chamadas HTTP)
+comment = 'stub do pg_net (só estrutura) para reproduzir o schema do Barberium'
+default_version = '0.20.4'
+relocatable = false
+schema = 'extensions'
