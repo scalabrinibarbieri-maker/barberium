@@ -1,0 +1,101 @@
+name: Backup diário do banco
+
+# Etapa 0 (19/10/2026). Faz um dump completo do banco do Barberium (papéis, estrutura,
+# dados e histórico de migrations), criptografa com AES-256 e guarda como artefato
+# do GitHub por 90 dias. Roda todo dia às 03:17 de Brasília e pode ser disparado à mão
+# em Actions > Backup diário do banco > Run workflow.
+#
+# Segredos necessários (Settings > Secrets and variables > Actions):
+#   SUPABASE_DB_URL     string de conexão "Session pooler" do Supabase, com a senha do banco
+#   BACKUP_PASSPHRASE   frase longa (20+ caracteres) usada para criptografar. Guarde fora do GitHub:
+#                       sem ela o backup não abre.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-banco
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+    steps:
+      - name: Conferir segredos
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::Falta o segredo SUPABASE_DB_URL."
+            exit 1
+          fi
+          if [ "${#BACKUP_PASSPHRASE}" -lt 20 ]; then
+            echo "::error::BACKUP_PASSPHRASE ausente ou com menos de 20 caracteres."
+            exit 1
+          fi
+
+      - name: Instalar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Gerar dump
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dump
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/data.sql --use-copy --data-only \
+            -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/history_schema.sql --schema supabase_migrations
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/history_data.sql --use-copy --data-only --schema supabase_migrations
+
+          for f in dump/*.sql; do
+            [ -s "$f" ] || { echo "::error::$f veio vazio."; exit 1; }
+          done
+          grep -Eq 'COPY "?public"?\."?appointments"?' dump/data.sql \
+            || { echo "::error::data.sql não contém a tabela de agendamentos."; exit 1; }
+          grep -Eq 'FUNCTION "?public"?\."?barberium_create_appointment"?' dump/schema.sql \
+            || { echo "::error::schema.sql não contém as funções do Barberium."; exit 1; }
+          ls -la dump
+
+      - name: Criptografar e conferir
+        shell: bash
+        run: |
+          set -euo pipefail
+          stamp="$(TZ=America/Sao_Paulo date +%Y-%m-%d_%H%M)"
+          name="barberium-backup-${stamp}"
+          tar -czf - -C dump . \
+            | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+                  --symmetric --cipher-algo AES256 -o "${name}.tar.gz.gpg" 3<<<"$BACKUP_PASSPHRASE"
+          rm -rf dump
+          gpg --batch --pinentry-mode loopback --passphrase-fd 3 -d "${name}.tar.gz.gpg" 3<<<"$BACKUP_PASSPHRASE" \
+            | tar -tzf - > conteudo.txt
+          for f in roles.sql schema.sql data.sql history_schema.sql history_data.sql; do
+            grep -q "$f" conteudo.txt || { echo "::error::$f não entrou no arquivo."; exit 1; }
+          done
+          rm -f conteudo.txt
+          sha256sum "${name}.tar.gz.gpg" > "${name}.sha256"
+          echo "BACKUP_NAME=${name}" >> "$GITHUB_ENV"
+          ls -la "${name}".*
+
+      - name: Guardar o backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_NAME }}
+          path: |
+            ${{ env.BACKUP_NAME }}.tar.gz.gpg
+            ${{ env.BACKUP_NAME }}.sha256
+          retention-days: 90
+          if-no-files-found: error

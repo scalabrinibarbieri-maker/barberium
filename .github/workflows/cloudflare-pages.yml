@@ -35,6 +35,14 @@ jobs:
           cp barberium.svg dist/
           cp ./*.js dist/
           cp -R assets dist/
+          # Etapa 0 (19/10/2026): a Área da Equipe antiga (v11.2) que ficava em assets/
+          # não pode ser publicada. assets/ é só para imagens.
+          rm -f dist/assets/index.html dist/assets/team.js dist/assets/finance-reports.js
+          if find dist/assets -type f \( -name '*.html' -o -name '*.js' \) | grep -q .; then
+            echo "assets/ não pode conter HTML ou JS publicado:"
+            find dist/assets -type f \( -name '*.html' -o -name '*.js' \)
+            exit 1
+          fi
           cp -R equipe dist/
 
       - name: Deploy production
