@@ -1,0 +1,203 @@
+name: Aplicar pacote
+
+# Etapa 1 (19/10/2026). Para atualizar o repositório pelo celular com um arquivo só.
+#
+# Como usar: na página do repositório, Add file > Upload files, envie um arquivo chamado
+# pacote-<nome>.zip (na raiz, fora de qualquer pasta) e confirme o commit na main.
+# Este workflow então:
+#   1. confere o ZIP: nada de caminho absoluto, "..", links, nem arquivos em .git/ ou .github/;
+#   2. descompacta na raiz do repositório, por cima dos arquivos que já existem;
+#   3. se o ZIP tiver um _remover.txt (um caminho por linha), apaga esses arquivos;
+#   4. apaga o ZIP e faz um commit "Aplica pacote-<nome>.zip";
+#   5. dispara o deploy do site e/ou a conferência do banco, conforme o que mudou.
+# Se a conferência falhar, nada é aplicado e o ZIP fica no repositório (apague-o à mão).
+# Arquivos de .github/workflows não podem ser alterados por aqui (regra do GitHub):
+# esses continuam sendo enviados à mão.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pacote-*.zip'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: aplicar-pacote
+  cancel-in-progress: false
+
+jobs:
+  aplicar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      ANTES: ${{ github.event.before }}
+      DEPOIS: ${{ github.sha }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Conferir e descompactar
+        id: aplicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${ANTES//0/}" ] || ! git cat-file -e "${ANTES}^{commit}" 2>/dev/null; then
+            git ls-files 'pacote-*.zip' > pacotes.txt
+          else
+            git diff --name-only --diff-filter=AM "$ANTES" "$DEPOIS" -- 'pacote-*.zip' > pacotes.txt
+          fi
+          if ! grep -q . pacotes.txt; then
+            echo "Nenhum pacote novo neste push."
+            echo "aplicou=nao" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import os, re, stat, sys, zipfile
+
+          RAIZ = os.path.realpath(".")
+          LIMITE_BYTES = 50 * 1024 * 1024
+          LIMITE_ARQUIVOS = 3000
+          IGNORAR = re.compile(r"(^|/)(__MACOSX/|\.DS_Store$|Thumbs\.db$)")
+          PROIBIDO = re.compile(r"^(\.git|\.github)(/|$)", re.I)
+
+          def caminho_seguro(nome):
+              if not nome or "\\" in nome or nome.startswith("/") or re.match(r"^[A-Za-z]:", nome):
+                  return None
+              partes = nome.split("/")
+              if any(p in ("", ".", "..") for p in partes):
+                  return None
+              if PROIBIDO.match(nome):
+                  return None
+              destino = os.path.realpath(os.path.join(RAIZ, nome))
+              if not destino.startswith(RAIZ + os.sep):
+                  return None
+              return destino
+
+          pacotes = [l.strip() for l in open("pacotes.txt", encoding="utf-8") if l.strip()]
+          resumo = []
+          for pacote in sorted(pacotes):
+              if not os.path.isfile(pacote):
+                  continue
+              print(f"== {pacote}")
+              base = os.path.basename(pacote)[:-4] + "/"
+              with zipfile.ZipFile(pacote) as z:
+                  itens = [i for i in z.infolist() if not IGNORAR.search(i.filename)]
+                  nomes = [i.filename for i in itens if not i.is_dir()]
+                  # ZIP feito a partir de uma pasta: tira a pasta de fora se todos estiverem nela.
+                  prefixo = base if nomes and all(n.startswith(base) for n in nomes) else ""
+                  arquivos, erros, total = [], [], 0
+                  for i in itens:
+                      if i.is_dir():
+                          continue
+                      nome = i.filename[len(prefixo):]
+                      tipo = (i.external_attr >> 16) & 0o170000
+                      if tipo and tipo != stat.S_IFREG:
+                          erros.append(f"{i.filename}: não é arquivo comum (link ou especial)")
+                          continue
+                      if i.flag_bits & 0x1:
+                          erros.append(f"{i.filename}: arquivo criptografado")
+                          continue
+                      destino = caminho_seguro(nome)
+                      if destino is None:
+                          erros.append(f"{i.filename}: caminho não permitido")
+                          continue
+                      total += i.file_size
+                      arquivos.append((i, nome, destino))
+                  if len(arquivos) > LIMITE_ARQUIVOS:
+                      erros.append(f"{len(arquivos)} arquivos (limite {LIMITE_ARQUIVOS})")
+                  if total > LIMITE_BYTES:
+                      erros.append(f"{total} bytes descompactados (limite {LIMITE_BYTES})")
+                  remover = []
+                  for i, nome, destino in arquivos:
+                      if nome == "_remover.txt":
+                          for linha in z.read(i).decode("utf-8").splitlines():
+                              linha = linha.strip()
+                              if not linha or linha.startswith("#"):
+                                  continue
+                              alvo = caminho_seguro(linha)
+                              if alvo is None:
+                                  erros.append(f"_remover.txt: caminho não permitido: {linha}")
+                              else:
+                                  remover.append((linha, alvo))
+                  if erros:
+                      print("::error::Pacote recusado, nada foi aplicado:")
+                      for e in erros:
+                          print(f"::error::{pacote}: {e}")
+                      sys.exit(1)
+                  for i, nome, destino in arquivos:
+                      if nome == "_remover.txt":
+                          continue
+                      os.makedirs(os.path.dirname(destino), exist_ok=True)
+                      with z.open(i) as origem, open(destino, "wb") as saida:
+                          saida.write(origem.read())
+                      print(f"  gravado: {nome}")
+                  for linha, alvo in remover:
+                      if os.path.isfile(alvo):
+                          os.remove(alvo)
+                          print(f"  removido: {linha}")
+                      else:
+                          print(f"  (não existia) {linha}")
+              os.remove(pacote)
+              resumo.append(f"{base[:-1]}.zip: {len(arquivos)} arquivo(s), {len(remover)} remoção(ões)")
+          with open("resumo-pacote.txt", "w", encoding="utf-8") as f:
+              f.write("\n".join(resumo) + "\n")
+          PY
+          rm -f pacotes.txt
+          echo "aplicou=sim" >> "$GITHUB_OUTPUT"
+
+      - name: Commit
+        if: steps.aplicar.outputs.aplicou == 'sim'
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          msg="Aplica $(cut -d: -f1 resumo-pacote.txt | paste -sd ', ')"
+          rm -f resumo-pacote.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nada mudou."
+            echo "mudou=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --cached --name-status
+          mudou="$(git diff --cached --name-only | paste -sd ' ')"
+          git commit -q -m "$msg"
+          git push origin HEAD:main
+          echo "mudou=${mudou}" >> "$GITHUB_OUTPUT"
+
+      - name: Disparar deploy e conferência
+        if: steps.commit.outputs.mudou != ''
+        shell: bash
+        env:
+          MUDOU: ${{ steps.commit.outputs.mudou }}
+        run: |
+          set -euo pipefail
+          site=nao; banco=nao
+          for f in $MUDOU; do
+            case "$f" in
+              supabase/*) banco=sim ;;
+              assets/*|equipe/*) site=sim ;;
+              */*) ;;
+              *.js|*.css|index.html|site.webmanifest|barberium.svg) site=sim ;;
+            esac
+          done
+          disparar() {
+            if gh workflow run "$1" --ref main; then
+              echo "$2 disparado(a)."
+            else
+              echo "::warning::Não consegui disparar $1. Rode à mão em Actions > $2 > Run workflow."
+            fi
+          }
+          if [ "$site" = sim ]; then disparar cloudflare-pages.yml "Deploy Barberium to Cloudflare Pages"; fi
+          if [ "$banco" = sim ]; then disparar banco-reproduzivel.yml "Banco reproduzível"; fi

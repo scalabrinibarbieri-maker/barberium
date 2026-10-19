@@ -1,0 +1,109 @@
+name: Banco reproduzível
+
+# Etapa 1 (19/10/2026). Prova que o repositório descreve o banco inteiro:
+#   1. cria um Postgres 17 vazio;
+#   2. aplica supabase/reconstrucao/plataforma_supabase.sql (o que o Supabase já traz pronto)
+#      e todas as migrations de supabase/migrations, em ordem;
+#   3. gera a "impressão digital" do schema (funções, tabelas, colunas, índices, triggers,
+#      permissões, jobs agendados, buckets) e compara com a da produção.
+# A produção é lida em modo somente leitura: este workflow não altera nada no banco.
+# Qualquer diferença faz o workflow falhar e o log mostra exatamente o que mudou.
+#
+# Roda quando algo em supabase/ muda, toda segunda de manhã (pega mudanças feitas direto
+# no painel do Supabase) e à mão em Actions > Banco reproduzível > Run workflow.
+# Segredo usado: SUPABASE_DB_URL (o mesmo do backup).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/**'
+  schedule:
+    - cron: '23 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: banco-reproduzivel
+  cancel-in-progress: true
+
+jobs:
+  comparar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PORTA: '55432'
+      PSQL: /usr/lib/postgresql/17/bin/psql
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Instalar Postgres 17 e pg_cron
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo install -d /etc/postgresql-common/createcluster.d
+          echo 'create_main_cluster = false' | sudo tee /etc/postgresql-common/createcluster.d/00-barberium.conf >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common >/dev/null
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq postgresql-17 postgresql-17-cron >/dev/null
+          /usr/lib/postgresql/17/bin/postgres --version
+
+      - name: Reconstruir o banco do zero
+        shell: bash
+        run: bash supabase/reconstrucao/reconstruir.sh "$PORTA"
+
+      - name: Impressão digital do banco reconstruído
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -At -v ON_ERROR_STOP=1 \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_reconstruido.json
+          test -s fp_reconstruido.json
+
+      - name: Impressão digital da produção (somente leitura)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::Falta o segredo SUPABASE_DB_URL."
+            exit 1
+          fi
+          "$PSQL" "$SUPABASE_DB_URL" -X -q -At -v ON_ERROR_STOP=1 \
+            -c 'set default_transaction_read_only = on' \
+            -f supabase/reconstrucao/impressao_digital.sql > fp_producao.json
+          "$PSQL" "$SUPABASE_DB_URL" -X -q -At -v ON_ERROR_STOP=1 \
+            -c 'set default_transaction_read_only = on' \
+            -c 'select version from supabase_migrations.schema_migrations order by 1' > versoes_producao.txt
+          test -s fp_producao.json
+
+      - name: Comparar
+        shell: bash
+        run: |
+          python3 supabase/reconstrucao/comparar_impressao.py fp_producao.json fp_reconstruido.json \
+            --migrations supabase/migrations --versoes-producao versoes_producao.txt
+
+      - name: Guardar as impressões digitais (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impressoes-digitais
+          path: |
+            fp_producao.json
+            fp_reconstruido.json
+            versoes_producao.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Log do Postgres local (se falhar)
+        if: failure()
+        shell: bash
+        run: |
+          d="$(cat /tmp/barberium-pg-datadir 2>/dev/null || true)"
+          if [ -n "$d" ]; then sudo tail -n 80 "$d/server.log" || true; fi
