@@ -36,7 +36,7 @@ export function createPushUI({rpc,getSession,shopSlug,toast}) {
     try {
       config=await rpc('barberium_push_public_config');
       if(supported()) {
-        registration=await navigator.serviceWorker.register('./sw.js?v=12.4',{updateViaCache:'none'});
+        registration=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
         if(!registration.active) await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error('O navegador ainda está preparando as notificações. Tente novamente.')),12000))]);
         subscription=await registration.pushManager.getSubscription();
         if(subscription&&getSession()?.access_token) {

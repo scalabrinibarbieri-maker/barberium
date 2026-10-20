@@ -27,7 +27,7 @@ Nada do sistema mudou nesta etapa: nenhuma migration, nenhum arquivo do site. S�
 | `supabase/testes/06_caixa_e_acerto_de_comissoes.sql` | Abrir e fechar o caixa (com diferença), suprimento, acerto de comissões, pagamento do acerto e o que acontece ao anular um atendimento já acertado |
 | `supabase/testes/rodar_testes.sh` | Roda os arquivos acima, cada um numa transação **desfeita no fim**, e escreve o resumo no GitHub |
 | `testes/e2e/` | Testes num navegador de verdade (Playwright 1.56.0, tela de celular, fuso de São Paulo), **só contra o site de teste**. O endereço da produção é recusado. São 5 testes: o cliente agenda, vê em "Meus horários" e cancela; senha errada não entra; o ADM vê agenda, clientes, financeiro e equipe; o barbeiro não vê clientes nem equipe; e o ADM da Aurora só enxerga a Aurora |
-| `testes/e2e/esperar_site.sh` | Espera o Cloudflare trocar o site de teste para a versão nova antes de testar |
+| `testes/e2e/esperar_site.sh` | Espera o Cloudflare trocar o site de teste para a versão nova antes de testar. Desde a etapa 4 também confere a versão no ar, e o "Publicar em produção" passou a usar |
 | `.github/workflows/banco-reproduzivel.yml` | Ganha 2 passos no fim: "Dados fictícios no banco local" e "Testes de caracterização" |
 | `.github/workflows/staging.yml` | Ganha a parte "Testar o site de teste", que roda depois de publicar o site de teste |
 
@@ -101,3 +101,11 @@ O login com a senha de verdade nos testes no navegador é conferido na primeira 
 
 - **Tirar os testes do caminho:** reenviar as versões anteriores de `banco-reproduzivel.yml` e `staging.yml` (estão no histórico do GitHub). As pastas `supabase/testes` e `testes/e2e` podem ficar; sem os workflows, nada as roda.
 - Nada no banco ou no site precisa ser desfeito.
+
+## Validação (20/10)
+
+| Quando | O quê | Resultado |
+| --- | --- | --- |
+| 16h58 | Aplicar pacote (`pacote-etapa3.zip`) e Publicar no teste #4, ainda com os workflows antigos | Verdes |
+| 17h01 | Publicar no teste #5, já com os workflows novos | Verde nas 3 partes: testes do banco e conferência da produção (20 s), publicação no teste (45 s) e "Testar o site de teste" (46 s). Os 5 testes no navegador passaram, inclusive os 3 com os logins de verdade |
+| 17h01 | Banco reproduzível #5 | Verde (31 s), com os testes do banco |

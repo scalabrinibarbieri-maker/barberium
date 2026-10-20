@@ -1,14 +1,74 @@
-const CACHE='scalabrini-client-v12-48';
-const PRECACHE=[
-  './','./index.html','./styles.css?v=12.4','./desktop-v12.15.css?v=12.15','./app.js?v=12.48','./push.js?v=12.4','./membership.css?v=11.2','./membership.js?v=11.2','./barberium-client-v12.24.js?v=12.28','./client-profile-v12.32.js?v=12.48','./professional-motion-v12.35.js?v=12.35','./service-cta-v12.38.js?v=12.38','./site.webmanifest','./equipe/','./equipe/index.html','./equipe/team.css?v=12.3.1','./equipe/settings.css?v=12','./equipe/desktop-v12.16.css?v=12.16','./equipe/team.js?v=12.7','./equipe/agenda-cancelados-v12.8.js?v=12.8','./equipe/finance-reports.js?v=12.8.1','./equipe/settings.js?v=12.7.1','./equipe/barberium-v12.9.js?v=12.9','./equipe/barberium-v12.10.js?v=12.10','./equipe/barberium-v12.13.js?v=12.13','./equipe/barberium-v12.17.js?v=12.17','./equipe/presentation-settings-v12.28.js?v=12.28','./equipe/staff-tools-v12.33.js?v=12.33','./equipe/balances-v12.39.js?v=12.39',
-  './assets/corte-barba-sobrancelha.webp','./assets/combo-corte-barba.webp','./assets/combo-corte-barboterapia.webp',
-  './assets/barba-express.webp','./assets/barba-tradizionale.webp','./assets/pezinho-detalhes.webp','./assets/sobrancelha.webp',
-  './assets/vinicius-nunes.webp','./assets/barboterapia.webp','./assets/logo-sb.webp','./assets/cabeca-raspada.webp',
-  './assets/barbearia.webp','./assets/jean-dalarmi.webp','./assets/corte-barba-express.webp','./assets/corte.webp'
-];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRECACHE)));self.skipWaiting()});
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))));self.clients.claim()});
-async function networkFirst(request){try{const response=await fetch(request,{cache:'no-store'});if(response&&response.ok){const cache=await caches.open(CACHE);cache.put(request,response.clone())}return response}catch(error){const cached=await caches.match(request,{ignoreSearch:false});if(cached)return cached;throw error}}
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;if(event.request.mode==='navigate'){event.respondWith(networkFirst(event.request).catch(()=>new URL(event.request.url).pathname.includes('/equipe')?caches.match('./equipe/index.html'):caches.match('./index.html')));return}const dest=event.request.destination;if(dest==='script'||dest==='style'){event.respondWith(networkFirst(event.request));return}event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response&&response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}))) });
+// Service worker do Barberium: um só para o site do cliente e para a Área da Equipe.
+//
+// Etapa 4 (20/10/2026). A versão abaixo é carimbada a cada publicação por deploy/montar_site.sh
+// (é o commit publicado). Cada versão tem um cache próprio, e quando ela assume, os caches das
+// versões anteriores são apagados. Assim nenhum celular fica preso numa versão antiga.
+//
+// O que fica guardado no aparelho:
+//   páginas, scripts e estilos: vêm sempre da internet; a cópia guardada só é usada sem internet;
+//   imagens do próprio site: guardadas na primeira vez que aparecem, até a próxima versão;
+//   o resto (Supabase, fotos enviadas pela equipe, bibliotecas externas) não passa por aqui.
+// Só é guardado o que veio do tipo certo: se um arquivo sumir e o servidor devolver a página
+// inicial no lugar dele, isso não vai para o cache.
+const VERSAO='__VERSAO__';
+const CACHE='barberium-'+VERSAO;
+const PAGINAS=['./','./equipe/'];
+const TIPOS={document:/text\/html/i,script:/javascript/i,style:/text\/css/i,image:/^image\//i};
+
+function podeGuardar(resposta,tipo){
+  return !!(resposta&&resposta.ok&&resposta.type==='basic'&&TIPOS[tipo]&&TIPOS[tipo].test(resposta.headers.get('content-type')||''));
+}
+async function guardar(pedido,resposta,tipo){
+  if(!podeGuardar(resposta,tipo))return;
+  const cache=await caches.open(CACHE);
+  await cache.put(pedido,resposta);
+}
+async function daRedePrimeiro(pedido,tipo){
+  try{
+    const resposta=await fetch(pedido,{cache:'no-store'});
+    if(podeGuardar(resposta,tipo))guardar(pedido,resposta.clone(),tipo).catch(()=>{});
+    return resposta;
+  }catch(erro){
+    const guardada=await caches.match(pedido);
+    if(guardada)return guardada;
+    throw erro;
+  }
+}
+async function guardadoPrimeiro(pedido,tipo){
+  const guardada=await caches.match(pedido);
+  if(guardada)return guardada;
+  const resposta=await fetch(pedido);
+  if(podeGuardar(resposta,tipo))guardar(pedido,resposta.clone(),tipo).catch(()=>{});
+  return resposta;
+}
+async function paginaGuardada(url){
+  const pagina=new URL(url.pathname.includes('/equipe')?'./equipe/':'./',self.registration.scope).href;
+  return (await caches.match(pagina))||Response.error();
+}
+
+self.addEventListener('install',event=>{
+  // Pré-cache mínimo: só as duas páginas, para abrir sem internet. Se falhar, instala assim mesmo.
+  event.waitUntil(Promise.allSettled(PAGINAS.map(async p=>{
+    const pedido=new Request(new URL(p,self.registration.scope).href);
+    await guardar(pedido,await fetch(pedido,{cache:'no-store'}),'document');
+  })));
+  self.skipWaiting();
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil(caches.keys().then(nomes=>Promise.all(nomes.filter(n=>n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',event=>{
+  const pedido=event.request;
+  if(pedido.method!=='GET')return;
+  const url=new URL(pedido.url);
+  if(url.origin!==self.location.origin)return;
+  if(url.pathname.endsWith('/versao.json')||url.pathname.endsWith('/sw.js'))return;
+  if(pedido.mode==='navigate'){event.respondWith(daRedePrimeiro(pedido,'document').catch(()=>paginaGuardada(url)));return}
+  const tipo=pedido.destination;
+  if(tipo==='script'||tipo==='style'){event.respondWith(daRedePrimeiro(pedido,tipo));return}
+  if(tipo==='image'){event.respondWith(guardadoPrimeiro(pedido,tipo));return}
+});
+
+// Notificações (iguais às de antes da etapa 4).
 self.addEventListener('push',event=>event.waitUntil((async()=>{let data={};try{data=event.data?.json()||{}}catch{}if(data.expires_at&&Date.parse(data.expires_at)<Date.now())return;await self.registration.showNotification(data.title||'Barberium',{body:data.body||'Confira seus agendamentos.',icon:new URL('./assets/logo-sb.webp',self.registration.scope).href,tag:data.tag||'barberium',renotify:false,data:{url:data.audience==='staff'?(/^[0-9a-f-]{36}$/i.test(data.appointment_id||'')?'equipe/?appointment='+data.appointment_id:'equipe/?whatsapp=1'):'?view=appointments'}})})()));
 self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const route=event.notification.data?.url||'';const staff=route==='equipe/?whatsapp=1'||/^equipe\/\?appointment=[0-9a-f-]{36}$/i.test(route);const target=new URL(staff?'./'+route:'./?view=appointments',self.registration.scope).href;const tabs=await self.clients.matchAll({type:'window',includeUncontrolled:true});for(const tab of tabs){if(tab.url.startsWith(self.registration.scope)&&new URL(tab.url).pathname.includes('/equipe')===staff){await tab.navigate(target);await tab.focus();return}}await self.clients.openWindow(target)})())});

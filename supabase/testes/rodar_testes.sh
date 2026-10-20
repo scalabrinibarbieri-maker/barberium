@@ -43,7 +43,7 @@ rollback;
 SQL
   if ! "$PSQL" "$URL" -X -q -v ON_ERROR_STOP=1 -f "$TMP/rodar.sql" > "$TMP/saida.txt" 2> "$TMP/erro.txt"; then
     echo "✗ $nome: o arquivo parou no meio"
-    grep -v '^NOTICE\|^psql:.*NOTICE' "$TMP/erro.txt" | head -8 | sed 's/^/    /'
+    { grep -v '^NOTICE\|^psql:.*NOTICE' "$TMP/erro.txt" || true; } | sed -n '1,8s/^/    /p'
     echo "- ✗ **$nome**: o arquivo parou no meio" >> "$RESUMO"
     erros_arquivo=$((erros_arquivo+1))
     continue

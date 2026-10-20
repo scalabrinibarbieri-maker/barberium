@@ -12,6 +12,7 @@ test('cliente agenda, vê em "Meus horários" e cancela', async ({ page }) => {
   // (defeito conhecido do site do cliente, anotado para a etapa 7h).
   await page.goto('/', { waitUntil: 'networkidle' });
   await expect(page.getByText('AMBIENTE DE TESTE')).toBeVisible();
+  await expect(page.locator('meta[name="barberium-versao"]'), 'página com a versão da publicação (etapa 4)').toHaveAttribute('content', /^[0-9a-f]{7}$/);
   await page.waitForFunction(() => document.querySelector('[data-nav="booking"]'));
   expect(await page.evaluate(() => document.body.classList.contains('barberium-maintenance-active')),
     'o site de teste deveria abrir sem manutenção').toBe(false);

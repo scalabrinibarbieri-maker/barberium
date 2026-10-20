@@ -41,7 +41,21 @@ Antes de publicar, o GitHub confere três coisas:
 - se o banco de produção está como o repositório diz;
 - se as mudanças novas no banco rodam sem erro. Para isso ele faz um ensaio e desfaz tudo.
 
-Só depois disso ele aplica as mudanças no banco e publica o site. Se qualquer passo falhar, ele para ali.
+Só depois disso ele aplica as mudanças no banco e publica o site. Se qualquer passo falhar, ele para ali. No fim, ele espera o site real trocar de versão e confere se trocou.
+
+## Qual versão está no ar
+
+Desde a etapa 4, cada publicação tem um número de versão: as 7 primeiras letras do código do commit. Para ver qual está no ar, abra:
+
+- produção: **https://scalabrinibarbiere.com/versao.json**
+- teste: **https://staging.barberium.pages.dev/versao.json**
+
+Quem abre o site do zero já recebe a versão nova. O celular que estava com o site aberto troca sozinho:
+
+- quando a pessoa volta para o site depois de 10 minutos ou mais fora dele;
+- ou quando a tela fica 30 minutos aberta sem ninguém mexer.
+
+Ele nunca troca no meio de um agendamento, com uma janela aberta ou com alguém digitando. Nesses casos, espera a próxima vez.
 
 ## Se um teste ficar vermelho
 
@@ -56,7 +70,7 @@ O sinal **~** no resumo não é erro. Ele marca um defeito que já conhecemos e 
 
 ## Se algo der errado na produção
 
-- **Site:** no Cloudflare, abra **Workers & Pages → barberium → Deployments**, escolha o deploy anterior e toque em **Rollback to this deployment**. Leva segundos.
+- **Site:** no Cloudflare, abra **Workers & Pages → barberium → Deployments**, escolha o deploy anterior e toque em **Rollback to this deployment**. Leva segundos. Se o deploy escolhido for da etapa 4 em diante, os celulares voltam para ele sozinhos, do mesmo jeito que trocam para uma versão nova.
 - **Banco:** me chame. A volta é uma migration nova, que passa pelo mesmo caminho: primeiro teste, depois produção.
 
 ## O que roda sozinho

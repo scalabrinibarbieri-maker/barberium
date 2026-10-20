@@ -832,7 +832,7 @@ async function openCancelCompletedAppointment(id){
 let waTimer=null;
 async function waSubscription(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
- const reg=await navigator.serviceWorker.register('../sw.js?v=12.6',{scope:'../'});
+ const reg=await navigator.serviceWorker.register('../sw.js',{scope:'../',updateViaCache:'none'});
  await navigator.serviceWorker.ready;
  return reg;
 }

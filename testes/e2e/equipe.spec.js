@@ -16,6 +16,7 @@ async function entrar(page, email) {
 
 test('senha errada não entra', async ({ page }) => {
   await page.goto('/equipe/');
+  await expect(page.locator('meta[name="barberium-versao"]'), 'página com a versão da publicação (etapa 4)').toHaveAttribute('content', /^[0-9a-f]{7}$/);
   await page.fill('#email', 'adm.scalabrini@example.com');
   await page.fill('#password', 'senha-errada-de-proposito');
   await page.click('#loginButton');

@@ -23,6 +23,9 @@ service-cta-v12.38.js
 service-cta-v12.37.js   # sem uso
 barber-commissions-v12.30.js   # sem uso (a equipe usa equipe/barber-commissions-v12.30.js)
 
+# Comum às duas áreas
+shared/atualizacao.js
+
 # Imagens
 assets/barba-express.webp
 assets/barba-tradizionale.webp

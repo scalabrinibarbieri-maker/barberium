@@ -243,4 +243,4 @@ async function init(){
 
 $$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));$$('[data-action="start-booking"]').forEach(b=>b.onclick=()=>startBooking());$('#bookingBack').onclick=stepBack;$$('.tab').forEach(t=>t.onclick=()=>{state.appointmentsTab=t.dataset.tab;renderAppointments()});$('#modalBackdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 init();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=12.4',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).catch(()=>{}));

@@ -5,6 +5,9 @@
 #   teste:    troca o endereço e a chave pública do Supabase pelos do banco de teste
 #             (supabase/staging/projeto.env), põe uma faixa "AMBIENTE DE TESTE" nas páginas
 #             e pede aos buscadores para não indexar.
+# Nos dois casos (etapa 4) carimba a versão da publicação (o commit) nos endereços dos scripts,
+# nas páginas, no service worker e em versao.json, e escreve os cabeçalhos de cache (_headers).
+# A versão vem de GITHUB_SHA ou do commit atual; VERSAO_SITE força outra (só para testes).
 set -euo pipefail
 DEST="${1:?pasta de destino}"
 AMB="${2:?producao ou teste}"
@@ -29,6 +32,34 @@ while IFS= read -r linha || [ -n "$linha" ]; do
   n=$((n+1))
 done < "$LISTA"
 echo "$n arquivos copiados da lista."
+
+COMMIT="${GITHUB_SHA:-$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)}"
+[ -n "$COMMIT" ] || { echo "ERRO: sem commit para carimbar a versão (rode dentro do repositório)." >&2; exit 1; }
+VERSAO="${VERSAO_SITE:-${COMMIT:0:7}}"
+DATA="$(git -C "$RAIZ" log -1 --format=%cI "$COMMIT" 2>/dev/null || true)"
+python3 "$RAIZ/deploy/carimbar_versao.py" "$DEST" "$VERSAO" "$COMMIT" "$DATA"
+
+# Cabeçalhos de cache. Páginas, scripts, estilos e o service worker: o navegador sempre confere
+# se mudou (no-cache). versao.json: nunca guardado. Imagens: o padrão do Cloudflare.
+cat > "$DEST/_headers" <<'CABECALHOS'
+# Gerado por deploy/montar_site.sh (etapa 4).
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/equipe/
+  Cache-Control: no-cache
+/equipe/index.html
+  Cache-Control: no-cache
+/*.js
+  Cache-Control: no-cache
+/*.css
+  Cache-Control: no-cache
+/site.webmanifest
+  Cache-Control: no-cache
+/versao.json
+  Cache-Control: no-store
+CABECALHOS
 
 python3 "$RAIZ/deploy/conferir_referencias.py" "$DEST"
 
@@ -56,7 +87,7 @@ html = html.replace("<title>", "<title>[TESTE] ", 1).replace("</body>", faixa + 
 open(caminho, "w", encoding="utf-8").write(html)
 PY
   done
-  printf '/*\n  X-Robots-Tag: noindex, nofollow\n' > "$DEST/_headers"
+  printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$DEST/_headers"
   echo "Site de TESTE montado: aponta para ${STAGING_URL}."
 else
   if [ -f "$RAIZ/supabase/staging/projeto.env" ]; then
