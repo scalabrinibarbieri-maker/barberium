@@ -7,7 +7,9 @@ name: Publicar no teste
 #      ele ficou igual ao banco reconstruído;
 #   3. cria/atualiza os dados fictícios (Scalabrini de teste e Barbearia Aurora);
 #   4. publica o site apontando para o banco de teste em https://staging.barberium.pages.dev,
-#      com a faixa "AMBIENTE DE TESTE".
+#      com a faixa "AMBIENTE DE TESTE";
+#   5. (etapa 3) testa o site de teste como cliente (agenda e cancela um horário) e como equipe
+#      (ADM e barbeiro da Scalabrini de teste e ADM da Aurora), num navegador de verdade.
 # Depois de conferir o site de teste, a produção é publicada à mão pelo workflow
 # "Publicar em produção". Nada aqui toca no banco ou no site de produção.
 #
@@ -149,5 +151,59 @@ jobs:
             fp_teste.json
             fp_esperado.json
             versoes_teste.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  e2e:
+    name: Testar o site de teste
+    needs: publicar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      STAGING_SENHA_TESTE: ${{ secrets.STAGING_SENHA_TESTE }}
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Esperar o site de teste trocar de versão
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash deploy/montar_site.sh dist teste
+          # shellcheck disable=SC1091
+          . supabase/staging/projeto.env
+          bash testes/e2e/esperar_site.sh dist "$STAGING_SITE" 300
+
+      - name: Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Instalar o navegador de teste
+        shell: bash
+        working-directory: testes/e2e
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Cliente e equipe no site de teste
+        shell: bash
+        working-directory: testes/e2e
+        run: |
+          set -euo pipefail
+          npx playwright test
+          echo "## Site de teste testado: cliente agenda e cancela; ADM, barbeiro e outra barbearia entram e veem só o que podem." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar o relatório dos testes (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: relatorio-testes-site
+          path: |
+            testes/e2e/relatorio
+            testes/e2e/test-results
           retention-days: 7
           if-no-files-found: ignore

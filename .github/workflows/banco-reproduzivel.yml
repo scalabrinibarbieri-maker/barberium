@@ -1,11 +1,14 @@
 name: Banco reproduzível
 
-# Etapa 1 (19/10/2026), revisto na etapa 2. Faz duas conferências, sem alterar a produção:
+# Etapa 1 (19/10/2026), revisto nas etapas 2 e 3. Faz três conferências, sem alterar a produção:
 #   1. Reconstrói num Postgres 17 vazio só as migrations que a produção já tem e compara a
 #      "impressão digital" do schema com a da produção. Diferença = alguém mexeu no banco sem
 #      migration (pelo painel do Supabase, por exemplo).
 #   2. Aplica por cima as migrations novas, que ainda não foram publicadas, para provar que
 #      elas rodam. É o mesmo script que depois as aplica no banco de teste e na produção.
+#   3. (etapa 3) Põe os dados fictícios nesse banco local e roda os testes de caracterização
+#      (supabase/testes): agendamento, cancelamento, comissões, caixa, datas perto da meia-noite
+#      e isolamento entre barbearias. Cada teste roda numa transação desfeita no fim.
 #
 # Roda toda segunda de manhã, à mão (Actions > Banco reproduzível > Run workflow) e como
 # primeiro passo dos workflows "Publicar no teste" e "Publicar em produção".
@@ -75,6 +78,18 @@ jobs:
           set -euo pipefail
           bash supabase/pipeline/aplicar_migrations.sh \
             --url "postgresql://postgres@127.0.0.1:${PORTA}/postgres" --autor reconstrucao
+
+      - name: Dados fictícios no banco local
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Banco descartável deste teste: a senha abaixo não protege nada e não é segredo.
+          "$PSQL" -h 127.0.0.1 -p "$PORTA" -U postgres -X -q -v ON_ERROR_STOP=1 \
+            -v senha=senha-local-dos-testes -f supabase/staging/dados_ficticios.sql
+
+      - name: Testes de caracterização
+        shell: bash
+        run: bash supabase/testes/rodar_testes.sh --url "postgresql://postgres@127.0.0.1:${PORTA}/postgres"
 
       - name: Guardar as impressões digitais (se falhar)
         if: failure()
