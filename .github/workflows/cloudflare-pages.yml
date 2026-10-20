@@ -148,6 +148,10 @@ jobs:
             echo "Versão ${GITHUB_SHA}. Site: https://scalabrinibarbiere.com"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Conferir o site no ar
+        shell: bash
+        run: bash testes/e2e/esperar_site.sh dist https://scalabrinibarbiere.com 300
+
       - name: Guardar as impressões digitais (se falhar)
         if: failure()
         uses: actions/upload-artifact@v6
