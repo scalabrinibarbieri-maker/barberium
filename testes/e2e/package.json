@@ -1,0 +1,12 @@
+{
+  "name": "barberium-testes-e2e",
+  "private": true,
+  "description": "Testes de ponta a ponta do Barberium, rodados contra o site de TESTE (staging) depois de cada publicação no teste.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}

@@ -9,7 +9,9 @@ Na página do repositório, toque em **Add file → Upload files**.
 - **Pacote** (`pacote-*.zip`): envie na página principal, sem descompactar.
 - **Arquivos de `.github/workflows`**: envie direto naquela pasta.
 
-O GitHub roda **Publicar no teste** sozinho, e leva uns 5 minutos. Para acompanhar, abra a aba **Actions**.
+O GitHub roda **Publicar no teste** sozinho, e leva uns 8 minutos. Para acompanhar, abra a aba **Actions**.
+
+Desde a etapa 3, ele também testa sozinho o banco (agendamento, cancelamento, comissões, caixa, datas e isolamento entre barbearias) e o site de teste num navegador, como cliente, barbeiro e ADM. Se algum teste ficar vermelho, veja **Se um teste ficar vermelho**, mais abaixo.
 
 ## 2. Conferir no teste
 
@@ -41,6 +43,17 @@ Antes de publicar, o GitHub confere três coisas:
 
 Só depois disso ele aplica as mudanças no banco e publica o site. Se qualquer passo falhar, ele para ali.
 
+## Se um teste ficar vermelho
+
+Abra a rodada vermelha em **Actions** e veja qual parte falhou:
+
+| Parte que falhou | O que fazer |
+| --- | --- |
+| **Testes de caracterização** | Alguma coisa mudou o jeito de o sistema funcionar. Me mande um print do resumo da rodada (ele lista o teste que falhou). Nada vai para a produção enquanto isso não for resolvido |
+| **Testar o site de teste** | Pode ter sido lentidão da internet. Toque em **Re-run jobs → Re-run failed jobs** uma vez. Se falhar de novo, me mande um print. No fim da rodada há um arquivo `relatorio-testes-site` com fotos da tela no momento do erro |
+
+O sinal **~** no resumo não é erro. Ele marca um defeito que já conhecemos e que ainda vai ser corrigido.
+
 ## Se algo der errado na produção
 
 - **Site:** no Cloudflare, abra **Workers & Pages → barberium → Deployments**, escolha o deploy anterior e toque em **Rollback to this deployment**. Leva segundos.
@@ -51,5 +64,5 @@ Só depois disso ele aplica as mudanças no banco e publica o site. Se qualquer 
 | Quando | Workflow | O que faz |
 | --- | --- | --- |
 | Todo dia, 03h17 | Backup diário do banco | Backup criptografado, guardado por 90 dias |
-| Segunda, 06h23 | Banco reproduzível | Confere se alguém mexeu na produção sem migration |
-| Segunda e quinta, 07h41 | Publicar no teste | Mantém o banco de teste acordado (o plano grátis dorme depois de uma semana sem uso) |
+| Segunda, 06h23 | Banco reproduzível | Confere se alguém mexeu na produção sem migration e roda os testes do banco |
+| Segunda e quinta, 07h41 | Publicar no teste | Mantém o banco de teste acordado (o plano grátis dorme depois de uma semana sem uso) e roda todos os testes. Cada rodada marca e cancela 1 horário na Scalabrini de teste |
