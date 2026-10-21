@@ -1,6 +1,4 @@
-const V128_SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const V128_SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const V128_AUTH_KEY='barberium_staff_auth_v1';
+import { criarCliente } from '../shared/api.js?v=1';
 
 const v128$=(s,r=document)=>r.querySelector(s);
 const v128$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -11,34 +9,9 @@ let v128LastAppointmentId=new URLSearchParams(location.search).get('appointment'
 let v128AgendaMode='agenda';
 let v128ApplyingAgenda=false;
 
-function v128GetAuth(){try{return JSON.parse(localStorage.getItem(V128_AUTH_KEY)||'null')}catch{return null}}
-function v128SaveAuth(v){localStorage.setItem(V128_AUTH_KEY,JSON.stringify(v))}
-async function v128AuthFetch(path,opts={}){
-  const session=v128GetAuth();
-  const headers={apikey:V128_SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-  let r=await fetch(`${V128_SUPABASE_URL}${path}`,{...opts,headers});
-  if(r.status===401&&session?.refresh_token){
-    const rr=await fetch(`${V128_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-      method:'POST',
-      headers:{apikey:V128_SUPABASE_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({refresh_token:session.refresh_token})
-    });
-    if(rr.ok){
-      const refreshed=await rr.json();
-      v128SaveAuth(refreshed);
-      headers.Authorization=`Bearer ${refreshed.access_token}`;
-      r=await fetch(`${V128_SUPABASE_URL}${path}`,{...opts,headers});
-    }
-  }
-  const text=await r.text();
-  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function v128Rpc(name,payload={}){
-  return v128AuthFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
-}
+// Login e chamadas ao banco: shared/api.js (etapa 5).
+const v128Api=criarCliente();
+async function v128Rpc(name,payload={}){return v128Api.rpc(name,payload)}
 function v128Toast(msg){
   const e=v128$('#toast');
   if(!e)return;

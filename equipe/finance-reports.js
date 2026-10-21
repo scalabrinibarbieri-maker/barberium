@@ -1,6 +1,4 @@
-const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const AUTH_KEY='barberium_staff_auth_v1';
+import { criarCliente } from '../shared/api.js?v=1';
 
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -9,22 +7,9 @@ const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).
 const dateBR=v=>v?new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T12:00:00`)):'—';
 const dateTimeBR=v=>v?new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v)):'—';
 
-function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
-function saveAuth(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-async function authFetch(path,opts={}){
-  const session=getAuth();
-  const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-  let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-  if(r.status===401&&session?.refresh_token){
-    const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
-    if(rr.ok){const refreshed=await rr.json();saveAuth(refreshed);headers.Authorization=`Bearer ${refreshed.access_token}`;r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers})}
-  }
-  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function rpc(name,payload={}){return authFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)})}
+// Login e chamadas ao banco: shared/api.js (etapa 5).
+const api=criarCliente();
+async function rpc(name,payload={}){return api.rpc(name,payload)}
 
 function toast(msg){const e=$('#toast');if(!e)return;e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2800)}
 function openModal(eyebrow,title,html){const back=$('#modalBackdrop');if(!back)return;$('#modalEyebrow').textContent=eyebrow||'';$('#modalTitle').textContent=title||'';$('#modalBody').innerHTML=html;back.classList.remove('hidden');back.setAttribute('aria-hidden','false')}

@@ -1,27 +1,13 @@
+import { criarCliente } from '../shared/api.js?v=1';
+
 /* Barberium v12.47 · apresentação + modo manutenção da Área do Cliente */
 (() => {
-  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const AUTH_KEY='barberium_staff_auth_v1';
   const $=(s,r=document)=>r.querySelector(s);
   const esc=(v='')=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
-  function session(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
-  function saveSession(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-  async function apiFetch(path,opts={}){
-    let s=session();
-    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-    if(s?.access_token)headers.Authorization=`Bearer ${s.access_token}`;
-    let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-    if(r.status===401&&s?.refresh_token){
-      const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})});
-      if(rr.ok){s=await rr.json();saveSession(s);headers.Authorization=`Bearer ${s.access_token}`;r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});}
-    }
-    const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-    if(!r.ok)throw new Error(data?.message||data?.error_description||data?.error||`Erro ${r.status}`);
-    return data;
-  }
-  const rpc=(name,payload={})=>apiFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
+  // Login e chamadas ao banco: shared/api.js (etapa 5).
+  const api=criarCliente();
+  const rpc=(name,payload={})=>api.rpc(name,payload);
   function toast(msg){const t=$('#toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3000)}
   function defaults(st={}){
     return {

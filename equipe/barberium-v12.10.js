@@ -1,9 +1,7 @@
 // Barberium v12.10 — produtos no Resumo/Desempenho.
 // Cirúrgico: não altera agenda, clientes, financeiro, estoque ou checkout.
 
-const V1210_SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const V1210_SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const V1210_AUTH_KEY='barberium_staff_auth_v1';
+import { criarCliente } from '../shared/api.js?v=1';
 
 const v1210$=(s,r=document)=>r.querySelector(s);
 const v1210$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -16,42 +14,9 @@ let v1210Generation=0;
 let v1210Timer=null;
 let v1210Observer=null;
 
-function v1210GetAuth(){
-  try{return JSON.parse(localStorage.getItem(V1210_AUTH_KEY)||'null')}catch{return null}
-}
-function v1210SaveAuth(v){
-  localStorage.setItem(V1210_AUTH_KEY,JSON.stringify(v));
-}
-async function v1210AuthFetch(path,opts={}){
-  const session=v1210GetAuth();
-  const headers={apikey:V1210_SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-
-  let r=await fetch(`${V1210_SUPABASE_URL}${path}`,{...opts,headers});
-
-  if(r.status===401&&session?.refresh_token){
-    const rr=await fetch(`${V1210_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-      method:'POST',
-      headers:{apikey:V1210_SUPABASE_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({refresh_token:session.refresh_token})
-    });
-    if(rr.ok){
-      const refreshed=await rr.json();
-      v1210SaveAuth(refreshed);
-      headers.Authorization=`Bearer ${refreshed.access_token}`;
-      r=await fetch(`${V1210_SUPABASE_URL}${path}`,{...opts,headers});
-    }
-  }
-
-  const text=await r.text();
-  let data=null;
-  try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function v1210Rpc(name,payload={}){
-  return v1210AuthFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
-}
+// Login e chamadas ao banco: shared/api.js (etapa 5).
+const v1210Api=criarCliente();
+async function v1210Rpc(name,payload={}){return v1210Api.rpc(name,payload)}
 
 function v1210PeriodRange(){
   const kind=v1210$('#periodTabs [data-period].active')?.dataset?.period||'today';

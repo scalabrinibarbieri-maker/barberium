@@ -1,6 +1,5 @@
-const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const AUTH_KEY='barberium_staff_auth_v1';
+import { SUPABASE_URL, SUPABASE_KEY } from '../shared/config.js?v=1';
+import { criarCliente, lerSessao, salvarSessao, limparSessao } from '../shared/api.js?v=1';
 const TZ='America/Sao_Paulo';
 
 const $=(s,r=document)=>r.querySelector(s);
@@ -18,28 +17,18 @@ let activePeriod='today';
 let currentAgenda=null;
 let currentPanel='agenda';
 
-function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
-function saveAuth(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-function clearAuth(){localStorage.removeItem(AUTH_KEY)}
+// Login e chamadas ao banco: shared/api.js (etapa 5), uma sessão só para todos os módulos.
+const api=criarCliente();
+function getAuth(){return lerSessao()}
+function saveAuth(v){salvarSessao(v)}
+function clearAuth(){limparSessao()}
 function isManager(){return ['owner','admin'].includes(member?.role)}
 function can(key){return isManager()||member?.permissions?.[key]===true}
 function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2600)}
 function friendlyError(e){const m=String(e?.message||e);if(/Horário ocupado|already|exclusion/i.test(m))return'Esse horário já está ocupado.';if(/bloquead/i.test(m))return'Esse período está bloqueado.';return m}
 
-async function authFetch(path,opts={}){
-  const session=getAuth();
-  const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-  let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-  if(r.status===401&&session?.refresh_token){
-    const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
-    if(rr.ok){const refreshed=await rr.json();saveAuth(refreshed);headers.Authorization=`Bearer ${refreshed.access_token}`;r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers})}
-  }
-  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function rpc(name,payload={}){return authFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)})}
+async function authFetch(path,opts={}){return api.requisicao(path,opts)}
+async function rpc(name,payload={}){return api.rpc(name,payload)}
 
 async function login(email,password){
   const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});

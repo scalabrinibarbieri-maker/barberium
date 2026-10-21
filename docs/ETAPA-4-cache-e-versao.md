@@ -97,3 +97,14 @@ Encontrado durante os testes: se a página recarrega bem no meio da troca do ser
 
 - **Site:** no Cloudflare, "Rollback" para o deploy anterior (está no [COMO-PUBLICAR.md](COMO-PUBLICAR.md)). Os celulares voltam ao service worker antigo na visita seguinte.
 - **Repositório:** reenviar as versões anteriores dos arquivos da tabela acima, que estão no histórico do GitHub. Sem o `deploy/carimbar_versao.py`, o `montar_site.sh` da etapa 3 volta a publicar sem versão.
+
+## Validação (20/10)
+
+| Quando | O quê | Resultado |
+| --- | --- | --- |
+| 18h08 | Aplicar pacote (`pacote-etapa4.zip`) e Publicar no teste #6 | Verdes |
+| 18h14 | Publicar no teste #7, já com o `cloudflare-pages.yml` novo | Verde. "Testar o site de teste": 13 de 13 (os 5 do site e os 8 da troca de versão) |
+| 18h19 | Publicar em produção #48 | Verde (1 min 30 s). O site real trocou para a versão `54c101b`, conferida arquivo por arquivo |
+| 18h25 | Site real aberto no Chrome, só leitura | Versão `54c101b` nas duas áreas, um service worker só (`/sw.js`), um cache só (`barberium-54c101b`), nenhum erro na página |
+
+Cabeçalhos que chegaram no site real: as páginas com `no-cache` e `/versao.json` com `no-store`, como pedido. Os scripts chegam com `max-age=14400`: a configuração de cache do domínio passa por cima do `_headers`, como previsto no risco. O "Publicar em produção" mostrou isso como aviso. A troca não depende disso, porque cada publicação muda o endereço dos scripts.

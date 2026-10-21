@@ -1,3 +1,6 @@
+import { criarCliente } from '../shared/api.js?v=1';
+import { SUPABASE_URL as URL_SUPABASE } from '../shared/config.js?v=1';
+
 // Barberium v12.17 — atualização automática do saldo em Contratos ativos.
 // Cirúrgico: não altera consumo de créditos, planos, financeiro ou Supabase.
 // Apenas força a tela já existente a buscar novamente o saldo quando volta a ficar visível.
@@ -92,9 +95,6 @@
 
 /* v12.20 · barbeiro fecha comanda usando ficha de plano */
 (() => {
-  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const AUTH_KEY='barberium_staff_auth_v1';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -102,22 +102,9 @@
   const previousFetch=window.fetch.bind(window);
   let lastAppointmentId=null,injecting=false,observer=null;
 
-  function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
-  function saveAuth(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-  async function authFetch(path,opts={}){
-    const session=getAuth();
-    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-    if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-    let r=await previousFetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-    if(r.status===401&&session?.refresh_token){
-      const rr=await previousFetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
-      if(rr.ok){const refreshed=await rr.json();saveAuth(refreshed);headers.Authorization=`Bearer ${refreshed.access_token}`;r=await previousFetch(`${SUPABASE_URL}${path}`,{...opts,headers})}
-    }
-    const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-    if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-    return data;
-  }
-  const rpc=(name,payload={})=>authFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
+  // Login e chamadas ao banco: shared/api.js (etapa 5), pelo mesmo fetch de antes.
+  const api=criarCliente({transporte:previousFetch});
+  const rpc=(name,payload={})=>api.rpc(name,payload);
   function toast(msg){const t=$('#toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3000)}
 
   window.fetch=async function(input,init={}){
@@ -363,9 +350,6 @@
 
 /* v12.23 · cancelamento concluído separa anulação operacional de reembolso real */
 (() => {
-  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const AUTH_KEY='barberium_staff_auth_v1';
   const $=(s,r=document)=>r.querySelector(s);
   const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format((Number(n)||0)/100);
   const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -373,37 +357,9 @@
   let lastAppointmentId=new URLSearchParams(location.search).get('appointment')||null;
   let opening=false;
 
-  function getAuth(){
-    try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}
-  }
-  function saveAuth(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-  async function authFetch(path,opts={}){
-    const session=getAuth();
-    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-    if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-    let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-    if(r.status===401&&session?.refresh_token){
-      const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-        method:'POST',
-        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({refresh_token:session.refresh_token})
-      });
-      if(rr.ok){
-        const refreshed=await rr.json();
-        saveAuth(refreshed);
-        headers.Authorization=`Bearer ${refreshed.access_token}`;
-        r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-      }
-    }
-    const text=await r.text();
-    let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-    if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-    return data;
-  }
-  const rpc=(name,payload={})=>authFetch(`/rest/v1/rpc/${name}`,{
-    method:'POST',
-    body:JSON.stringify(payload)
-  });
+  // Login e chamadas ao banco: shared/api.js (etapa 5).
+  const api=criarCliente();
+  const rpc=(name,payload={})=>api.rpc(name,payload);
 
   function toast(msg){
     const t=$('#toast');
@@ -617,9 +573,7 @@
 
 /* v12.24 · login mais alto + Ajustes + personalização da área do cliente */
 (() => {
-  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const AUTH_KEY='barberium_staff_auth_v1';
+  const SUPABASE_URL=URL_SUPABASE;
 
   const $=(s,r=document)=>r.querySelector(s);
   const esc=(v='')=>String(v??'').replace(/[&<>"']/g,c=>({
@@ -656,42 +610,10 @@
     if(label&&label.textContent!=='Ajustes')label.textContent='Ajustes';
   }
 
-  function session(){
-    try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}
-  }
-  function saveSession(v){localStorage.setItem(AUTH_KEY,JSON.stringify(v))}
-
-  async function apiFetch(path,opts={}){
-    let s=session();
-    const headers={apikey:SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-    if(s?.access_token)headers.Authorization=`Bearer ${s.access_token}`;
-
-    let r=await baseFetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-    if(r.status===401&&s?.refresh_token){
-      const rr=await baseFetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-        method:'POST',
-        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({refresh_token:s.refresh_token})
-      });
-      if(rr.ok){
-        s=await rr.json();
-        saveSession(s);
-        headers.Authorization=`Bearer ${s.access_token}`;
-        r=await baseFetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-      }
-    }
-
-    const text=await r.text();
-    let data=null;
-    try{data=text?JSON.parse(text):null}catch{data=text}
-    if(!r.ok)throw new Error(data?.message||data?.error_description||data?.error||`Erro ${r.status}`);
-    return data;
-  }
-
-  const rpc=(name,payload={})=>apiFetch(`/rest/v1/rpc/${name}`,{
-    method:'POST',
-    body:JSON.stringify(payload)
-  });
+  // Login e chamadas ao banco: shared/api.js (etapa 5), pelo mesmo fetch de antes.
+  const api=criarCliente({transporte:baseFetch});
+  async function apiFetch(path,opts={}){return api.requisicao(path,opts)}
+  const rpc=(name,payload={})=>api.rpc(name,payload);
 
   function toast(msg){
     const t=$('#toast');

@@ -1,11 +1,9 @@
+import { criarCliente } from '../shared/api.js?v=1';
+
 /* Barberium v12.39 · Saldos rápidos por período
    Cirúrgico: nova aba visual no Financeiro sem alterar team.js.
 */
 (() => {
-  const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-  const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const AUTH_KEY='barberium_staff_auth_v1';
-
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const pad=n=>String(n).padStart(2,'0');
@@ -22,55 +20,9 @@
   let latest=null;
   let requestId=0;
 
-  function session(){
-    try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}
-  }
-  function saveSession(v){
-    localStorage.setItem(AUTH_KEY,JSON.stringify(v));
-  }
-
-  async function authFetch(path,opts={}){
-    let s=session();
-    const headers={
-      apikey:SUPABASE_KEY,
-      'Content-Type':'application/json',
-      ...(opts.headers||{})
-    };
-    if(s?.access_token)headers.Authorization=`Bearer ${s.access_token}`;
-
-    let r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-
-    if(r.status===401&&s?.refresh_token){
-      const rr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-        method:'POST',
-        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({refresh_token:s.refresh_token})
-      });
-      if(rr.ok){
-        s=await rr.json();
-        saveSession(s);
-        headers.Authorization=`Bearer ${s.access_token}`;
-        r=await fetch(`${SUPABASE_URL}${path}`,{...opts,headers});
-      }
-    }
-
-    const text=await r.text();
-    let data=null;
-    try{data=text?JSON.parse(text):null}catch{data=text}
-    if(!r.ok){
-      throw new Error(
-        data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`
-      );
-    }
-    return data;
-  }
-
-  function rpc(name,payload={}){
-    return authFetch(`/rest/v1/rpc/${name}`,{
-      method:'POST',
-      body:JSON.stringify(payload)
-    });
-  }
+  // Login e chamadas ao banco: shared/api.js (etapa 5).
+  const api=criarCliente();
+  function rpc(name,payload={}){return api.rpc(name,payload)}
 
   function injectStyles(){
     if($('#barberiumBalancesV1239Style'))return;

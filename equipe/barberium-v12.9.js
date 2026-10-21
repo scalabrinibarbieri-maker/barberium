@@ -1,7 +1,5 @@
 // Barberium v12.9 — correções cirúrgicas de Planos, créditos, Agenda/Cancelados e entradas numéricas.
-const V129_SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const V129_SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const V129_AUTH_KEY='barberium_staff_auth_v1';
+import { criarCliente } from '../shared/api.js?v=1';
 
 const v129$=(s,r=document)=>r.querySelector(s);
 const v129$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -9,34 +7,9 @@ const v129Esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','
 let v129Contracts=[];
 let v129PlanMode='catalog';
 
-function v129GetAuth(){try{return JSON.parse(localStorage.getItem(V129_AUTH_KEY)||'null')}catch{return null}}
-function v129SaveAuth(v){localStorage.setItem(V129_AUTH_KEY,JSON.stringify(v))}
-async function v129AuthFetch(path,opts={}){
-  const session=v129GetAuth();
-  const headers={apikey:V129_SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-  let r=await fetch(`${V129_SUPABASE_URL}${path}`,{...opts,headers});
-  if(r.status===401&&session?.refresh_token){
-    const rr=await fetch(`${V129_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-      method:'POST',
-      headers:{apikey:V129_SUPABASE_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({refresh_token:session.refresh_token})
-    });
-    if(rr.ok){
-      const refreshed=await rr.json();
-      v129SaveAuth(refreshed);
-      headers.Authorization=`Bearer ${refreshed.access_token}`;
-      r=await fetch(`${V129_SUPABASE_URL}${path}`,{...opts,headers});
-    }
-  }
-  const text=await r.text();
-  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function v129Rpc(name,payload={}){
-  return v129AuthFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
-}
+// Login e chamadas ao banco: shared/api.js (etapa 5).
+const v129Api=criarCliente();
+async function v129Rpc(name,payload={}){return v129Api.rpc(name,payload)}
 function v129Toast(msg){
   const e=v129$('#toast');
   if(!e)return;

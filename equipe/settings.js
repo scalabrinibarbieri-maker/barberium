@@ -1,6 +1,5 @@
-const SETTINGS_SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const SETTINGS_SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const SETTINGS_AUTH_KEY='barberium_staff_auth_v1';
+import { SUPABASE_URL as SETTINGS_SUPABASE_URL } from '../shared/config.js?v=1';
+import { criarCliente, lerSessao, renovarSessao } from '../shared/api.js?v=1';
 const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -10,9 +9,11 @@ const img=v=>!v?'../assets/logo-sb.webp':/^https?:\/\//i.test(String(v))?String(
 const DAY_NAMES=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
 const S={boot:null,tab:'services',unitId:null,serviceData:null,serviceEditor:null,professionalEditor:null,hoursScope:'',hours:null,special:null};
-function session(){try{return JSON.parse(localStorage.getItem(SETTINGS_AUTH_KEY)||'null')}catch{return null}}
-async function fetchAuth(path,opts={}){const s=session();const h={apikey:SETTINGS_SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};if(s?.access_token)h.Authorization=`Bearer ${s.access_token}`;let r=await fetch(`${SETTINGS_SUPABASE_URL}${path}`,{...opts,headers:h});if(r.status===401&&s?.refresh_token){const rr=await fetch(`${SETTINGS_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SETTINGS_SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})});if(rr.ok){const fresh=await rr.json();localStorage.setItem(SETTINGS_AUTH_KEY,JSON.stringify(fresh));h.Authorization=`Bearer ${fresh.access_token}`;r=await fetch(`${SETTINGS_SUPABASE_URL}${path}`,{...opts,headers:h})}}const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.error_description||d?.error||`Erro ${r.status}`);return d}
-const rpc=(name,payload={})=>fetchAuth(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
+// Login e chamadas ao banco: shared/api.js (etapa 5).
+const settingsApi=criarCliente();
+function session(){return lerSessao()}
+async function fetchAuth(path,opts={}){return settingsApi.requisicao(path,opts)}
+const rpc=(name,payload={})=>settingsApi.rpc(name,payload);
 function note(msg,error=false){const e=qs('#settingsSaveState');if(!e)return;e.textContent=msg;e.style.color=error?'#e2a19a':'';clearTimeout(note.t);note.t=setTimeout(()=>{if(e)e.textContent=''},3200)}
 function root(){return qs('#settingsContent')}
 function currentUnit(){return (S.boot?.units||[]).find(u=>u.id===S.unitId)||null}
@@ -71,9 +72,8 @@ async function uploadImage(file,folder){
  const sess=session();
  if(!sess?.access_token)throw new Error('Entre novamente na Área da Equipe para enviar a foto.');
  if(sess.expires_at&&sess.expires_at*1000<Date.now()+60000&&sess.refresh_token){
- const rr=await fetch(`${SETTINGS_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SETTINGS_SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:sess.refresh_token})});
- if(!rr.ok)throw new Error('Sua sessão expirou. Entre novamente antes de enviar a foto.');
- localStorage.setItem(SETTINGS_AUTH_KEY,JSON.stringify(await rr.json()));
+ const nova=await renovarSessao({usada:sess});
+ if(!nova?.access_token)throw new Error('Sua sessão expirou. Entre novamente antes de enviar a foto.');
  }
  await fetchAuth(`/storage/v1/object/barberium-service-images/${path}`,{method:'POST',headers:{'Content-Type':mime,'x-upsert':'false'},body:file});
  return `${SETTINGS_SUPABASE_URL}/storage/v1/object/public/barberium-service-images/${path}`;

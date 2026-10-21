@@ -1,9 +1,7 @@
 // Barberium v12.13 — múltiplos serviços na mesma comanda (Área da Equipe).
 // Camada cirúrgica: mantém team.js intacto e amplia somente o fluxo de agendamento manual.
 
-const V1212_SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
-const V1212_SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-const V1212_AUTH_KEY='barberium_staff_auth_v1';
+import { criarCliente } from '../shared/api.js?v=1';
 
 const v1212$=(s,r=document)=>r.querySelector(s);
 const v1212$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -18,41 +16,10 @@ let v1212ActiveForm=null;
 
 const v1212NativeFetch=window.fetch.bind(window);
 
-function v1212GetAuth(){
-  try{return JSON.parse(localStorage.getItem(V1212_AUTH_KEY)||'null')}catch{return null}
-}
-function v1212SaveAuth(v){
-  localStorage.setItem(V1212_AUTH_KEY,JSON.stringify(v));
-}
-async function v1212AuthFetch(path,opts={}){
-  const session=v1212GetAuth();
-  const headers={apikey:V1212_SUPABASE_KEY,'Content-Type':'application/json',...(opts.headers||{})};
-  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
-
-  let r=await v1212NativeFetch(`${V1212_SUPABASE_URL}${path}`,{...opts,headers});
-  if(r.status===401&&session?.refresh_token){
-    const rr=await v1212NativeFetch(`${V1212_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-      method:'POST',
-      headers:{apikey:V1212_SUPABASE_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({refresh_token:session.refresh_token})
-    });
-    if(rr.ok){
-      const refreshed=await rr.json();
-      v1212SaveAuth(refreshed);
-      headers.Authorization=`Bearer ${refreshed.access_token}`;
-      r=await v1212NativeFetch(`${V1212_SUPABASE_URL}${path}`,{...opts,headers});
-    }
-  }
-
-  const text=await r.text();
-  let data=null;
-  try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.msg||data?.error_description||data?.error||`Erro ${r.status}`);
-  return data;
-}
-async function v1212Rpc(name,payload={}){
-  return v1212AuthFetch(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(payload)});
-}
+// Login e chamadas ao banco: shared/api.js (etapa 5). Continua usando o fetch original,
+// guardado antes dos interceptadores, como antes.
+const v1212Api=criarCliente({transporte:v1212NativeFetch});
+async function v1212Rpc(name,payload={}){return v1212Api.rpc(name,payload)}
 async function v1212LoadCatalog(){
   if(v1212Catalog)return v1212Catalog;
   v1212Catalog=await v1212Rpc('barberium_staff_catalog');
