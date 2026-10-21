@@ -4,17 +4,17 @@
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const SHOP_SLUG='scalabrini-barbieri';
-  const SESSION_KEY='barberium_scalabrini_session_v1';
+  // Etapa 6: barbearia e login do cliente vêm do endereço do site (shared/tenant.js).
+  const tenant=()=>window.BARBERIUM_TENANT;
 
   const $=(s,r=document)=>r.querySelector(s);
 
   function getSession(){
-    try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null}
+    try{return JSON.parse(localStorage.getItem(tenant().chaveSessaoCliente)||'null')}catch{return null}
   }
 
   function saveSession(v){
-    localStorage.setItem(SESSION_KEY,JSON.stringify(v));
+    localStorage.setItem(tenant().chaveSessaoCliente,JSON.stringify(v));
   }
 
   function formatPhone(v=''){
@@ -97,7 +97,7 @@
 
       try{
         const res=await rpc('barberium_customer_open_profile',{
-          p_barbershop_slug:SHOP_SLUG,
+          p_barbershop_slug:tenant().barbershopSlug,
           p_full_name:name,
           p_phone:phoneDigits
         });
@@ -208,11 +208,13 @@
     ensureProfileAccess();
   }
 
+  // Etapa 6: só começa quando o site sabe de qual barbearia é.
+  const bootComTenant=()=>window.barberiumTenantPronto.then(boot);
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',boot,{once:true});
+    document.addEventListener('DOMContentLoaded',bootComTenant,{once:true});
   }else{
-    boot();
+    bootComTenant();
   }
 
-  setTimeout(boot,400);
+  setTimeout(bootComTenant,400);
 })();

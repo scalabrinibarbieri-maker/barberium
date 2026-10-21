@@ -186,11 +186,61 @@ insert into public.barbershop_members (barbershop_id, auth_user_id, role)
 values ('a0b9b1f2-487d-4f66-b04f-f3ebc4cd0c46', '5a000000-0000-4000-8000-000000000003', 'admin')
 on conflict (barbershop_id, auth_user_id) do nothing;
 
+-- Etapa 6: segunda unidade da Aurora, para testar a escolha de unidade no site do cliente.
+insert into public.units (id, barbershop_id, name, slug, city, state, settings)
+values ('aa000000-0000-4000-8000-000000000002', 'a0b9b1f2-487d-4f66-b04f-f3ebc4cd0c46',
+        'Unidade Norte', 'norte', 'Campinas', 'SP', '{
+          "days_ahead": 14, "test_tenant": true, "slot_minutes": 30, "client_logo_url": "/barberium.svg",
+          "client_hero_label": "Barbearia Aurora", "client_hero_title": "Seu estilo começa aqui.",
+          "min_advance_minutes": 15, "must_finish_by_close": true, "client_hero_image_url": "",
+          "client_header_subtitle": "Unidade Norte • Campinas", "client_maintenance_mode": false
+        }')
+on conflict (id) do nothing;
+insert into public.professionals (id, barbershop_id, unit_id, name, slug, settings, image_path, sort_order)
+values ('aa000000-0000-4000-8000-000000000003', 'a0b9b1f2-487d-4f66-b04f-f3ebc4cd0c46',
+        'aa000000-0000-4000-8000-000000000002', 'Bruno Lima', 'bruno-lima', '{}', 'barberium.svg', 10)
+on conflict (id) do nothing;
+insert into public.services (id, barbershop_id, unit_id, name, slug, price_cents, duration_min, duration_label,
+                             image_path, sort_order, service_kind, description)
+values ('aa000000-0000-4000-8000-000000000004', 'a0b9b1f2-487d-4f66-b04f-f3ebc4cd0c46',
+        'aa000000-0000-4000-8000-000000000002', 'Corte Norte', 'corte-norte', 6000, 45, '45 min',
+        'barberium.svg', 10, 'service', 'Corte da Unidade Norte.')
+on conflict (id) do nothing;
+insert into public.professional_services (professional_id, service_id)
+values ('aa000000-0000-4000-8000-000000000003', 'aa000000-0000-4000-8000-000000000004')
+on conflict do nothing;
+insert into public.business_hours (unit_id, professional_id, weekday, open_time, close_time, is_closed)
+select 'aa000000-0000-4000-8000-000000000002', null::uuid, d,
+       case when d = 0 then null else '09:00'::time end,
+       case when d = 0 then null else '19:00'::time end,
+       d = 0
+from generate_series(0, 6) d
+on conflict do nothing;
+
+-- Etapa 6: endereços de teste. Abrem a Scalabrini de teste (unidade de Bragança) e aceitam
+-- ?barbearia=slug para abrir outra barbearia, como a Aurora. 127.0.0.1 é o computador onde
+-- os testes rodam; "localhost" fica de fora de propósito, para testar endereço não cadastrado.
+insert into public.barbershop_domains (host, barbershop_id, unit_id, allow_tenant_param)
+select h.host, b.id, u.id, true
+from public.barbershops b
+join public.units u on u.barbershop_id = b.id and u.slug = 'braganca-paulista'
+cross join (values ('staging.barberium.pages.dev'), ('127.0.0.1')) as h(host)
+where b.slug = 'scalabrini-barbieri'
+on conflict (host) do nothing;
+
 -- No teste, o site do cliente começa aberto. Sem a chave, o site trata como "em manutenção";
 -- se alguém salvar a opção pela Área da Equipe de teste, o valor salvo é respeitado.
 update public.units
    set settings = coalesce(settings, '{}'::jsonb) || '{"client_maintenance_mode": false}'::jsonb
  where not (coalesce(settings, '{}'::jsonb) ? 'client_maintenance_mode');
+
+-- Etapa 6: o rótulo da capa deixou de ter "Casa Scalabrini" como padrão no código (o padrão
+-- agora é o nome da barbearia). A produção já tem o rótulo salvo; o teste fica igual a ela.
+update public.units u
+   set settings = coalesce(u.settings, '{}'::jsonb) || '{"client_hero_label": "Casa Scalabrini"}'::jsonb
+  from public.barbershops b
+ where b.id = u.barbershop_id and b.slug = 'scalabrini-barbieri' and u.slug = 'braganca-paulista'
+   and not (coalesce(u.settings, '{}'::jsonb) ? 'client_hero_label');
 
 -- Clientes fictícios (telefones da faixa 9000-00xx, que não existe).
 insert into public.customers (barbershop_id, full_name, phone_e164)

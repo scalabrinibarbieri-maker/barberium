@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="barberium-tenant-pendente">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -9,17 +9,19 @@
   <link rel="stylesheet" href="./team.css?v=12.3.1">
   <link rel="stylesheet" href="./settings.css?v=12">
   <link rel="stylesheet" href="./desktop-v12.16.css?v=12.16">
-  <title>Área da Equipe • Scalabrini Barbieri</title>
+  <title>Área da Equipe</title>
+  <!-- Etapa 6: o nome da barbearia vem do endereço do site; até ele chegar, o texto fica oculto. -->
+  <style>html.barberium-tenant-pendente [data-tenant]{visibility:hidden}</style>
 </head>
 <body>
   <main class="team-shell">
     <section id="loginView" class="login-view">
       <a class="back-link" href="../">← Voltar ao site</a>
       <div class="login-brand">
-        <img src="../assets/logo-sb.webp" alt="Scalabrini Barbieri">
+        <img src="../assets/logo-sb.webp" alt="">
         <span>Barberium</span>
         <h1>Área da Equipe</h1>
-        <p>Acesso reservado à equipe Scalabrini Barbieri.</p>
+        <p data-tenant>Acesso reservado à equipe.</p>
       </div>
       <form id="loginForm" class="login-card">
         <label>E-mail
@@ -40,7 +42,7 @@
       <header class="dash-head">
         <div class="brand-line">
           <img src="../assets/logo-sb.webp" alt="">
-          <div><small>SCALABRINI BARBIERI</small><strong>Área da Equipe</strong></div>
+          <div><small data-tenant>BARBERIUM</small><strong>Área da Equipe</strong></div>
         </div>
         <button id="logoutButton" class="icon-btn" type="button">Sair</button>
       </header>
@@ -280,6 +282,7 @@
   </div>
 
   <div id="toast" class="toast"></div>
+  <script type="module" src="../shared/tenant.js?v=1"></script>
   <script type="module" src="./team.js?v=12.7"></script>
   <script type="module" src="./agenda-cancelados-v12.8.js?v=12.8"></script>
   <script type="module" src="./cancel-permission-v12.45.js?v=12.45"></script>

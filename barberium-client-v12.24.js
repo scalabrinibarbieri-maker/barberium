@@ -1,14 +1,19 @@
 /* Barberium v12.47 · personalização pública + modo manutenção
    Correção: a capa correta é carregada antes da home ser revelada.
 */
+import {tenantPronto} from './shared/tenant.js?v=1';
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const SHOP_SLUG='scalabrini-barbieri';
-  const UNIT_SLUG='braganca-paulista';
+  // Etapa 6: barbearia e unidade vêm do endereço do site (shared/tenant.js), na hora do boot.
+  let SHOP_SLUG=null;
+  let UNIT_SLUG=null;
   const SPLASH_PENDING_CLASS='barberium-splash-pending';
   const HERO_PENDING_CLASS='barberium-hero-pending';
-  const LOGO_CACHE_KEY=`barberium:brand-logo:${SHOP_SLUG}:${UNIT_SLUG}`;
+  // Logo da tela de abertura: guardado por barbearia/unidade e, para o index.html achar antes de
+  // saber a barbearia, também pelo endereço do site.
+  const logoCacheKey=()=>`barberium:brand-logo:${SHOP_SLUG}:${UNIT_SLUG}`;
+  const LOGO_HOST_KEY=`barberium:brand-logo:${location.hostname}`;
   const MIN_SPLASH_MS=360;
 
   const $=(s,r=document)=>r.querySelector(s);
@@ -35,7 +40,7 @@
 
   function cacheSplashLogo(value){
     if(!value)return;
-    try{localStorage.setItem(LOGO_CACHE_KEY,value)}catch{}
+    try{localStorage.setItem(logoCacheKey(),value);localStorage.setItem(LOGO_HOST_KEY,value)}catch{}
     setSrc($('#barberiumSplashLogo'),value);
   }
 
@@ -392,10 +397,10 @@
     const u=catalog?.unit||{};
     const st=u.settings||{};
 
-    const shopName=String(b.name||'Scalabrini Barbiere').trim();
-    const unitName=String(u.name||'II Unidade — Bragança Paulista').trim();
+    const shopName=String(b.name||window.BARBERIUM_TENANT?.barbershopName||'').trim();
+    const unitName=String(u.name||window.BARBERIUM_TENANT?.unitName||'').trim();
     const headerSubtitle=String(st.client_header_subtitle||headerDefault(u)||unitName).trim();
-    const heroLabel=String(st.client_hero_label||'Casa Scalabrini').trim();
+    const heroLabel=String(st.client_hero_label||shopName).trim();
     const heroTitle=String(st.client_hero_title||'Agende seu horário.').trim();
     const logo=String(st.client_logo_url||'./assets/logo-sb.webp').trim();
     const heroImage=String(st.client_hero_image_url||'./assets/barbearia.webp').trim();
@@ -476,6 +481,9 @@
   }
 
   async function boot(){
+    const tenant=await tenantPronto;
+    SHOP_SLUG=tenant.barbershopSlug;
+    UNIT_SLUG=tenant.unitSlug;
     try{
       const catalog=await rpc('barberium_get_catalog',{
         p_barbershop_slug:SHOP_SLUG,
@@ -486,8 +494,8 @@
     }catch(err){
       console.error('Barberium v12.47 branding:',err);
       showMaintenance({
-        shopName:'Scalabrini Barbiere',
-        unitName:'II Unidade — Bragança Paulista',
+        shopName:tenant.barbershopName,
+        unitName:tenant.unitName||'',
         logo:window.__barberiumSplashLogo||'./assets/logo-sb.webp',
         whatsapp:'',
         message:'Estamos realizando uma atualização. Os agendamentos online voltarão em breve.'

@@ -1,11 +1,13 @@
 // Área da Equipe do site de teste: ADM e barbeiro da Scalabrini de teste e ADM da Aurora.
 // A senha dos logins de teste vem do segredo STAGING_SENHA_TESTE.
+// Etapa 6: o endereço do site de teste abre a Scalabrini; ?barbearia=barbearia-aurora abre a
+// Aurora. Cada login entra só pelo endereço da própria barbearia.
 import { test, expect } from '@playwright/test';
 
 const SENHA = process.env.STAGING_SENHA_TESTE || '';
 
-async function entrar(page, email) {
-  await page.goto('/equipe/');
+async function entrar(page, email, caminho = '/equipe/') {
+  await page.goto(caminho);
   await expect(page.getByText('AMBIENTE DE TESTE')).toBeVisible();
   await page.fill('#email', email);
   await page.fill('#password', SENHA);
@@ -58,12 +60,24 @@ test.describe('com login', () => {
   });
 
   test('ADM da Aurora só enxerga a Aurora', async ({ page }) => {
-    await entrar(page, 'adm.aurora@example.com');
+    await entrar(page, 'adm.aurora@example.com', '/equipe/?barbearia=barbearia-aurora');
+    await expect(page.locator('.brand-line small')).toHaveText('BARBEARIA AURORA');
     await expect(page.locator('#scopeLabel')).toContainText('toda a equipe');
     await page.locator('#teamNav').click();
     await expect(page.locator('#teamPanel')).toContainText('Lucas Mendes');
     await expect(page.locator('#teamPanel')).toContainText('Rafael Costa');
     await expect(page.locator('body')).not.toContainText('Vinicius Nunes');
     await expect(page.locator('body')).not.toContainText('Jean Dalarmi');
+  });
+
+  test('login de uma barbearia não entra pelo endereço de outra (etapa 6)', async ({ page }) => {
+    // Prova que o cabeçalho da barbearia chega ao banco: sem ele, o ADM da Scalabrini entraria.
+    await page.goto('/equipe/?barbearia=barbearia-aurora');
+    await expect(page.locator('.login-brand p')).toHaveText('Acesso reservado à equipe Barbearia Aurora.');
+    await page.fill('#email', 'adm.scalabrini@example.com');
+    await page.fill('#password', SENHA);
+    await page.click('#loginButton');
+    await expect(page.locator('#loginError')).toContainText('não possui acesso');
+    await expect(page.locator('#dashboardView')).toBeHidden();
   });
 });

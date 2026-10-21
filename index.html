@@ -7,9 +7,10 @@
   <meta name="description" content="Agende seu horário na Scalabrini Barbiere — II Unidade, Bragança Paulista.">
   <script>
     (() => {
-      const key='barberium:brand-logo:scalabrini-barbieri:braganca-paulista';
+      // Logo da tela de abertura, guardado pelo endereço do site (etapa 6). O nome de antes
+      // continua valendo para quem já tinha aberto o site.
       let logo='./assets/logo-sb.webp';
-      try{logo=localStorage.getItem(key)||logo}catch{}
+      try{logo=localStorage.getItem('barberium:brand-logo:'+location.hostname)||localStorage.getItem('barberium:brand-logo:scalabrini-barbieri:braganca-paulista')||logo}catch{}
       window.__barberiumSplashLogo=logo;
       window.__barberiumSplashStartedAt=performance.now();
       document.documentElement.classList.add('barberium-splash-pending');
@@ -136,6 +137,7 @@
   </div>
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
   <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="./shared/tenant.js?v=1"></script>
   <script type="module" src="./app.js?v=12.48"></script>
   <script type="module" src="./barberium-client-v12.24.js?v=12.28"></script>
   <script src="./membership.js?v=11.2" defer></script>

@@ -27,6 +27,7 @@ barber-commissions-v12.30.js   # sem uso (a equipe usa equipe/barber-commissions
 shared/atualizacao.js
 shared/config.js
 shared/api.js
+shared/tenant.js
 
 # Imagens
 assets/barba-express.webp

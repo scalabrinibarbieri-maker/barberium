@@ -84,7 +84,7 @@ async function exportPdf(data,type){
   const kv=(k,v)=>{ensure(6);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(`${k}:`,left,y);doc.setFont('helvetica','normal');doc.text(String(v),left+42,y);y+=5};
   const total=(label,value)=>{ensure(7);line(`${label}: ${money(value)}`,9,true);y+=1};
   const meta=data.meta||{},o=data.overview||{};
-  line('Scalabrini Barbieri — Barberium',16,true);line(reportTypeLabel(type),13,true);y+=2;kv('Período',`${dateBR(meta.start)} a ${dateBR(meta.end)}`);kv('Unidade',meta.unit_name||'Consolidado');kv('Regime',meta.basis==='cash'?'Caixa':'Competência');kv('Gerado em',dateTimeBR(meta.generated_at));
+  line(`${window.BARBERIUM_TENANT?.barbershopName||'Barberium'} — Barberium`,16,true);line(reportTypeLabel(type),13,true);y+=2;kv('Período',`${dateBR(meta.start)} a ${dateBR(meta.end)}`);kv('Unidade',meta.unit_name||'Consolidado');kv('Regime',meta.basis==='cash'?'Caixa':'Competência');kv('Gerado em',dateTimeBR(meta.generated_at));
   if(type==='complete'||type==='dre'){title('Resumo / DRE');summaryRows(data).forEach(([k,v])=>kv(k,v))}
   const rowLines=(section,rows,formatter)=>{title(section);if(!rows.length){line('Nenhum registro no período.',9,false);return}rows.forEach((r,i)=>{ensure(10);line(formatter(r,i),8,false);y+=1})};
 

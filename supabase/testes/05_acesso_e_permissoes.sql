@@ -10,14 +10,13 @@ declare v_lista text; v_esperada text := concat_ws(', ',
   'barberium_customer_request_membership_action', 'barberium_customer_reserve_membership_use', 'barberium_get_available_slots',
   'barberium_get_catalog', 'barberium_get_customer_portal', 'barberium_public_membership_plans', 'barberium_push_device',
   'barberium_push_public_config', 'barberium_push_subscribe', 'barberium_request_membership', 'barberium_reschedule_appointment',
-  'barberium_staff_balance_quick', 'barberium_staff_free_ranges', 'barberium_staff_performance_v12_33',
-  'barberium_update_customer_profile');
+  'barberium_resolve_tenant', 'barberium_update_customer_profile');
 begin
   select string_agg(p.proname, ', ' order by p.proname) into v_lista
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'EXECUTE')
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e');
-  perform pg_temp.igual(v_lista, v_esperada, 'funções abertas a visitante sem login: as 21 de sempre');
+  perform pg_temp.igual(v_lista, v_esperada, 'funções abertas a visitante sem login: as 19 do site do cliente (etapa 6: entra a do endereço, saem as 3 da equipe)');
   perform pg_temp.ok(not has_schema_privilege('anon', 'barberium', 'USAGE') and not has_schema_privilege('authenticated', 'barberium', 'USAGE'),
                      'o schema interno "barberium" é fechado para o site');
   perform pg_temp.igual((select count(*)::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -25,17 +24,19 @@ begin
                             and has_function_privilege('authenticated', p.oid, 'EXECUTE')
                             and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')), '0',
                         'nenhuma função fora do padrão barberium_ aberta para usuários logados');
-  perform pg_temp.vai_mudar(has_function_privilege('anon', 'public.barberium_staff_balance_quick(date,date,uuid)', 'EXECUTE'),
-    '3 funções da equipe (Saldos, horários livres, desempenho) ainda estão liberadas para visitante; elas recusam por dentro, mas a permissão sai na etapa 6');
+  perform pg_temp.ok(not has_function_privilege('anon', 'public.barberium_staff_balance_quick(date,date,uuid)', 'EXECUTE')
+                     and not has_function_privilege('anon', 'public.barberium_staff_free_ranges(date,uuid)', 'EXECUTE')
+                     and not has_function_privilege('anon', 'public.barberium_staff_performance_v12_33(date,date)', 'EXECUTE'),
+    'Saldos, horários livres e desempenho da equipe não são mais executáveis por visitante (etapa 6)');
 end $$;
 
 -- Visitante e usuário sem vínculo com barbearia.
 do $$
 begin
   perform pg_temp.anonimo();
-  perform pg_temp.erro('select public.barberium_staff_balance_quick(current_date - 1, current_date, null)', 'Não autenticado', 'visitante não lê Saldos');
-  perform pg_temp.erro('select public.barberium_staff_free_ranges(current_date, null)', 'Não autenticado', 'visitante não lê horários livres da equipe');
-  perform pg_temp.erro('select public.barberium_staff_performance_v12_33(current_date - 1, current_date)', 'Não autenticado', 'visitante não lê desempenho');
+  perform pg_temp.erro('select public.barberium_staff_balance_quick(current_date - 1, current_date, null)', 'permission denied|Não autenticado', 'visitante não lê Saldos');
+  perform pg_temp.erro('select public.barberium_staff_free_ranges(current_date, null)', 'permission denied|Não autenticado', 'visitante não lê horários livres da equipe');
+  perform pg_temp.erro('select public.barberium_staff_performance_v12_33(current_date - 1, current_date)', 'permission denied|Não autenticado', 'visitante não lê desempenho');
   perform pg_temp.erro('select public.barberium_staff_finance_report(current_date - 1, current_date, null, ''cash'')', 'permission denied|Não autenticado',
                        'visitante não chama o relatório financeiro');
 

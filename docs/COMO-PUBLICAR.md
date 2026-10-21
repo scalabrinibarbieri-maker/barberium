@@ -27,6 +27,13 @@ Para entrar na Área da Equipe de teste, abra **https://staging.barberium.pages.
 
 A senha dos três é a que você guardou no segredo `STAGING_SENHA_TESTE`.
 
+Desde a etapa 6, cada barbearia abre pelo próprio endereço e cada login entra só no endereço da própria barbearia. No teste, o endereço normal abre a Scalabrini de teste. Para abrir a Aurora, acrescente `?barbearia=barbearia-aurora`:
+
+- site do cliente da Aurora (tem duas unidades, então pede para escolher): **https://staging.barberium.pages.dev/?barbearia=barbearia-aurora**
+- Área da Equipe da Aurora (login `adm.aurora@example.com`): **https://staging.barberium.pages.dev/equipe/?barbearia=barbearia-aurora**
+
+Isso só funciona no teste. No endereço real, o `?barbearia=` é ignorado.
+
 No teste você pode agendar, cancelar e mexer à vontade. Nada disso chega nos clientes de verdade.
 
 ## 3. Publicar na produção

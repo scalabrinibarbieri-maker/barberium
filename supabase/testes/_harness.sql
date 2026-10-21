@@ -2,9 +2,11 @@
 -- arquivo de teste, dentro de uma transação que é desfeita no fim: nada fica no banco.
 --
 -- Quem chama:      pg_temp.como(usuario)  pg_temp.anonimo()  pg_temp.sistema()
+--                  pg_temp.site_da_barbearia(slug)  (cabeçalho do site; etapa 6)
 -- Conferências:    pg_temp.ok(condicao, descricao [, detalhe])
 --                  pg_temp.igual(obtido, esperado, descricao)        (texto)
 --                  pg_temp.erro(sql, padrao_da_mensagem, descricao)  espera um erro (sempre desfeito)
+--                  pg_temp.erro_cmd(comando, padrao, descricao)      idem, para insert/update (etapa 6)
 --                  pg_temp.funciona(sql, descricao)                  espera sucesso (sempre desfeito)
 --                  pg_temp.roda(sql) -> jsonb                        executa e devolve o resultado
 --                  pg_temp.vai_mudar(condicao, descricao, detalhe)   comportamento atual que é
@@ -34,6 +36,11 @@ $$;
 create function pg_temp.sistema() returns void language sql as $$
   select set_config('role', 'postgres', true);
   select set_config('request.jwt.claims', '', true);
+$$;
+
+-- Etapa 6: o cabeçalho que o site manda com a barbearia do endereço (null = sem cabeçalho).
+create function pg_temp.site_da_barbearia(p_slug text) returns void language sql as $$
+  select set_config('request.headers', case when p_slug is null then '' else json_build_object('x-barberium-barbearia', p_slug)::text end, true);
 $$;
 
 create function pg_temp.ok(p_condicao boolean, p_descricao text, p_detalhe text default null)
@@ -82,6 +89,23 @@ begin
 end $$;
 
 -- Espera que o comando funcione. Também é sempre desfeito.
+-- Igual a pg_temp.erro, mas para comandos (insert, update, vários comandos separados por ;).
+create function pg_temp.erro_cmd(p_sql text, p_padrao text, p_descricao text)
+returns boolean language plpgsql as $$
+declare v_msg text; v_estado text;
+begin
+  begin
+    execute p_sql;
+    raise exception using errcode = 'P0999', message = '__funcionou__';
+  exception when others then
+    v_msg := sqlerrm; v_estado := sqlstate;
+  end;
+  if v_estado = 'P0999' then
+    return pg_temp.ok(false, p_descricao, 'esperava erro "' || p_padrao || '", mas o comando funcionou');
+  end if;
+  return pg_temp.ok(v_msg ~* p_padrao, p_descricao, 'mensagem: ' || v_msg);
+end $$;
+
 create function pg_temp.funciona(p_sql text, p_descricao text)
 returns boolean language plpgsql as $$
 declare v_msg text; v_estado text; v_res jsonb;
@@ -125,3 +149,7 @@ create function pg_temp.dia_util(p_dias int) returns date language sql stable se
 create function pg_temp.primeiro_horario(p_barbearia text, p_unidade text, p_prof uuid, p_serv uuid, p_dia date)
 returns time language sql stable security definer as $$
   select (public.barberium_get_available_slots(p_barbearia, p_unidade, p_prof, p_serv, '{}'::uuid[], p_dia) ->> 0)::time $$;
+
+-- A partir da etapa 6, função nova não nasce executável por todos (padrão do banco). As
+-- funções de teste são chamadas como visitante, cliente e equipe, então liberamos as daqui.
+grant execute on all functions in schema pg_temp to public;

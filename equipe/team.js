@@ -1,5 +1,6 @@
 import { SUPABASE_URL, SUPABASE_KEY } from '../shared/config.js?v=1';
 import { criarCliente, lerSessao, salvarSessao, limparSessao } from '../shared/api.js?v=1';
+import { tenantPronto } from '../shared/tenant.js?v=1';
 const TZ='America/Sao_Paulo';
 
 const $=(s,r=document)=>r.querySelector(s);
@@ -8,6 +9,17 @@ const moneyCents=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BR
 const pad=n=>String(n).padStart(2,'0');
 const isoDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+// Etapa 6: nome e logo da barbearia do endereço do site (antes, "Scalabrini Barbieri" fixo).
+tenantPronto.then(t=>{
+  const nome=t.barbershopName;
+  document.title=document.title.replace(/^((?:\[TESTE\] )?Área da Equipe).*$/,`$1 • ${nome}`);
+  const login=$('.login-brand p');if(login)login.textContent=`Acesso reservado à equipe ${nome}.`;
+  $('.login-brand img')?.setAttribute('alt',nome);
+  const topo=$('.brand-line small');if(topo)topo.textContent=nome.toLocaleUpperCase('pt-BR');
+  if(t.logoUrl){const src=/^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(t.logoUrl)?t.logoUrl:`../${t.logoUrl.replace(/^\.\//,'')}`;$$('.login-brand img, .brand-line img').forEach(img=>img.setAttribute('src',src))}
+  document.documentElement.classList.remove('barberium-tenant-pendente');
+});
 
 let member=null;
 let catalog={professionals:[],services:[],permissions:{}};
@@ -400,7 +412,7 @@ function downloadBlob(content,type,name){const blob=content instanceof Blob?cont
 function csvCell(v){const s=String(v??'');return `"${s.replaceAll('"','""')}"`}
 async function openExportClients(){openModal('EXPORTAR CLIENTES','Escolha o formato','<div class="export-options"><button class="soft-btn" data-export="csv">CSV</button><button class="soft-btn" data-export="txt">TXT</button><button class="soft-btn" data-export="pdf">PDF</button></div><p class="campaign-help">A exportação inclui toda a base de clientes da barbearia.</p>');$$('[data-export]').forEach(b=>b.onclick=()=>exportClients(b.dataset.export))}
 async function exportClients(kind){try{const rows=await rpc('barberium_staff_customers',{p_query:'',p_without_phone:false});if(kind==='csv'){const head=['Nome','WhatsApp','Aniversário','Unidade principal','Último atendimento','Atendimentos','Concluídos','Total gasto','Observação'];const lines=[head,...rows.map(c=>[c.name,c.phone||'',c.birthday||'',c.main_unit||'',c.last_visit?dateTimeBR(c.last_visit):'',c.appointments||0,c.completed||0,(Number(c.spent_cents||0)/100).toFixed(2),c.persistent_note||''])].map(r=>r.map(csvCell).join(';'));downloadBlob('\ufeff'+lines.join('\n'),'text/csv;charset=utf-8','clientes-barberium.csv');toast('CSV gerado.')}else if(kind==='txt'){const text=rows.map(c=>`${c.name} | ${c.phone||'Sem telefone'} | ${c.birthday?brDateOnly(c.birthday):'Sem aniversário'} | ${c.main_unit||'Sem unidade'} | Total gasto: ${moneyCents(c.spent_cents)}`).join('\n');downloadBlob(text,'text/plain;charset=utf-8','clientes-barberium.txt');toast('TXT gerado.')}else{await exportClientsPdf(rows)}}catch(e){toast(friendlyError(e))}}
-async function exportClientsPdf(rows){try{const mod=await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm');const {jsPDF}=mod;const doc=new jsPDF({unit:'mm',format:'a4'});let y=16;doc.setFontSize(16);doc.text('Scalabrini Barbieri — Base de clientes',14,y);y+=8;doc.setFontSize(9);doc.text(`Exportado em ${new Date().toLocaleString('pt-BR')} • ${rows.length} clientes`,14,y);y+=9;for(const c of rows){const line=`${c.name} | ${c.phone||'Sem telefone'} | ${c.main_unit||'Sem unidade'} | ${moneyCents(c.spent_cents)}`;const parts=doc.splitTextToSize(line,180);if(y+parts.length*5>286){doc.addPage();y=16}doc.text(parts,14,y);y+=parts.length*5+2}doc.save('clientes-barberium.pdf');toast('PDF gerado.')}catch(e){toast('Não foi possível gerar o PDF agora. Tente novamente com internet ativa.')}}
+async function exportClientsPdf(rows){try{const mod=await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm');const {jsPDF}=mod;const doc=new jsPDF({unit:'mm',format:'a4'});let y=16;doc.setFontSize(16);doc.text(`${window.BARBERIUM_TENANT?.barbershopName||'Barberium'} — Base de clientes`,14,y);y+=8;doc.setFontSize(9);doc.text(`Exportado em ${new Date().toLocaleString('pt-BR')} • ${rows.length} clientes`,14,y);y+=9;for(const c of rows){const line=`${c.name} | ${c.phone||'Sem telefone'} | ${c.main_unit||'Sem unidade'} | ${moneyCents(c.spent_cents)}`;const parts=doc.splitTextToSize(line,180);if(y+parts.length*5>286){doc.addPage();y=16}doc.text(parts,14,y);y+=parts.length*5+2}doc.save('clientes-barberium.pdf');toast('PDF gerado.')}catch(e){toast('Não foi possível gerar o PDF agora. Tente novamente com internet ativa.')}}
 
 function normalizeHeader(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function parseCsvLine(line,delim){const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(ch===delim&&!q){out.push(cur.trim());cur=''}else cur+=ch}out.push(cur.trim());return out}

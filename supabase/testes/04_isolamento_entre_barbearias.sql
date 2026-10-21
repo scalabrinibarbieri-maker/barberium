@@ -187,11 +187,9 @@ declare
   f record; v_sql text; v_args text; v_res text; v_msg text; v_estado text;
   antes jsonb; depois jsonb; v_mudou text; v_mudou_b boolean; v_marca text; v_situacao text; v_mistura text; v_mistura_antes text;
   marcas text[] := pg_temp.marcas_scalabrini();
-  -- Vazamentos conhecidos (atualizar quando forem corrigidos na etapa 6).
-  conhecidos text[] := array[
-    -- grava a meta da Aurora apontando para a unidade da Scalabrini (falta conferir a unidade)
-    'barberium_staff_save_financial_goal(p_unit_id uuid, p_month date, p_revenue_target_cents integer, p_net_target_cents integer)'
-  ]::text[];
+  -- Vazamentos conhecidos. A etapa 6 corrigiu o único que existia (a meta financeira gravada na
+  -- unidade de outra barbearia); um novo que aparecer faz o teste falhar.
+  conhecidos text[] := array[]::text[];
   n_bloq int := 0; n_sem int := 0; n_vaz int := 0; n_mis int := 0;
 begin
   antes := pg_temp.foto();

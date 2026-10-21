@@ -499,13 +499,13 @@
 (() => {
   const SUPABASE_URL='https://pmvvawbaqylspxfmxezw.supabase.co';
   const SUPABASE_KEY='sb_publishable_CveglntZGjChE89lPcsQcg_EvBnYmKo';
-  const SHOP_SLUG='scalabrini-barbieri';
-  const UNIT_SLUG='braganca-paulista';
   let hideDuration=false;
   let configReady=false;
 
   async function loadSetting(){
     try{
+      // Etapa 6: barbearia e unidade vêm do endereço do site (shared/tenant.js).
+      const tenant=await window.barberiumTenantPronto;
       const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/barberium_get_catalog`,{
         method:'POST',
         headers:{
@@ -514,8 +514,8 @@
           Authorization:`Bearer ${SUPABASE_KEY}`
         },
         body:JSON.stringify({
-          p_barbershop_slug:SHOP_SLUG,
-          p_unit_slug:UNIT_SLUG
+          p_barbershop_slug:tenant.barbershopSlug,
+          p_unit_slug:tenant.unitSlug
         })
       });
       if(!response.ok)throw new Error(`HTTP ${response.status}`);

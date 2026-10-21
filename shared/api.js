@@ -11,6 +11,10 @@
 //   - refresh token recusado não é tentado de novo;
 //   - toda chamada tem prazo (30 s; 120 s para envio de fotos) e o erro traz status e código.
 // A mensagem dos erros é a mesma de antes, então as telas mostram o mesmo texto.
+//
+// Etapa 6: toda chamada ao banco diz de qual barbearia é a Área da Equipe aberta (cabeçalho
+// x-barberium-barbearia, com a barbearia do endereço do site, de shared/tenant.js). Um login
+// que é da equipe de duas barbearias entra em cada uma pelo endereço dela.
 import { SUPABASE_URL, SUPABASE_KEY, CHAVE_SESSAO_EQUIPE } from './config.js?v=1';
 
 const PRAZO_PADRAO = 30_000;
@@ -101,13 +105,22 @@ export function renovarSessao({ transporte = transportePadrao, usada = lerSessao
   return renovacaoEmAndamento;
 }
 
+// Barbearia do endereço do site, para as chamadas ao banco (/rest/). Sem o shared/tenant.js na
+// página, não manda nada, e o banco usa o único vínculo do login, como antes da etapa 6.
+async function barbeariaDoEndereco(caminho) {
+  if (!caminho.startsWith('/rest/') || !window.barberiumTenantPronto) return null;
+  return (await window.barberiumTenantPronto).barbershopSlug;
+}
+
 // Cria as funções de chamada de um módulo. "transporte" é o fetch que o módulo usava antes
 // (alguns usam uma cópia do fetch guardada antes dos interceptadores, de propósito).
 export function criarCliente({ transporte = transportePadrao } = {}) {
   async function requisicao(caminho, opcoes = {}) {
     const prazo = caminho.startsWith('/storage/') ? PRAZO_ARQUIVOS : PRAZO_PADRAO;
+    const barbearia = await barbeariaDoEndereco(caminho);
     const sessao = lerSessao();
     const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(opcoes.headers || {}) };
+    if (barbearia) headers['x-barberium-barbearia'] = barbearia;
     if (sessao?.access_token) headers.Authorization = `Bearer ${sessao.access_token}`;
     let { resposta, texto } = await buscar(transporte, `${SUPABASE_URL}${caminho}`, { ...opcoes, headers }, prazo);
     if (resposta.status === 401 && sessao?.refresh_token) {

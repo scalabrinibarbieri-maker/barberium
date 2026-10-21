@@ -89,3 +89,11 @@ Feitos com uma cópia local do site de teste ligada a um banco local com os dado
 
 - **Site:** "Rollback" no Cloudflare para o deploy anterior (está no [COMO-PUBLICAR.md](COMO-PUBLICAR.md)). Não há nada no banco para desfazer.
 - **Repositório:** cada arquivo tem o seu commit, então dá para voltar um arquivo só. Os arquivos que voltarem passam a usar a própria cópia de novo, e os outros continuam no núcleo. Os dois convivem, porque leem o mesmo login guardado.
+
+## Validação (21/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Aplicar pacote (`pacote-etapa5.zip`) e Publicar no teste | Verdes. O "Publicar em produção" só roda se a mesma versão passou no teste, inclusive nos testes no navegador com os logins de verdade |
+| Publicar em produção | Site real na versão `3f9b73a`. Os 35 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main |
+| Site real aberto no Chrome, só leitura | Área da Equipe e site do cliente na versão `3f9b73a`, nenhum erro na página e nenhum arquivo faltando. Um login com senha errada passa pelo núcleo e volta com a mensagem de sempre. Um service worker só |
