@@ -7,7 +7,7 @@
 #             e pede aos buscadores para não indexar.
 # Nos dois casos (etapa 4) carimba a versão da publicação (o commit) nos endereços dos scripts,
 # nas páginas, no service worker e em versao.json, e escreve os cabeçalhos de cache (_headers).
-# A versão vem de GITHUB_SHA ou do commit atual; VERSAO_SITE força outra (só para testes).
+# A versão vem de COMMIT_SITE, GITHUB_SHA ou do commit atual; VERSAO_SITE força outra (só para testes).
 set -euo pipefail
 DEST="${1:?pasta de destino}"
 AMB="${2:?producao ou teste}"
@@ -33,7 +33,7 @@ while IFS= read -r linha || [ -n "$linha" ]; do
 done < "$LISTA"
 echo "$n arquivos copiados da lista."
 
-COMMIT="${GITHUB_SHA:-$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)}"
+COMMIT="${COMMIT_SITE:-${GITHUB_SHA:-$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)}}"
 [ -n "$COMMIT" ] || { echo "ERRO: sem commit para carimbar a versão (rode dentro do repositório)." >&2; exit 1; }
 VERSAO="${VERSAO_SITE:-${COMMIT:0:7}}"
 DATA="$(git -C "$RAIZ" log -1 --format=%cI "$COMMIT" 2>/dev/null || true)"
@@ -76,7 +76,7 @@ if [ "$AMB" = teste ]; then
     exit 1
   fi
   faixa='<div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/1.7 system-ui,sans-serif;text-align:center;padding:2px 8px;pointer-events:none">AMBIENTE DE TESTE · dados fictícios · não é o site real</div>'
-  for pagina in "$DEST/index.html" "$DEST/equipe/index.html"; do
+  for pagina in "$DEST/index.html" "$DEST/equipe/index.html" "$DEST/painel/index.html"; do
     python3 - "$pagina" "$faixa" <<'PY'
 import sys
 caminho, faixa = sys.argv[1], sys.argv[2]

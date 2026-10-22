@@ -14,6 +14,7 @@
 --     barbeiro.scalabrini@example.com  barbeiro, ligado a "Vinicius Nunes"
 --   Barbearia Aurora             slug barbearia-aurora     (mesmos IDs do tenant de teste da produção)
 --     adm.aurora@example.com           ADM
+--   dono.barberium@example.com         dono do Barberium (painel em /painel/)
 --   6 clientes fictícios em cada uma e alguns horários futuros marcados pelo próprio site.
 
 \set ON_ERROR_STOP on
@@ -53,7 +54,8 @@ begin
     select * from (values
       ('5a000000-0000-4000-8000-000000000001'::uuid, 'adm.scalabrini@example.com'),
       ('5a000000-0000-4000-8000-000000000002'::uuid, 'barbeiro.scalabrini@example.com'),
-      ('5a000000-0000-4000-8000-000000000003'::uuid, 'adm.aurora@example.com')
+      ('5a000000-0000-4000-8000-000000000003'::uuid, 'adm.aurora@example.com'),
+      ('5a000000-0000-4000-8000-000000000004'::uuid, 'dono.barberium@example.com')
     ) as t(id, email)
   loop
     if not exists (select 1 from auth.users where id = u.id) then
@@ -216,6 +218,12 @@ select 'aa000000-0000-4000-8000-000000000002', null::uuid, d,
        d = 0
 from generate_series(0, 6) d
 on conflict do nothing;
+
+-- Painel do dono do SaaS: o login de teste dono.barberium@example.com é dono do Barberium
+-- (só no banco de teste; na produção o dono é cadastrado pelo SQL Editor).
+insert into barberium.platform_admins (auth_user_id)
+values ('5a000000-0000-4000-8000-000000000004')
+on conflict (auth_user_id) do nothing;
 
 -- Etapa 6: endereços de teste. Abrem a Scalabrini de teste (unidade de Bragança) e aceitam
 -- ?barbearia=slug para abrir outra barbearia, como a Aurora. 127.0.0.1 é o computador onde

@@ -142,3 +142,13 @@ Na ordem:
 1. **Site:** "Rollback" no Cloudflare para o deploy anterior (está no [COMO-PUBLICAR.md](COMO-PUBLICAR.md)). Isso vem primeiro porque o site novo precisa do banco novo.
 2. **Banco:** rodar `docs/etapa6_rollback.sql` inteiro no SQL Editor do Supabase. Ou entra tudo, ou nada.
 3. **Repositório:** apagar os 4 arquivos `supabase/migrations/20261021*_etapa6_*.sql`. Sem isso, a próxima publicação aplica a etapa 6 de novo.
+
+## Validação (21/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Aplicar pacote (`pacote-etapa6.zip`), Publicar no teste e Publicar em produção | Verdes. A main ficou idêntica à branch da etapa 6 |
+| Banco de produção (só leitura) | As 4 migrations registradas pelo pipeline da produção (96 no total). Os 2 endereços cadastrados, fixos em Bragança. As 84 travas novas validadas. Nenhum privilégio de visitante ou usuário logado nas tabelas. Saldos fechado para visitante |
+| Impressão digital da produção × banco reconstruído só com o repositório | Idênticas nas 9 partes (funções, tabelas, tipos, extensões, cron, buckets, policies do Storage, permissões dos esquemas e permissões padrão) |
+| Site real | Versão `04904ab`. Os 36 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main |
+| Site real aberto num navegador, sem login | `scalabrinibarbiere.com` abre a Scalabrini fixa em Bragança e pede o catálogo só dela; `?barbearia=barbearia-aurora` é ignorado. O site do cliente continua em manutenção, como antes da etapa (a chave nunca foi salva em Ajustes). Área da Equipe em `scalabrinibarbiere.com` e `barberium.pages.dev`: "Acesso reservado à equipe Scalabrini Barbiere." e "SCALABRINI BARBIERE" no topo. Nenhum erro nas páginas e nenhum arquivo faltando |

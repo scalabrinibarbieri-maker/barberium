@@ -38,6 +38,12 @@ create function pg_temp.sistema() returns void language sql as $$
   select set_config('request.jwt.claims', '', true);
 $$;
 
+-- Painel do dono do SaaS: as funções do servidor (função de convite) usam o service_role.
+create function pg_temp.servidor() returns void language sql as $$
+  select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  select set_config('role', 'service_role', true);
+$$;
+
 -- Etapa 6: o cabeçalho que o site manda com a barbearia do endereço (null = sem cabeçalho).
 create function pg_temp.site_da_barbearia(p_slug text) returns void language sql as $$
   select set_config('request.headers', case when p_slug is null then '' else json_build_object('x-barberium-barbearia', p_slug)::text end, true);
@@ -138,6 +144,7 @@ create function pg_temp.cliente(p_slug_barbearia text, p_numero int) returns uui
 create function pg_temp.adm_scalabrini() returns uuid language sql immutable as $$ select '5a000000-0000-4000-8000-000000000001'::uuid $$;
 create function pg_temp.barbeiro_scalabrini() returns uuid language sql immutable as $$ select '5a000000-0000-4000-8000-000000000002'::uuid $$;
 create function pg_temp.adm_aurora() returns uuid language sql immutable as $$ select '5a000000-0000-4000-8000-000000000003'::uuid $$;
+create function pg_temp.dono_barberium() returns uuid language sql immutable as $$ select '5a000000-0000-4000-8000-000000000004'::uuid $$;
 
 -- Primeiro dia de segunda a sábado a partir de hoje + p_dias (no fuso de Brasília).
 create function pg_temp.dia_util(p_dias int) returns date language sql stable security definer as $$

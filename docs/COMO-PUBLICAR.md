@@ -24,8 +24,9 @@ Para entrar na Área da Equipe de teste, abra **https://staging.barberium.pages.
 | `adm.scalabrini@example.com` | ADM da Scalabrini de teste |
 | `barbeiro.scalabrini@example.com` | Barbeiro (Vinicius) da Scalabrini de teste |
 | `adm.aurora@example.com` | ADM da Barbearia Aurora |
+| `dono.barberium@example.com` | Dono do Barberium: entra no painel, em **https://staging.barberium.pages.dev/painel/** |
 
-A senha dos três é a que você guardou no segredo `STAGING_SENHA_TESTE`.
+A senha de todos é a que você guardou no segredo `STAGING_SENHA_TESTE`.
 
 Desde a etapa 6, cada barbearia abre pelo próprio endereço e cada login entra só no endereço da própria barbearia. No teste, o endereço normal abre a Scalabrini de teste. Para abrir a Aurora, acrescente `?barbearia=barbearia-aurora`:
 
@@ -86,4 +87,5 @@ O sinal **~** no resumo não é erro. Ele marca um defeito que já conhecemos e 
 | --- | --- | --- |
 | Todo dia, 03h17 | Backup diário do banco | Backup criptografado, guardado por 90 dias |
 | Segunda, 06h23 | Banco reproduzível | Confere se alguém mexeu na produção sem migration e roda os testes do banco |
+| De hora em hora | Publicar endereços | Põe no ar, na versão da produção, o endereço `nome.barberium.pages.dev` de barbearia nova cadastrada no painel. Também roda à mão, logo depois de cadastrar |
 | Segunda e quinta, 07h41 | Publicar no teste | Mantém o banco de teste acordado (o plano grátis dorme depois de uma semana sem uso) e roda todos os testes. Cada rodada marca e cancela 1 horário na Scalabrini de teste |

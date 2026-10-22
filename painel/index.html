@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07140e">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="../barberium.svg">
+  <link rel="stylesheet" href="../equipe/team.css?v=12.3.1">
+  <link rel="stylesheet" href="./painel.css?v=1">
+  <title>Barberium • Painel do dono</title>
+</head>
+<body>
+  <main class="team-shell">
+    <section id="painelLogin" class="login-view">
+      <div class="login-brand">
+        <img src="../barberium.svg" alt="Barberium">
+        <span>Barberium</span>
+        <h1>Painel do dono</h1>
+        <p>Cadastro das barbearias que usam o Barberium.</p>
+      </div>
+      <form id="painelLoginForm" class="login-card">
+        <label>E-mail
+          <input id="painelEmail" type="email" autocomplete="username" required placeholder="seu@email.com">
+        </label>
+        <label>Senha
+          <input id="painelSenha" type="password" autocomplete="current-password" required placeholder="Sua senha">
+        </label>
+        <button class="gold-btn" id="painelEntrar" type="submit">Entrar</button>
+        <p class="form-error" id="painelLoginErro"></p>
+      </form>
+    </section>
+
+    <section id="painelApp" class="dashboard-view hidden">
+      <header class="dash-head">
+        <div class="brand-line">
+          <img src="../barberium.svg" alt="">
+          <div><small>BARBERIUM</small><strong>Painel do dono</strong></div>
+        </div>
+        <button id="painelSair" class="icon-btn" type="button">Sair</button>
+      </header>
+
+      <section class="painel-bloco">
+        <div class="painel-titulo">
+          <h2 class="section-mini-title">Barbearias</h2>
+          <button id="painelNovaBotao" class="gold-btn small" type="button">+ Nova barbearia</button>
+        </div>
+        <div id="painelLista" class="painel-lista"><div class="empty">Carregando…</div></div>
+      </section>
+
+      <section id="painelNova" class="painel-bloco hidden">
+        <h2 class="section-mini-title">Nova barbearia</h2>
+        <p class="painel-ajuda">A barbearia nasce com o site em manutenção. O dono dela cadastra serviços, equipe e horários na Área da Equipe e abre o site em Ajustes.</p>
+        <form id="painelNovaForm" class="painel-form">
+          <label class="field">Nome da barbearia
+            <input id="novaNome" required maxlength="80" placeholder="Ex.: Barbearia Aurora">
+          </label>
+          <label class="field">Endereço
+            <span class="painel-endereco"><input id="novaSlug" required maxlength="28" pattern="[a-z0-9][a-z0-9-]{1,26}[a-z0-9]" placeholder="barbearia-aurora" autocapitalize="none" spellcheck="false"><span>.barberium.pages.dev</span></span>
+          </label>
+          <p class="painel-subtitulo">Primeira unidade</p>
+          <label class="field">Nome da unidade
+            <input id="novaUnidade" maxlength="80" placeholder="Unidade principal">
+          </label>
+          <div class="painel-linha">
+            <label class="field">Cidade<input id="novaCidade" maxlength="60" placeholder="Ex.: Campinas"></label>
+            <label class="field painel-uf">UF<input id="novaUf" maxlength="2" placeholder="SP" autocapitalize="characters"></label>
+          </div>
+          <label class="field">WhatsApp da unidade
+            <input id="novaWhats" inputmode="tel" maxlength="20" placeholder="(11) 90000-0000">
+          </label>
+          <p class="painel-subtitulo">Dono da barbearia</p>
+          <label class="field">Nome
+            <input id="novaAdmNome" required maxlength="80" placeholder="Nome e sobrenome">
+          </label>
+          <label class="field">E-mail (será o login dele)
+            <input id="novaAdmEmail" type="email" required maxlength="120" placeholder="dono@email.com" autocapitalize="none">
+          </label>
+          <label class="field">WhatsApp dele (para mandar o convite)
+            <input id="novaAdmWhats" inputmode="tel" maxlength="20" placeholder="(11) 90000-0000">
+          </label>
+          <div class="painel-acoes">
+            <button id="novaCancelar" class="soft-btn" type="button">Cancelar</button>
+            <button id="novaSalvar" class="gold-btn" type="submit">Cadastrar e gerar convite</button>
+          </div>
+          <p class="form-error" id="novaErro"></p>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <div id="painelJanela" class="painel-janela hidden" role="dialog" aria-modal="true" aria-labelledby="painelJanelaTitulo">
+    <div class="painel-janela-caixa">
+      <h3 id="painelJanelaTitulo"></h3>
+      <div id="painelJanelaCorpo"></div>
+      <button id="painelJanelaFechar" class="soft-btn" type="button">Fechar</button>
+    </div>
+  </div>
+  <div class="toast" id="painelAviso" role="status"></div>
+
+  <script type="module" src="./painel.js?v=1"></script>
+  <script src="../shared/atualizacao.js?v=1" defer></script>
+</body>
+</html>

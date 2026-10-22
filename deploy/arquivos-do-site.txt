@@ -31,6 +31,7 @@ shared/tenant.js
 
 # Imagens
 assets/barba-express.webp
+assets/capa-padrao.webp
 assets/barba-tradizionale.webp
 assets/barbearia.webp
 assets/barboterapia.webp
@@ -65,3 +66,9 @@ equipe/settings.js
 equipe/staff-tools-v12.33.js
 equipe/team.css
 equipe/team.js
+equipe/convite.js
+
+# Painel do dono do SaaS
+painel/index.html
+painel/painel.js
+painel/painel.css

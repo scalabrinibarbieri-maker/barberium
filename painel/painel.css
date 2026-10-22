@@ -1,0 +1,29 @@
+/* Barberium · painel do dono do SaaS. Usa a base da Área da Equipe (equipe/team.css). */
+.painel-bloco{padding:18px 0 6px}
+.painel-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.painel-lista{display:grid;gap:10px}
+.painel-card{border:1px solid rgba(255,255,255,.06);background:linear-gradient(145deg,#102419,#0a1811);border-radius:16px;padding:14px;display:grid;gap:9px}
+.painel-card h3{font:600 18px var(--serif);margin:0}
+.painel-card-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.painel-card a{color:var(--gold2);text-decoration:none;font-size:12px;word-break:break-all}
+.painel-card p{margin:0;font-size:11px;color:var(--muted);line-height:1.5}
+.painel-card .soft-btn{justify-self:start}
+.painel-status{font-size:8px;text-transform:uppercase;letter-spacing:.1em;border-radius:999px;padding:5px 8px;border:1px solid rgba(168,212,169,.25);color:var(--green);white-space:nowrap}
+.painel-status.inativa{border-color:rgba(217,144,135,.3);color:var(--danger)}
+.painel-ajuda{font-size:11px;color:var(--muted);line-height:1.55;margin:6px 0 14px}
+.painel-form{display:grid;gap:12px}
+.painel-subtitulo{margin:8px 0 0;font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--gold)}
+.painel-endereco{display:flex;align-items:center;gap:6px}
+.painel-endereco input{flex:1;min-width:0}
+.painel-endereco span{font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:600}
+.painel-linha{display:grid;grid-template-columns:1fr 74px;gap:10px}
+.painel-uf input{text-transform:uppercase}
+.painel-acoes{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-top:6px}
+.painel-janela{position:fixed;inset:0;z-index:50;background:rgba(2,7,4,.78);display:grid;place-items:center;padding:20px}
+.painel-janela-caixa{width:min(100%,520px);max-height:calc(100vh - 40px);overflow:auto;background:#0b1a12;border:1px solid var(--line);border-radius:20px;padding:20px;display:grid;gap:12px}
+.painel-janela-caixa h3{font:500 22px/1.2 var(--serif);margin:0}
+.painel-janela-caixa p{font-size:12px;line-height:1.55;color:#cfc6b4;margin:0}
+.painel-janela-caixa textarea{width:100%;min-height:92px;border:1px solid rgba(255,255,255,.09);background:#07160f;color:var(--text);border-radius:12px;padding:11px;font-size:12px;resize:vertical}
+.painel-janela-caixa .gold-btn,.painel-janela-caixa .soft-btn{width:100%;text-align:center;text-decoration:none;display:block}
+.painel-nota{font-size:11px!important;color:var(--muted)!important}
+.painel-nota a{color:var(--gold2)}
