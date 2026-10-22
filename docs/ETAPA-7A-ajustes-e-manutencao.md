@@ -63,6 +63,14 @@ Ao todo, saem da Área da Equipe dois interceptadores de `fetch` (v12.24 e v12.4
 | 8 | Passeio antes × depois (cliente, ADM e barbeiro da Scalabrini), com o banco restaurado antes de cada passeio | Iguais nos três. Fotos da equipe: 34 de 34 idênticas. Site do cliente: 10 de 13; as outras diferem só pelas animações |
 | 9 | ESLint nos arquivos alterados | Nenhum erro (o aviso que sobrou no `settings.js` já existia) |
 
+## Primeira publicação no teste (22/10): vermelha, corrigida
+
+O "Publicar no teste" da primeira versão (`64fde54`) ficou vermelho. O teste novo do navegador pegou um defeito que já existia em `settings.js`. Quem toca numa aba de Ajustes (Barbearia, Serviços…) antes de a tela terminar de carregar recebe um erro de JavaScript ("Cannot read properties of null (reading 'barbershop')"). A tela se desenha logo depois, então ninguém percebia.
+
+No computador local o banco responde rápido demais para isso acontecer. Com 400 ms de atraso em cada chamada, como na rede de verdade, o erro aparece na versão publicada e também na versão anterior à 7a. A correção: tocar na aba antes do carregamento só escolhe a aba, e a tela desenha quando os dados chegam. Com o atraso, os 32 testes do navegador passam.
+
+A publicação em produção não chegou a acontecer, porque ela só aceita a versão que passou no teste.
+
 ## Risco
 
 - **Baixo.** A tela é a mesma. O que muda de comportamento é o defeito corrigido: salvar uma parte não desfaz mais a outra.

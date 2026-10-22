@@ -23,7 +23,8 @@ async function refreshBoot(){S.boot=await rpc('barberium_staff_settings_bootstra
 function fillUnitSelect(){const sel=qs('#settingsUnitSelect');if(!sel)return;sel.innerHTML=(S.boot?.units||[]).map(u=>`<option value="${u.id}">${html(u.name)}${u.is_active?'':' · inativa'}</option>`).join('');if(S.unitId)sel.value=S.unitId;sel.onchange=()=>{S.unitId=sel.value;S.serviceData=null;S.serviceEditor=null;S.professionalEditor=null;S.hoursScope='';render()}}
 function setTab(tab){S.tab=tab;S.serviceEditor=null;S.professionalEditor=null;qsa('[data-settings-tab]').forEach(b=>b.classList.toggle('active',b.dataset.settingsTab===tab));render()}
 async function load(){const r=root();if(!r)return;if(!S.boot){r.innerHTML='<div class="settings-loading">Carregando configurações…</div>';try{await refreshBoot()}catch(e){r.innerHTML=`<div class="settings-empty">${html(e.message)}</div>`;return}}fillUnitSelect();render()}
-function render(){qsa('[data-settings-tab]').forEach(b=>b.classList.toggle('active',b.dataset.settingsTab===S.tab));if(S.tab==='business')renderBusiness();else if(S.tab==='services')renderServices();else if(S.tab==='professionals')renderProfessionals();else renderHours()}
+// Etapa 7a: tocar numa aba antes de Ajustes terminar de carregar só escolhe a aba; load() desenha quando chegar.
+function render(){qsa('[data-settings-tab]').forEach(b=>b.classList.toggle('active',b.dataset.settingsTab===S.tab));if(!S.boot)return;if(S.tab==='business')renderBusiness();else if(S.tab==='services')renderServices();else if(S.tab==='professionals')renderProfessionals();else renderHours()}
 
 function renderBusiness(){const r=root(),b=S.boot.barbershop||{},u=currentUnit();r.innerHTML=`
   <form id="shopSettingsForm" class="settings-card">
