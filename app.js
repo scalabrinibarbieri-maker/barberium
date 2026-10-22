@@ -101,6 +101,7 @@ function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('sh
 function friendlyError(err){
   const m=String(err?.message||err);
   if(m.includes('SLOT_UNAVAILABLE'))return 'Esse horário acabou de ficar indisponível. Escolha outro.';
+  if(m.includes('UNIT_IN_MAINTENANCE'))return 'A agenda online está fechada no momento. Fale com a barbearia pelo WhatsApp.';
   if(m.includes('CANCELLATION_WINDOW_CLOSED'))return 'O prazo para cancelar este horário foi encerrado.';
   if(m.includes('RESCHEDULE_WINDOW_CLOSED'))return 'O prazo para reagendar este horário foi encerrado.';
   if(m.includes('INVALID_PHONE'))return 'Confira o número de WhatsApp.';

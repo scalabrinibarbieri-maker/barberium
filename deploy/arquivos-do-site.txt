@@ -63,6 +63,7 @@ equipe/index.html
 equipe/presentation-settings-v12.28.js
 equipe/settings.css
 equipe/settings.js
+equipe/area-do-cliente.js
 equipe/staff-tools-v12.33.js
 equipe/team.css
 equipe/team.js

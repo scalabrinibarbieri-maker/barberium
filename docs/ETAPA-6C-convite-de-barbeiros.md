@@ -116,3 +116,17 @@ A mensagem sai pronta, com **Enviar pelo WhatsApp** e **Copiar mensagem**. O bar
 2. **Banco:** rodar `docs/etapa6c_rollback.sql` no SQL Editor. Os barbeiros que já entraram continuam entrando. Somem os convites de barbeiro, os alertas e as decisões de cobrança.
 3. **Função de convite:** pode ficar como está. Sem esta etapa no banco, ela usa a função antiga e o convite do dono de barbearia continua funcionando.
 4. **Repositório:** apagar a migration `20261022100000_convite_barbeiros_e_alertas.sql`.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacotes `pacote-barbeiros.zip` e `pacote-remover-lunivo.zip`, subidos juntos | A main (`34518b3`) ficou idêntica à branch da etapa, e os 14 arquivos do outro projeto saíram. Eles continuam no histórico do Git |
+| Publicar no teste | Migration aplicada. O teste no navegador rodou com o Supabase de verdade: o Rafael Costa da Aurora entrou como barbeiro pelo convite, e o "Profissional Alerta Teste" virou alerta, foi avisado, ficou como "não cobrar" e terminou inativo |
+| Publicar em produção | Migration `20261022100000` aplicada pelo pipeline. Banco real idêntico ao reconstruído só com o repositório (98 migrations, 9 partes da impressão digital) |
+| Função de convite na produção | Versão 2 publicada. Sem login, responde 401 |
+| Site real | Versão `34518b3`. Páginas, scripts e estilos no ar idênticos aos montados a partir da main. O `versao.json` muda só a forma de escrever o fuso da data |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript; o painel já tem a seção "Profissionais novos" |
+| Dados da produção | Nenhum alerta nem convite de barbeiro ainda: nada mudou nos dados da Scalabrini |
+
+Pequeno ajuste para depois: quando o login do ADM vence no meio do convite, a função responde "Entre no painel de novo", texto pensado para o painel. Na Área da Equipe isso quase não acontece, porque o login é renovado antes.

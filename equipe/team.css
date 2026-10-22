@@ -36,3 +36,8 @@
 
 /* Produtos v12.3 */
 .team-bottom-nav.six{grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding-left:8px;padding-right:8px}.team-bottom-nav.six button{min-width:0;padding-inline:3px}.team-bottom-nav.six small{font-size:9px;max-width:100%}.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}.product-card{border:1px solid #34312b;background:#171715;border-radius:18px;padding:16px;display:grid;gap:12px}.product-card img,.product-placeholder{width:100%;height:150px;object-fit:contain;border-radius:12px;background:#22221e}.product-placeholder{display:grid;place-items:center;font-size:48px;color:#c6a86d}.product-card h3{margin:8px 0}.product-card p{font-size:13px}.stock-low{color:#efb363}.product-preview{height:130px;max-width:100%;object-fit:contain}.basket-item{display:flex;gap:16px;align-items:center;justify-content:space-between;border-bottom:1px solid #35332b;padding:15px 0}.basket-item small{display:block;margin-top:6px;color:#aaa}.basket-item input{width:74px;min-width:74px;padding:10px;border:1px solid #555;border-radius:8px;background:#222;color:#fff}.client-subtabs{overflow-x:auto}#productsContent .client-card{width:100%}#productsPanel{padding-bottom:70px}#productsContent .action-row{margin:14px 0}
+
+/* Etapa 7a: login mais alto (antes injetado pela v12.24 em barberium-v12.17.js). */
+.login-view{justify-content:flex-start!important}
+.login-view .back-link{margin-bottom:16px!important}
+.login-view .login-brand{margin:8px 0 22px!important}
