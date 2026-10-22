@@ -2,6 +2,9 @@
 // Só abre com um login que está em barberium.platform_admins (o banco confere em toda chamada).
 // Lista as barbearias e cadastra uma nova: barbearia, primeira unidade, endereço
 // <nome>.barberium.pages.dev e o convite do dono dela, que vira um link para mandar no WhatsApp.
+// Desde 22/10: "Profissionais novos". Cada profissional novo (ou reativado) na agenda de uma
+// barbearia vira um alerta; o dono do Barberium avisa o dono da barbearia pelo WhatsApp (sem
+// valor) e decide se cobra aquele profissional na próxima fatura.
 import { criarCliente, lerSessao, salvarSessao, limparSessao } from '../shared/api.js?v=1';
 
 const { requisicao, rpc } = criarCliente();
@@ -10,6 +13,16 @@ const ACOES_ENDERECOS = 'https://github.com/scalabrinibarbieri-maker/barberium/a
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 const dataBR = (v) => (v ? new Date(v).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '');
+const dataHoraBR = (v) => (v ? new Date(v).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+const reais = (centavos) => (Number(centavos || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+// "25", "25,00", "1.234,56", "R$ 29,9" → centavos (ou null se não for um valor).
+function centavosDe(texto) {
+  let t = String(texto || '').replace(/R\$|\s/g, '');
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(t)) return null;
+  const c = Math.round(Number(t) * 100);
+  return c > 0 ? c : null;
+}
 const slugDe = (texto) => String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').slice(0, 28).replace(/-+$/, '');
 
@@ -58,7 +71,7 @@ async function entrarNoPainel() {
   }
   $('#painelLogin').classList.add('hidden');
   $('#painelApp').classList.remove('hidden');
-  await carregarLista();
+  await Promise.all([carregarAlertas(), carregarLista()]);
 }
 
 async function carregarLista() {
@@ -84,9 +97,84 @@ function cartao(b) {
     <div class="painel-card-topo"><h3>${esc(b.name)}</h3><span class="painel-status ${ativa ? '' : 'inativa'}">${ativa ? 'Ativa' : 'Fora do ar'}</span></div>
     <div>${enderecos}</div>
     <p>${esc(unidades || 'Sem unidade')} · ${b.staff_count} ${b.staff_count === 1 ? 'pessoa' : 'pessoas'} na equipe · desde ${dataBR(b.created_at)}</p>
+    <p>${b.professionals_active ?? 0} ${b.professionals_active === 1 ? 'profissional ativo' : 'profissionais ativos'} na agenda${b.alertas_pendentes ? ` · <strong>${b.alertas_pendentes} ${b.alertas_pendentes === 1 ? 'profissional novo' : 'profissionais novos'} para decidir</strong>` : ''}</p>
+    ${b.proxima_fatura?.profissionais ? `<p class="painel-fatura">Próxima fatura: + ${b.proxima_fatura.profissionais} ${b.proxima_fatura.profissionais === 1 ? 'profissional' : 'profissionais'} · ${reais(b.proxima_fatura.total_cents)} (além da mensalidade)</p>` : ''}
     ${gestores ? `<p>${gestores}</p>` : ''}
     ${convites}
   </article>`;
+}
+
+// ---------- Profissionais novos ----------
+
+// Mensagem para o dono da barbearia. Sem valor: o custo pode variar e vai depois.
+function textoDoAviso(a) {
+  const primeiro = String(a.contato?.nome || '').split(/\s+/)[0];
+  const quem = a.evento === 'reativado' ? `a volta de ${a.professional_name} à equipe` : `a inclusão de ${a.professional_name} na equipe`;
+  return `Olá${primeiro ? `, ${primeiro}` : ''}! Aqui é do Barberium. Recebemos ${quem} da ${a.barbershop_name}. `
+    + 'Nas próximas horas, enviaremos o custo deste novo profissional.';
+}
+
+function situacao(a) {
+  if (a.decisao === 'cobrar') return `<span class="painel-alerta-situacao cobrar">Cobrar ${reais(a.valor_cents)} na próxima fatura</span>`;
+  if (a.decisao === 'nao_cobrar') return '<span class="painel-alerta-situacao nao-cobrar">Não cobrar</span>';
+  return '<span class="painel-alerta-situacao">Aguardando sua decisão</span>';
+}
+
+function cartaoAlerta(a) {
+  const texto = textoDoAviso(a);
+  const whats = a.contato?.whatsapp ? `https://wa.me/${a.contato.whatsapp}?text=${encodeURIComponent(texto)}` : `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  const valor = a.valor_cents ? (a.valor_cents / 100).toFixed(2).replace('.', ',') : '';
+  return `<article class="painel-card" data-alerta="${esc(a.id)}">
+    <div class="painel-card-topo"><h3>${esc(a.professional_name)}</h3><span class="painel-status ${a.decisao === 'pendente' ? 'painel-pendente' : ''}">${a.evento === 'reativado' ? 'Voltou' : 'Novo'}</span></div>
+    <p>${esc(a.barbershop_name)} · na agenda desde ${dataHoraBR(a.created_at)}${a.professional_ativo ? '' : ' · desativado depois'}</p>
+    ${situacao(a)}
+    <p>${a.avisado_em ? `Dono avisado em ${dataHoraBR(a.avisado_em)}.` : 'Dono da barbearia ainda não avisado.'}${a.contato?.nome ? ` Contato: ${esc(a.contato.nome)}.` : ''}${a.contato?.whatsapp ? '' : ' Sem WhatsApp do dono cadastrado: escolha o contato no WhatsApp.'}</p>
+    <a class="soft-btn painel-avisar" data-avisar="${esc(a.id)}" href="${esc(whats)}" target="_blank" rel="noopener">${a.avisado_em ? 'Avisar de novo pelo WhatsApp' : 'Avisar pelo WhatsApp'}</a>
+    <div class="painel-alerta-acoes">
+      <label class="field">Valor (R$)<input data-valor inputmode="decimal" maxlength="12" placeholder="Ex.: 29,90" value="${esc(valor)}"></label>
+      <button class="gold-btn ${a.decisao === 'cobrar' ? 'escolhido' : ''}" type="button" data-cobrar>Cobrar</button>
+      <button class="soft-btn ${a.decisao === 'nao_cobrar' ? 'escolhido' : ''}" type="button" data-nao-cobrar>Não cobrar</button>
+    </div>
+  </article>`;
+}
+
+async function carregarAlertas() {
+  const caixa = $('#painelAlertas');
+  try {
+    const alertas = await rpc('barberium_platform_professional_charges');
+    const pendentes = alertas.filter((a) => a.decisao === 'pendente').length;
+    $('#painelAlertasConta').textContent = `${pendentes} para decidir`;
+    $('#painelAlertasConta').classList.toggle('hidden', !pendentes);
+    caixa.innerHTML = alertas.length ? alertas.map(cartaoAlerta).join('') : '<div class="empty">Nenhum profissional novo para decidir.</div>';
+    caixa.querySelectorAll('[data-alerta]').forEach((cartaoEl) => {
+      const id = cartaoEl.dataset.alerta;
+      // O link abre o WhatsApp direto (sem esperar o banco, para o navegador não bloquear);
+      // o aviso fica marcado em seguida.
+      cartaoEl.querySelector('[data-avisar]').addEventListener('click', () => {
+        rpc('barberium_platform_charge_notified', { p_charge: id }).then(carregarAlertas).catch((e) => aviso(e.message || 'Não foi possível marcar o aviso.'));
+      });
+      cartaoEl.querySelector('[data-cobrar]').onclick = (e) => {
+        const centavos = centavosDe(cartaoEl.querySelector('[data-valor]').value);
+        if (!centavos) { aviso('Informe o valor, por exemplo 29,90.'); cartaoEl.querySelector('[data-valor]').focus(); return; }
+        decidir(id, true, centavos, e.currentTarget);
+      };
+      cartaoEl.querySelector('[data-nao-cobrar]').onclick = (e) => decidir(id, false, null, e.currentTarget);
+    });
+  } catch (e) {
+    caixa.innerHTML = `<div class="empty">${esc(e.message || 'Não foi possível carregar.')}</div>`;
+  }
+}
+
+async function decidir(id, cobrar, centavos, botao) {
+  botao.disabled = true;
+  try {
+    await rpc('barberium_platform_decide_charge', { p_charge: id, p_cobrar: cobrar, p_valor_cents: centavos });
+    aviso(cobrar ? `Vai na próxima fatura: ${reais(centavos)}.` : 'Marcado: não cobrar.');
+    await Promise.all([carregarAlertas(), carregarLista()]);
+  } catch (e) {
+    aviso(e.message || 'Não foi possível salvar.');
+    botao.disabled = false;
+  }
 }
 
 async function gerarConvite(id, botao) {

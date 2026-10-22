@@ -1,10 +1,12 @@
 // Barberium · convite do dono de uma barbearia nova (painel do dono do SaaS, 21/10/2026).
 //
-// O painel chama esta função com o login do dono do Barberium e o id do convite. Ela:
-//   1. confere no banco, com o login de quem chamou, se é dono do Barberium e lê o convite
-//      (a própria função do banco recusa quem não é dono);
+// Quem chama: o painel (dono do Barberium, convite do dono de uma barbearia) ou a Área da
+// Equipe (ADM da barbearia, convite de um barbeiro dela, desde 22/10). Ela:
+//   1. confere no banco, com o login de quem chamou, se ele pode usar este convite e o lê
+//      (a própria função do banco recusa quem não pode);
 //   2. cria o login do convidado no Supabase Auth sem mandar e-mail (generate_link). Se o
-//      e-mail já tem login, gera um link de nova senha (recovery) para o mesmo login;
+//      e-mail já tem login, gera um link de nova senha (recovery) para o mesmo login, mas só
+//      quando o banco permite (dono do Barberium, ou o barbeiro já ligado àquele profissional);
 //   3. liga o login à barbearia do convite (função do banco que só o servidor pode chamar);
 //   4. devolve o código do link. O painel monta o endereço e manda pelo WhatsApp.
 // Não usa biblioteca: só fetch, para rodar igual no Supabase (Deno) e nos testes (Node).
@@ -51,12 +53,16 @@ export async function tratarConvite(req, env) {
   const comoQuemChamou = { apikey: chavePublica, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   try {
-    // 1. Quem chamou é dono do Barberium? (a função do banco confere e lê o convite)
-    const det = await rpc('barberium_platform_invite_detail', { p_invite: convite }, comoQuemChamou);
+    // 1. Quem chamou pode usar este convite? (a função do banco confere e lê o convite)
+    let det = await rpc('barberium_invite_detail', { p_invite: convite }, comoQuemChamou);
+    // Banco sem a etapa 6C (rollback): usa a função antiga, só do dono do Barberium.
+    if (!det.ok && det.status === 404 && /PGRST202|could not find the function/i.test(`${det.dados?.code || ''} ${mensagem(det.dados)}`)) {
+      det = await rpc('barberium_platform_invite_detail', { p_invite: convite }, comoQuemChamou);
+    }
     if (!det.ok) {
       const m = mensagem(det.dados);
       if (det.status === 401 || /JWT|autenticado/i.test(m)) return resposta(401, { message: 'Entre no painel de novo' });
-      if (/somente para o dono/i.test(m)) return resposta(403, { message: 'Acesso somente para o dono do Barberium' });
+      if (/somente para o dono|sem permissão/i.test(m)) return resposta(403, { message: 'Sem permissão para este convite' });
       if (/não encontrado/i.test(m)) return resposta(404, { message: 'Convite não encontrado' });
       throw new Error(`detalhe do convite: ${det.status}`);
     }
@@ -72,6 +78,9 @@ export async function tratarConvite(req, env) {
     let link = await gerar('invite');
     let tipo = 'invite';
     if (!link.ok && (link.status === 422 || /already been registered|email_exists/i.test(mensagem(link.dados) + (link.dados?.code || link.dados?.error_code || '')))) {
+      if (c.pode_senha_nova === false) {
+        return resposta(409, { message: 'Este e-mail já tem login no Barberium. Use outro e-mail ou fale com o suporte do Barberium.' });
+      }
       link = await gerar('recovery');
       tipo = 'recovery';
     }
@@ -87,7 +96,7 @@ export async function tratarConvite(req, env) {
     if (!ligar.ok) throw new Error(`ligar convite: ${ligar.status}`);
 
     return resposta(200, {
-      codigo, tipo, email: c.email, nome: c.full_name, whatsapp: c.whatsapp || null,
+      codigo, tipo, papel: c.role, email: c.email, nome: c.full_name, whatsapp: c.whatsapp || null,
       barbearia: c.barbershop_name, slug: c.barbershop_slug, host: c.host,
     });
   } catch (e) {

@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../barberium.svg">
   <link rel="stylesheet" href="../equipe/team.css?v=12.3.1">
-  <link rel="stylesheet" href="./painel.css?v=1">
+  <link rel="stylesheet" href="./painel.css?v=2">
   <title>Barberium • Painel do dono</title>
 </head>
 <body>
@@ -39,6 +39,15 @@
         </div>
         <button id="painelSair" class="icon-btn" type="button">Sair</button>
       </header>
+
+      <section class="painel-bloco">
+        <div class="painel-titulo">
+          <h2 class="section-mini-title">Profissionais novos</h2>
+          <span id="painelAlertasConta" class="painel-status painel-pendente hidden"></span>
+        </div>
+        <p class="painel-ajuda">Quando uma barbearia põe um profissional novo na agenda (ou reativa um), ele aparece aqui. Avise o dono pelo WhatsApp, sem valor, e decida se cobra esse profissional na próxima fatura dela. Dá para mudar a decisão até a fatura sair.</p>
+        <div id="painelAlertas" class="painel-lista"><div class="empty">Carregando…</div></div>
+      </section>
 
       <section class="painel-bloco">
         <div class="painel-titulo">
@@ -98,7 +107,7 @@
   </div>
   <div class="toast" id="painelAviso" role="status"></div>
 
-  <script type="module" src="./painel.js?v=1"></script>
+  <script type="module" src="./painel.js?v=2"></script>
   <script src="../shared/atualizacao.js?v=1" defer></script>
 </body>
 </html>

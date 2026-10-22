@@ -28,6 +28,8 @@ Para entrar na Área da Equipe de teste, abra **https://staging.barberium.pages.
 
 A senha de todos é a que você guardou no segredo `STAGING_SENHA_TESTE`.
 
+O teste automático da etapa 6C também cria o login `barbeiro.aurora@example.com` (Rafael Costa, barbeiro da Aurora) pelo convite. A senha dele muda a cada rodada, então ele não serve para entrar à mão.
+
 Desde a etapa 6, cada barbearia abre pelo próprio endereço e cada login entra só no endereço da própria barbearia. No teste, o endereço normal abre a Scalabrini de teste. Para abrir a Aurora, acrescente `?barbearia=barbearia-aurora`:
 
 - site do cliente da Aurora (tem duas unidades, então pede para escolher): **https://staging.barberium.pages.dev/?barbearia=barbearia-aurora**

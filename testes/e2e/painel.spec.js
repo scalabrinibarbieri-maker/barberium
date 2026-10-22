@@ -31,7 +31,7 @@ test('o dono do Barberium cadastra e convida; o convidado cria a senha e entra n
   await expect(page.locator('.painel-card').first()).toBeVisible();
   await expect(page.locator('.painel-card h3')).toContainText(['Barbearia Aurora']);
 
-  const cartao = page.locator('.painel-card', { hasText: NOME });
+  const cartao = page.locator('#painelLista .painel-card', { hasText: NOME });
   if (await cartao.count() === 0) {
     await page.click('#painelNovaBotao');
     await page.fill('#novaNome', NOME);

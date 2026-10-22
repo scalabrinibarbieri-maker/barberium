@@ -156,3 +156,16 @@ Link vencido ou já usado mostra: "Este link venceu ou já foi usado. Peça um l
 2. **Função:** no Supabase, Edge Functions → `barberium-convite` → Delete.
 3. **Banco:** rodar `docs/etapa6b_rollback.sql` no SQL Editor. As barbearias já cadastradas continuam e funcionam; somem só a lista de donos e os convites.
 4. **Repositório:** apagar a migration `20261021200000_painel_dono_do_saas.sql` e, se quiser, o workflow `enderecos.yml`.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Token `SUPABASE_ACCESS_TOKEN` | Criado só com Edge Functions (leitura e escrita) e leitura do projeto |
+| Workflows, pacote (`pacote-painel-1.zip`), Publicar no teste e Publicar em produção | Verdes. A main ficou idêntica à branch do painel |
+| Teste do painel no site de teste, com o Supabase de verdade | A "Barbearia Painel Teste" foi cadastrada pelo painel, o convite saiu pela função publicada, e o dono de teste criou a senha e entrou (último acesso registrado no banco de teste) |
+| Banco de produção × banco reconstruído só com o repositório (97 migrations) | Impressão digital idêntica nas 9 partes |
+| Função de convite na produção | Publicada (versão 1, sem conferência de JWT pelo Supabase). Sem login, responde "Entre no painel de novo" (401) |
+| Site real | Versão `730e152`. Os 40 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main |
+| Navegador, sem login | O painel abre a tela de login, sem erro. Na Área da Equipe, um link de convite inventado abre "Crie sua senha", e o Supabase recusa o código: "Este link venceu ou já foi usado". A Área da Equipe normal continua igual |
+| Dono do Barberium | Login próprio, separado do ADM da Scalabrini, criado no Supabase e cadastrado pelo SQL Editor. Entrou no painel em 22/10, às 07:11. É o único dono, e o login não tem acesso a nenhuma barbearia |

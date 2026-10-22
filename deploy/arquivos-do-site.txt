@@ -67,6 +67,7 @@ equipe/staff-tools-v12.33.js
 equipe/team.css
 equipe/team.js
 equipe/convite.js
+equipe/convite-barbeiros.js
 
 # Painel do dono do SaaS
 painel/index.html
