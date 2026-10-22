@@ -52,7 +52,6 @@ equipe/agenda-cancelados-v12.8.js
 equipe/balances-v12.39.js
 equipe/barberium-v12.10.js
 equipe/barberium-v12.12.js   # sem uso
-equipe/barberium-v12.13.js
 equipe/barberium-v12.17.js
 equipe/barberium-v12.9.js
 equipe/cancel-permission-v12.45.js
@@ -65,6 +64,7 @@ equipe/area-do-cliente.js
 equipe/staff-tools-v12.33.js
 equipe/team.css
 equipe/team.js
+equipe/comanda.js
 equipe/convite.js
 equipe/convite-barbeiros.js
 

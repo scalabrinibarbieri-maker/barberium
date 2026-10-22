@@ -43,3 +43,13 @@ Banco local reconstruído do zero com as 99 migrations do repositório e os dado
 
 1. **Site:** "Rollback" no Cloudflare para o deploy anterior.
 2. **Repositório:** subir de volta `equipe/team.js`, `equipe/agenda-cancelados-v12.8.js`, `equipe/index.html` e `deploy/arquivos-do-site.txt` da versão `f31eedf`, junto com os dois arquivos apagados. Todos estão no histórico do Git.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7b.zip` | A main (`19582d8`) ficou idêntica à branch da etapa, e os dois arquivos saíram do repositório. O "Aplicar pacote" levou uns 6 minutos para começar (demora do GitHub) |
+| Publicar no teste e em produção | Verdes. O banco não mudou: 99 migrations, a última é a da 7a |
+| Site real | Versão `19582d8`. Os 41 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main, e a Área da Equipe não carrega mais os dois arquivos |
+| Arquivos apagados | O deploy de produção não os tem mais (em `barberium.pages.dev` o endereço cai na página padrão). No domínio e no endereço de teste, o cache do Cloudflare ainda serve a cópia antiga até vencer, mas nenhuma página os chama |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |

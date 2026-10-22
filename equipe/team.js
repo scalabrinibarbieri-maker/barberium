@@ -2,6 +2,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from '../shared/config.js?v=1';
 import { criarCliente, lerSessao, salvarSessao, limparSessao } from '../shared/api.js?v=1';
 import { tenantPronto } from '../shared/tenant.js?v=1';
 import { abrirConviteDoBarbeiro } from './convite-barbeiros.js?v=1';
+import { estadoDaComanda, extrasValidos, precoDosExtras, sanearExtras, caixaServicosHtml, passageiroHtml, desenharExtras, ligarExtras, ligarPassageiro } from './comanda.js?v=1';
 const TZ='America/Sao_Paulo';
 
 const $=(s,r=document)=>r.querySelector(s);
@@ -197,7 +198,7 @@ async function openBookingModal(mode,detail=null){
   const canNote=isManager()||can('edit_internal_note')||can('view_internal_note');
   const price=edit&&detail.total_price_cents!==null?detail.total_price_cents:calcListed(serviceId,addonIds);
   openModal(edit?'EDITAR ATENDIMENTO':walkIn?'NOVO ENCAIXE':'NOVO HORÁRIO',edit?detail.customer.name:'Agendamento manual',bookingFormHtml({edit,walkIn,blocksSchedule:detail?.blocks_schedule===true,selectedCustomer,professionalId,serviceId,addonIds,date:pt.date,time:pt.time,price,note:edit?(detail.internal_note||''):''},canValue,canNote));
-  const state={edit,walkIn,detail,customer:selectedCustomer,newCustomer:false,professionalId,serviceId,addonIds:[...addonIds],date:pt.date,time:pt.time,manualPriceCents:price};
+  const state={edit,walkIn,detail,customer:selectedCustomer,newCustomer:false,professionalId,serviceId,addonIds:[...addonIds],date:pt.date,time:pt.time,manualPriceCents:price,...estadoDaComanda(edit?detail:null)};
   bindBookingForm(state);await refreshBookingDynamic(state,true);
 }
 function bookingFormHtml(st,showValue,showNote){
@@ -209,6 +210,7 @@ function bookingFormHtml(st,showValue,showNote){
       ${st.edit?`<div class="selected-customer"><strong>${esc(st.selectedCustomer.name)}</strong><small>${st.selectedCustomer.phone?esc(st.selectedCustomer.phone):'Cliente do atendimento'}</small></div>`:`
       <div class="field"><label>Buscar cliente</label><input id="customerSearch" placeholder="Nome ou telefone"></div>
       <div class="action-row"><button id="searchCustomerButton" class="soft-btn" type="button">Buscar</button><button id="newCustomerButton" class="soft-btn" type="button">+ Novo cliente</button></div>
+      ${passageiroHtml()}
       <div id="customerResults" class="customer-results"></div>
       <div id="selectedCustomerWrap"></div>
       <div id="newCustomerFields" class="form-grid hidden"><div class="field"><label>Nome e sobrenome</label><input id="newCustomerName"></div><div class="field"><label>WhatsApp</label><input id="newCustomerPhone" inputmode="tel" placeholder="(11) 99999-9999"></div></div>`}
@@ -216,6 +218,7 @@ function bookingFormHtml(st,showValue,showNote){
     <section class="form-section"><h3>Atendimento</h3>
       <div class="field"><label>Profissional</label><select id="bookingProfessional" ${isManager()?'':'disabled'}>${proOptions}</select></div>
       <div class="field"><label>Serviço</label><select id="bookingService" ${st.edit&&!isManager()&&!can('edit_service')?'disabled':''}>${serviceOptions}</select></div>
+      ${caixaServicosHtml(st.edit&&!isManager()&&!can('edit_service'))}
       <div><label class="field">Adicionais</label><div id="addonOptions" class="addon-options"></div></div>
     </section>
     <section class="form-section"><h3>Data e horário</h3><div class="form-grid two"><div class="field"><label>Data</label><input id="bookingDate" type="date" value="${st.date}" ${st.edit&&!isManager()&&!can('edit_date')?'disabled':''}></div><div class="field"><label>Horário</label>${st.walkIn?`<input id="bookingTime" type="time" required value="${st.time}" ${st.edit&&!isManager()&&!can('edit_time')?'disabled':''}>`:`<select id="bookingTime" ${st.edit&&!isManager()&&!can('edit_time')?'disabled':''}><option value="">Carregando…</option></select>`}</div></div></section>
@@ -231,20 +234,22 @@ function bindBookingForm(st){
     $('#searchCustomerButton').onclick=()=>searchCustomers(st);$('#customerSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchCustomers(st)}});
     $('#newCustomerButton').onclick=()=>{st.newCustomer=true;st.customer={id:null,name:'',phone:''};$('#newCustomerFields').classList.remove('hidden');$('#selectedCustomerWrap').innerHTML='';$('#customerResults').innerHTML=''};
   }
-  $('#bookingProfessional').onchange=e=>{st.professionalId=e.target.value;refreshSlots(st)};
-  $('#bookingService').onchange=e=>{st.serviceId=e.target.value;st.addonIds=[];renderAddonOptions(st);syncPrice(st,true);refreshSlots(st)};
+  $('#bookingProfessional').onchange=e=>{st.professionalId=e.target.value;if(sanearExtras(st,catalog))toast('Um serviço foi removido porque não é compatível com esta seleção.');desenharExtras(st,catalog,()=>{syncPrice(st,true);refreshSlots(st)});syncPrice(st,true);refreshSlots(st)};
+  $('#bookingService').onchange=e=>{st.serviceId=e.target.value;st.addonIds=[];renderAddonOptions(st);sanearExtras(st,catalog);desenharExtras(st,catalog,()=>{syncPrice(st,true);refreshSlots(st)});syncPrice(st,true);refreshSlots(st)};
   $('#bookingDate').onchange=e=>{st.date=e.target.value;refreshSlots(st)};
   $('#finalPrice')?.addEventListener('input',e=>{st.manualPriceCents=Math.round((Number(e.target.value)||0)*100)});
   $('#bookingForm').onsubmit=e=>saveBooking(e,st);
+  // Etapa 7c: serviços da comanda e cliente passageiro (antes v12.13 e v12.21).
+  ligarExtras(st,catalog,()=>{syncPrice(st,true);refreshSlots(st)});ligarPassageiro(st);
 }
 async function searchCustomers(st){
   const q=$('#customerSearch').value.trim();$('#customerResults').innerHTML='<div class="loading">Buscando…</div>';
   try{const rows=await rpc('barberium_staff_search_customers',{p_query:q});$('#customerResults').innerHTML=rows.length?rows.map(c=>`<button type="button" class="customer-result" data-customer-id="${c.id}"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):(c.has_phone?'WhatsApp já cadastrado ✓':'Sem WhatsApp cadastrado')}</small></button>`).join(''):'<div class="empty">Nenhum cliente encontrado.</div>';$$('[data-customer-id]').forEach(b=>b.onclick=()=>{const c=rows.find(x=>x.id===b.dataset.customerId);st.customer=c;st.newCustomer=false;$('#selectedCustomerWrap').innerHTML=`<div class="selected-customer"><strong>${esc(c.name)}</strong><small>${c.phone?esc(c.phone):(c.has_phone?'WhatsApp já cadastrado ✓':'Sem WhatsApp cadastrado')}</small></div>`;$('#customerResults').innerHTML='';$('#newCustomerFields').classList.add('hidden')})}catch(e){$('#customerResults').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
 }
 async function refreshBookingDynamic(st,initial=false){renderAddonOptions(st);syncPrice(st,!initial);await refreshSlots(st)}
-function renderAddonOptions(st){const s=serviceById(st.serviceId);const wrap=$('#addonOptions');if(!wrap)return;wrap.innerHTML=s?.addons?.length?s.addons.map(a=>`<label class="check-row"><input type="checkbox" value="${a.service_id}" ${st.addonIds.includes(a.service_id)?'checked':''} ${st.edit&&!isManager()&&!can('edit_addons')?'disabled':''}><span>${esc(a.name)} · +${moneyCents(a.price_cents)}</span></label>`).join(''):'<div class="empty">Este serviço não possui adicionais.</div>';$$('#addonOptions input').forEach(i=>i.onchange=()=>{st.addonIds=$$('#addonOptions input:checked').map(x=>x.value);syncPrice(st,true);refreshSlots(st)})}
-function syncPrice(st,resetFinal){const listed=calcListed(st.serviceId,st.addonIds);if($('#listedPrice'))$('#listedPrice').textContent=moneyCents(listed);if(resetFinal&&(isManager()||can('edit_value'))&&$('#finalPrice')){$('#finalPrice').value=(listed/100).toFixed(2);st.manualPriceCents=listed}}
-async function refreshSlots(st){if(st.walkIn){$('#bookingTime').onchange=e=>st.time=e.target.value;return}const sel=$('#bookingTime');if(!sel||!st.professionalId||!st.serviceId||!st.date)return;const keep=st.time;sel.innerHTML='<option value="">Carregando…</option>';try{let slots=await rpc('barberium_staff_available_slots',{p_professional_id:st.professionalId,p_service_id:st.serviceId,p_addon_service_ids:st.addonIds,p_date:st.date,p_exclude_appointment_id:st.edit?st.detail.id:null});if(keep&&!slots.includes(keep))slots=[keep,...slots].sort();sel.innerHTML=slots.length?`<option value="">Selecione</option>${slots.map(t=>`<option value="${t}" ${t===keep?'selected':''}>${t}</option>`).join('')}`:'<option value="">Sem horários livres</option>';sel.onchange=e=>st.time=e.target.value}catch(e){sel.innerHTML='<option value="">Erro ao carregar</option>'}}
+function renderAddonOptions(st){const s=serviceById(st.serviceId);const wrap=$('#addonOptions');if(!wrap)return;wrap.innerHTML=s?.addons?.length?s.addons.map(a=>`<label class="check-row"><input type="checkbox" value="${a.service_id}" ${st.addonIds.includes(a.service_id)?'checked':''} ${st.edit&&!isManager()&&!can('edit_addons')?'disabled':''}><span>${esc(a.name)} · +${moneyCents(a.price_cents)}</span></label>`).join(''):'<div class="empty">Este serviço não possui adicionais.</div>';$$('#addonOptions input').forEach(i=>i.onchange=()=>{st.addonIds=$$('#addonOptions input:checked').map(x=>x.value);sanearExtras(st,catalog);desenharExtras(st,catalog,()=>{syncPrice(st,true);refreshSlots(st)});syncPrice(st,true);refreshSlots(st)})}
+function syncPrice(st,resetFinal){const listed=calcListed(st.serviceId,st.addonIds)+precoDosExtras(st,catalog);if($('#listedPrice'))$('#listedPrice').textContent=moneyCents(listed);if(resetFinal&&(isManager()||can('edit_value'))&&$('#finalPrice')){$('#finalPrice').value=(listed/100).toFixed(2);st.manualPriceCents=listed}}
+async function refreshSlots(st){if(st.walkIn){$('#bookingTime').onchange=e=>st.time=e.target.value;return}const sel=$('#bookingTime');if(!sel||!st.professionalId||!st.serviceId||!st.date)return;const keep=st.time;sel.innerHTML='<option value="">Carregando…</option>';try{let slots=await rpc('barberium_staff_available_slots_v12_12',{p_professional_id:st.professionalId,p_service_id:st.serviceId,p_addon_service_ids:st.addonIds,p_extra_service_ids:extrasValidos(st,catalog),p_date:st.date,p_exclude_appointment_id:st.edit?st.detail.id:null});if(keep&&!slots.includes(keep))slots=[keep,...slots].sort();sel.innerHTML=slots.length?`<option value="">Selecione</option>${slots.map(t=>`<option value="${t}" ${t===keep?'selected':''}>${t}</option>`).join('')}`:'<option value="">Sem horários livres</option>';sel.onchange=e=>st.time=e.target.value}catch(e){sel.innerHTML='<option value="">Erro ao carregar</option>'}}
 async function saveBooking(e,st){
   e.preventDefault();const btn=$('#saveBooking');btn.disabled=true;btn.textContent='Salvando…';
   try{
@@ -252,12 +257,12 @@ async function saveBooking(e,st){
     const finalInput=$('#finalPrice');const finalCents=finalInput?Math.round((Number(finalInput.value)||0)*100):null;
     const note=$('#internalNote')?.value||null;
     if(st.edit){
-      await rpc(st.walkIn?'barberium_staff_update_walk_in':'barberium_staff_update_appointment',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_appointment_id:st.detail.id,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
+      await rpc(st.walkIn?'barberium_staff_update_walk_in_v12_12':'barberium_staff_update_appointment_v12_12',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_appointment_id:st.detail.id,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_extra_service_ids:extrasValidos(st,catalog),p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
       toast('Atendimento atualizado.');closeModal();await loadAgenda();
     }else{
       let customerId=st.customer?.id||null,fullName=null,phone=null;
-      if(!customerId){if(!st.newCustomer)throw new Error('Selecione um cliente ou crie um novo.');fullName=$('#newCustomerName').value.trim();phone=$('#newCustomerPhone').value.trim()}
-      await rpc(st.walkIn?'barberium_staff_create_walk_in':'barberium_staff_create_appointment',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_customer_id:customerId,p_full_name:fullName,p_phone:phone,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
+      if(!customerId){if(!st.newCustomer)throw new Error('Selecione um cliente ou crie um novo.');fullName=$('#newCustomerName').value.trim();phone=$('#newCustomerPhone').value.trim()}if(st.passenger){customerId=null;fullName=null;phone=null}
+      await rpc(st.walkIn?'barberium_staff_create_walk_in_v12_21':'barberium_staff_create_appointment_v12_21',{...(st.walkIn?{p_blocks_schedule:$('#walkInBlocks').checked}:{}),p_customer_id:customerId,p_full_name:fullName,p_phone:phone,p_is_passenger:st.passenger===true,p_professional_id:$('#bookingProfessional').value,p_service_id:$('#bookingService').value,p_addon_service_ids:st.addonIds,p_extra_service_ids:extrasValidos(st,catalog),p_date:$('#bookingDate').value,p_time:time,p_final_price_cents:finalCents,p_internal_note:note});
       toast(st.walkIn?'Encaixe criado.':'Agendamento criado.');currentDate=$('#bookingDate').value;renderDate();closeModal();await loadAgenda();
     }
   }catch(err){toast(friendlyError(err));btn.disabled=false;btn.textContent=st.edit?'Salvar alterações':'Criar agendamento'}
