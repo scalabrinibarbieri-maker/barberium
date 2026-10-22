@@ -302,29 +302,8 @@ async function v128DecorateCancelledDetail(id){
   },350);
 }
 
-function v128CleanCommissionSummary(){
-  const root=v128$('#commissionContent');
-  if(!root)return;
-  for(const card of v128$$('.service-stat',root)){
-    const h=card.querySelector('h3');
-    if(!h)continue;
-    const m=h.textContent.match(/Cancelamentos?\s+por\s+erro\s+de\s+agendamento:\s*(\d+)/i);
-    if(!m)continue;
-    h.textContent=`Cancelamento por erro de agendamento: ${m[1]}`;
-    const p=card.querySelector('p');
-    if(p)p.style.display='none';
-    const strong=card.querySelector(':scope > strong');
-    if(strong)strong.style.display='none';
-  }
-}
-
-function v128WireCommissionObserver(){
-  const root=v128$('#commissionContent');
-  if(!root||root.dataset.v128Observed)return;
-  root.dataset.v128Observed='1';
-  new MutationObserver(()=>v128CleanCommissionSummary()).observe(root,{childList:true,subtree:true});
-  v128CleanCommissionSummary();
-}
+// Etapa 7b: o resumo de cancelamentos por erro em "Minhas comissões" é desenhado certo pelo
+// team.js; o observer que reescrevia o texto (e entrava em laço) saiu.
 
 document.addEventListener('click',e=>{
   const appt=e.target.closest?.('[data-appt-id]');
@@ -355,7 +334,6 @@ function v128Boot(){
   v128InjectStyle();
   v128EnsureAgendaTabs();
   v128WireAgendaObserver();
-  v128WireCommissionObserver();
   v128ApplyAgendaMode();
 }
 

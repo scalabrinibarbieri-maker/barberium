@@ -81,3 +81,14 @@ A publicação em produção não chegou a acontecer, porque ela só aceita a ve
 1. **Site PRIMEIRO:** "Rollback" no Cloudflare para o deploy anterior. O site novo manda só as chaves que mudou; com o banco antigo, isso apagaria as outras.
 2. **Banco:** rodar `docs/etapa7a_rollback.sql` no SQL Editor. Nenhum dado muda.
 3. **Repositório:** apagar a migration `20261022200000_ajustes_e_manutencao.sql`.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacotes `pacote-etapa7a.zip` e `pacote-etapa7a-correcao.zip` | A main (`f31eedf`) ficou idêntica à branch da etapa |
+| Publicar no teste (com a correção) | Verde. No teste, o ADM da Aurora salvou o cartão "Área do cliente" pelo teste do navegador, e a manutenção da unidade continuou como estava |
+| Publicar em produção | Migration `20261022200000` aplicada pelo pipeline. Banco real idêntico ao reconstruído só com o repositório (99 migrations, 9 partes da impressão digital) |
+| Site real | Versão `f31eedf`. Os 43 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |
+| Manutenção no banco, na produção | A Scalabrini nunca salvou a manutenção, então conta como fechada. Um pedido de agendamento direto na API foi recusado com `UNIT_IN_MAINTENANCE`, antes de gravar qualquer coisa |

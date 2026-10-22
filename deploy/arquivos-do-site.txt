@@ -21,7 +21,7 @@ client-profile-v12.32.js
 professional-motion-v12.35.js
 service-cta-v12.38.js
 service-cta-v12.37.js   # sem uso
-barber-commissions-v12.30.js   # sem uso (a equipe usa equipe/barber-commissions-v12.30.js)
+barber-commissions-v12.30.js   # sem uso (cópia antiga; sai na etapa 9)
 
 # Comum às duas áreas
 shared/atualizacao.js
@@ -50,7 +50,6 @@ assets/vinicius-nunes.webp
 # Área da Equipe
 equipe/agenda-cancelados-v12.8.js
 equipe/balances-v12.39.js
-equipe/barber-commissions-v12.30.js
 equipe/barberium-v12.10.js
 equipe/barberium-v12.12.js   # sem uso
 equipe/barberium-v12.13.js
@@ -60,7 +59,6 @@ equipe/cancel-permission-v12.45.js
 equipe/desktop-v12.16.css
 equipe/finance-reports.js
 equipe/index.html
-equipe/presentation-settings-v12.28.js
 equipe/settings.css
 equipe/settings.js
 equipe/area-do-cliente.js
