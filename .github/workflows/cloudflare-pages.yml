@@ -12,7 +12,10 @@ name: Publicar em produção
 #   3. ensaio: roda as migrations novas na produção e desfaz tudo (rollback);
 #   4. aplica as migrations novas na produção, todas numa transação só;
 #   5. confere que a produção ficou igual ao banco reconstruído;
-#   6. publica o site (lista explícita de arquivos, wrangler com versão fixa).
+#   6. publica a função de convite do painel do dono (Supabase);
+#   7. publica o site (lista explícita de arquivos, wrangler com versão fixa);
+#   8. publica a mesma versão nos endereços <nome>.barberium.pages.dev das barbearias
+#      cadastradas pelo painel (deploy/publicar_enderecos.sh).
 #
 # Para voltar o site: Cloudflare > Workers & Pages > barberium > Deployments >
 # deploy anterior > "Rollback to this deployment". Para o banco: migration de volta.
@@ -73,6 +76,7 @@ jobs:
     timeout-minutes: 25
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       PORTA: '55432'
@@ -127,6 +131,25 @@ jobs:
             --migrations supabase/migrations --versoes-producao versoes_producao.txt \
             --exigir-todas --titulo "Banco de produção depois da publicação"
 
+      - name: Supabase CLI (para as funções)
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.120.0
+
+      - name: Publicar a função de convite na produção
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d supabase/functions/barberium-convite ]; then
+            echo "Esta versão ainda não tem a função de convite; nada a publicar."
+            exit 0
+          fi
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::Falta o segredo SUPABASE_ACCESS_TOKEN (token de acesso do Supabase). Veja docs/ETAPA-6B-painel-do-dono.md."
+            exit 1
+          fi
+          supabase functions deploy barberium-convite --project-ref pmvvawbaqylspxfmxezw --no-verify-jwt --use-api
+
       - name: Node 22
         uses: actions/setup-node@v6
         with:
@@ -151,6 +174,16 @@ jobs:
       - name: Conferir o site no ar
         shell: bash
         run: bash testes/e2e/esperar_site.sh dist https://scalabrinibarbiere.com 300
+
+      - name: Publicar os endereços das barbearias
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f deploy/publicar_enderecos.sh ]; then
+            echo "Esta versão ainda não tem o painel do dono; nada a publicar."
+            exit 0
+          fi
+          bash deploy/publicar_enderecos.sh dist
 
       - name: Guardar as impressões digitais (se falhar)
         if: failure()

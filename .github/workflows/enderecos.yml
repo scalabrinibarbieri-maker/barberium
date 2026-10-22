@@ -1,0 +1,81 @@
+name: Publicar endereços
+
+# Painel do dono do SaaS (21/10/2026). Publica o site nos endereços <nome>.barberium.pages.dev
+# das barbearias cadastradas pelo painel, na mesma versão que está na produção. Só publica
+# endereço novo ou desatualizado. Roda sozinho de hora em hora e à mão, logo depois de cadastrar
+# uma barbearia: Actions > Publicar endereços > Run workflow.
+# O "Publicar em produção" também publica todos os endereços a cada versão nova.
+# Segredos: SUPABASE_DB_URL (só leitura aqui), CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID.
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar-enderecos
+  cancel-in-progress: false
+
+jobs:
+  enderecos:
+    name: Endereços das barbearias
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PSQL: /usr/lib/postgresql/17/bin/psql
+      WRANGLER: wrangler@4.146.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Usar a versão que está na produção
+        id: versao
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit="$(curl -fsS -m 30 https://scalabrinibarbiere.com/versao.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"])')"
+          if ! [[ "$commit" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::O versao.json da produção não tem um commit válido."
+            exit 1
+          fi
+          git checkout -q "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          if [ -f deploy/publicar_enderecos.sh ]; then
+            echo "pronto=sim" >> "$GITHUB_OUTPUT"
+            echo "Produção na versão ${commit:0:7}."
+          else
+            echo "pronto=nao" >> "$GITHUB_OUTPUT"
+            echo "A produção (${commit:0:7}) ainda não tem o painel do dono. Nada a publicar."
+          fi
+
+      - name: Instalar Postgres 17 (para ler o banco)
+        if: steps.versao.outputs.pronto == 'sim'
+        shell: bash
+        run: bash supabase/pipeline/instalar_postgres.sh
+
+      - name: Montar o site (mesma versão da produção)
+        if: steps.versao.outputs.pronto == 'sim'
+        shell: bash
+        env:
+          COMMIT_SITE: ${{ steps.versao.outputs.commit }}
+        run: bash deploy/montar_site.sh dist producao
+
+      - name: Node 22
+        if: steps.versao.outputs.pronto == 'sim'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Publicar os endereços novos ou desatualizados
+        if: steps.versao.outputs.pronto == 'sim'
+        shell: bash
+        run: bash deploy/publicar_enderecos.sh dist --so-faltando
