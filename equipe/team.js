@@ -2,6 +2,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from '../shared/config.js?v=1';
 import { criarCliente, lerSessao, salvarSessao, limparSessao } from '../shared/api.js?v=1';
 import { tenantPronto } from '../shared/tenant.js?v=1';
 import { abrirConviteDoBarbeiro } from './convite-barbeiros.js?v=1';
+import { notaDeEngano, podeCancelarAgora, abrirCancelamento, cancelarComoBarbeiro, abrirCancelamentoConcluido } from './status-do-atendimento.js?v=1';
 import { estadoDaComanda, extrasValidos, precoDosExtras, sanearExtras, caixaServicosHtml, passageiroHtml, desenharExtras, ligarExtras, ligarPassageiro } from './comanda.js?v=1';
 const TZ='America/Sao_Paulo';
 
@@ -29,6 +30,10 @@ let currentDate=isoDate(new Date());
 let filterProfessionalId=null;
 let activePeriod='today';
 let currentAgenda=null;
+// Etapa 7d: abas "Agenda" e "Cancelados" (antes v12.8, que escondia cartões com observer).
+let agendaMode='agenda';
+let detalheAberto=null; // o detalhe na tela, para o barbeiro conferir a permissão ao voltar para o app (antes v12.45)
+let statusToken=0;
 let currentPanel='agenda';
 
 // Login e chamadas ao banco: shared/api.js (etapa 5), uma sessão só para todos os módulos.
@@ -38,7 +43,7 @@ function saveAuth(v){salvarSessao(v)}
 function clearAuth(){limparSessao()}
 function isManager(){return ['owner','admin'].includes(member?.role)}
 function can(key){return isManager()||member?.permissions?.[key]===true}
-function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2600)}
+function toast(msg,ms=2600){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),ms)}
 function friendlyError(e){const m=String(e?.message||e);if(/Horário ocupado|already|exclusion/i.test(m))return'Esse horário já está ocupado.';if(/bloquead/i.test(m))return'Esse período está bloqueado.';return m}
 
 async function authFetch(path,opts={}){return api.requisicao(path,opts)}
@@ -101,9 +106,12 @@ function renderSummary(s){
   ]:[['Horários',s.total||0,''],['Confirmados',s.confirmed||0,''],['Concluídos',s.completed||0,'']];
   $('#summary').innerHTML=cards.map(([l,v,c])=>`<article class="summary-card ${c}"><small>${l}</small><strong>${v}</strong></article>`).join('');
 }
+function agendaHead(){const head=$('#agendaPanel .agenda-section .section-head');if(!head)return;head.querySelector('small').textContent=agendaMode==='cancelled'?'CANCELADOS':'HORÁRIOS';head.querySelector('h2').textContent=agendaMode==='cancelled'?'Cancelamentos do dia':'Agenda do dia'}
 function renderAgenda(data){
-  const items=[...(data.appointments||[]),...(data.blocks||[])].sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-  if(!items.length){$('#agendaList').innerHTML='<div class="empty">Nenhum horário ou bloqueio nesta data.</div>';return}
+  agendaHead();
+  const all=[...(data.appointments||[]),...(data.blocks||[])].sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  const items=all.filter(x=>(x.kind!=='block'&&x.status==='cancelled')===(agendaMode==='cancelled'));
+  if(!items.length){$('#agendaList').innerHTML=`<div class="empty">${agendaMode==='cancelled'?'Nenhum cancelamento nesta data.':'Nenhum horário ou bloqueio nesta data.'}</div>`;return}
   $('#agendaList').innerHTML=items.map(x=>x.kind==='block'?blockCard(x):appointmentCard(x)).join('');
   $$('[data-appt-id]').forEach(b=>b.onclick=()=>openAppointmentDetail(b.dataset.apptId));
   $$('[data-block-id]').forEach(b=>b.onclick=()=>openBlockDetail(b.dataset.blockId,b.dataset.blockKind));
@@ -127,7 +135,7 @@ function renderAppointmentDetail(d){
   const canEdit=d.status==='confirmed'&&(isManager()||['edit_service','edit_addons','edit_date','edit_time','edit_value','edit_internal_note'].some(can));
   const statusBtns=statusButtons(d);
   $('#modalBody').innerHTML=`
-    ${d.is_walk_in?`<div class="notice-box"><strong>Encaixe</strong><p>${d.blocks_schedule?'Bloqueia novas reservas durante o atendimento.':'Não bloqueia a disponibilidade da agenda.'}</p></div>`:''}
+    ${notaDeEngano(d)}${d.is_walk_in?`<div class="notice-box"><strong>Encaixe</strong><p>${d.blocks_schedule?'Bloqueia novas reservas durante o atendimento.':'Não bloqueia a disponibilidade da agenda.'}</p></div>`:''}
     <div class="detail-grid">
       <div class="detail-box"><small>Status</small><strong>${statusLabel(d.status)}</strong></div>
       <div class="detail-box"><small>Profissional</small><strong>${esc(d.professional.name)}</strong></div>
@@ -149,8 +157,10 @@ function renderAppointmentDetail(d){
     ${history}`;
   $('#editAppointment')?.addEventListener('click',()=>openBookingModal('edit',d));
   $('#applyMembershipUse')?.addEventListener('click',()=>openMembershipUseModal(d.id));
-  $$('[data-new-status]').forEach(b=>b.onclick=()=>changeStatus(d.id,b.dataset.newStatus));
-  $('#cancelCompletedAppointment')?.addEventListener('click',()=>openCancelCompletedAppointment(d.id));
+  $$('[data-new-status]').forEach(b=>b.onclick=()=>changeStatus(d.id,b.dataset.newStatus,b));
+  $('#cancelCompletedAppointment')?.addEventListener('click',()=>abrirCancelamentoConcluido(d.id,statusCtx()));
+  detalheAberto={d,no:$('#modalBody').firstElementChild};
+  if(!isManager()&&d.status==='confirmed')barberCancelButton(d);
   injectWaButton(d);
   injectAppointmentProducts(d);
   if(['completed','cancelled'].includes(d.status))injectAppointmentFinanceSummary(d.id);if(d.status==='no_show'&&isManager())injectNoShowMembershipDecision(d.id);
@@ -170,8 +180,12 @@ function statusButtons(d){
   }else if(d.status==='completed'&&isManager())return '<button class="danger-btn" id="cancelCompletedAppointment" type="button">Cancelar atendimento concluído</button>';else if(isManager()&&['cancelled','no_show'].includes(d.status)&&!(d.events||[]).some(e=>e.event_type==='cancelled_with_refund'))options.push('confirmed');
   return options.map(s=>`<button class="${s==='cancelled'?'danger-btn':'soft-btn'}" data-new-status="${s}" type="button">${statusLabel(s)}</button>`).join('');
 }
-async function changeStatus(id,status){
+function statusCtx(){return{rpc,openModal,closeModal,toast,loadAgenda}}
+// O barbeiro vê "Cancelado" conforme a permissão de agora (antes v12.45, com timers).
+async function barberCancelButton(d){const token=++statusToken;try{const pode=await podeCancelarAgora(rpc);if(token!==statusToken||$('#modalBackdrop').classList.contains('hidden'))return;let btn=$('#statusActions [data-new-status="cancelled"]');if(!pode){btn?.remove();const root=$('#statusActions');if(root&&!root.children.length){root.previousElementSibling?.remove();root.remove()}return}if(btn)return;let root=$('#statusActions');if(!root){$('#modalBody').insertAdjacentHTML('beforeend','<h3 class="section-mini-title">Alterar status</h3><div class="action-row" id="statusActions"></div>');root=$('#statusActions')}root.insertAdjacentHTML('beforeend','<button class="danger-btn" data-new-status="cancelled" type="button">Cancelado</button>');btn=root.lastElementChild;btn.onclick=()=>changeStatus(d.id,'cancelled',btn)}catch(e){console.error(e)}}
+async function changeStatus(id,status,btn){
   if(status==='completed'){openCompleteAppointment(id);return}
+  if(status==='cancelled'){if(isManager())abrirCancelamento(id,statusCtx());else cancelarComoBarbeiro(id,btn,statusCtx());return}
   if(!confirm(`Alterar este atendimento para “${statusLabel(status)}”?`))return;
   try{await rpc('barberium_staff_set_appointment_status',{p_appointment_id:id,p_status:status});toast('Status atualizado.');await loadAgenda();await openAppointmentDetail(id)}catch(e){toast(friendlyError(e))}
 }
@@ -795,6 +809,8 @@ function switchPanel(panel){currentPanel=panel;$('#productsPanel').classList.tog
 
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#loginButton');btn.disabled=true;btn.textContent='Entrando…';$('#loginError').textContent='';try{await login($('#email').value.trim(),$('#password').value);await showDashboard()}catch(err){$('#loginError').textContent=err.message}finally{btn.disabled=false;btn.textContent='Entrar'}});
 $('#togglePassword').onclick=()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';$('#togglePassword').textContent=p.type==='password'?'Ver':'Ocultar'};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!isManager()&&detalheAberto?.no?.isConnected&&detalheAberto.d.status==='confirmed')barberCancelButton(detalheAberto.d)});
+$$('[data-v128-agenda-mode]').forEach(b=>b.onclick=()=>{agendaMode=b.dataset.v128AgendaMode;$$('[data-v128-agenda-mode]').forEach(x=>x.classList.toggle('active',x===b));if(currentAgenda)renderAgenda(currentAgenda);else agendaHead()});
 $('#logoutButton').onclick=logout;$('#prevDay').onclick=()=>moveDate(-1);$('#nextDay').onclick=()=>moveDate(1);$('#todayButton').onclick=()=>{currentDate=isoDate(new Date());renderDate();loadAgenda()};$('#dateButton').onclick=()=>{if($('#dateInput').showPicker)$('#dateInput').showPicker();else $('#dateInput').click()};$('#dateInput').onchange=()=>{if($('#dateInput').value){currentDate=$('#dateInput').value;renderDate();loadAgenda()}};
 $('#newWalkInButton').onclick=()=>openBookingModal('walk-in');
 $('#newAppointmentButton').onclick=()=>openBookingModal('create');$('#newBlockButton').onclick=()=>openBlockModal('create');$('#modalClose').onclick=closeModal;$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});
@@ -823,16 +839,7 @@ $$('[data-my-commission-filter]').forEach(b=>b.onclick=()=>{myCommissionFilter=b
 
 async function openProductBalance(s){openModal('SALDO DE PRODUTOS','Receber pagamento',`<form id="receiveProductForm" class="form-grid"><p>Saldo pendente: ${moneyCents(s.receivable.remaining_cents)}</p><div class="field"><label>Valor</label><input id="receiveProductAmount" inputmode="decimal" value="${centsInput(s.receivable.remaining_cents)}" required></div><div class="field"><label>Forma</label><select id="receiveProductMethod"><option value="pix">Pix</option><option value="cash">Dinheiro</option></select></div><button class="gold-btn" type="submit">Registrar recebimento</button></form>`);$('#receiveProductForm').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('[type=submit]');b.disabled=true;try{await rpc('barberium_staff_receive_product_balance',{p_sale_id:s.id,p_payments:[{method:$('#receiveProductMethod').value,amount_cents:moneyToCents($('#receiveProductAmount').value)}]});toast('Saldo recebido.');await openProductSaleDetail(s.id);if(currentPanel==='products')loadProductsPanel()}catch(err){toast(friendlyError(err));b.disabled=false}}}
 
-async function openCancelCompletedAppointment(id){
- openModal('CANCELAR ATENDIMENTO CONCLUÍDO','Conferir devolução','<div class="loading">Conferindo pagamentos e produtos…</div>');
- try{
-  const [d,f,p]=await Promise.all([rpc('barberium_staff_appointment_detail',{p_appointment_id:id}),rpc('barberium_staff_appointment_finance',{p_appointment_id:id}),rpc('barberium_staff_appointment_products',{p_appointment_id:id})]);
-  const serviceRefund=Math.max(0,Number(f.paid_cents||0)-Number(f.refunds_cents||0)),productRefund=p.status==='completed'?Number(p.paid_cents||0):0;
-  const pending=Number(f.receivable?.remaining_cents||0)+(p.status==='completed'?Number(p.pending_cents||0):0);
-  openModal('CANCELAR ATENDIMENTO CONCLUÍDO',d.customer.name,`<form id="cancelCompletedForm" class="form-grid"><div class="detail-grid"><div class="detail-box"><small>Devolução do serviço</small><strong>${moneyCents(serviceRefund)}</strong></div><div class="detail-box"><small>Devolução dos produtos</small><strong>${moneyCents(productRefund)}</strong></div><div class="detail-box wide"><small>Total a devolver</small><strong>${moneyCents(serviceRefund+productRefund)}</strong></div></div><div class="detail-note"><p>O cancelamento reverte as comissões e devolve os produtos ao estoque.${pending>0?` O saldo pendente de ${moneyCents(pending)} será cancelado.`:''}${(f.uses||[]).some(u=>u.status==='consumed')?' O benefício do plano/pacote será devolvido.':''}</p><p>Os recebimentos e o estorno permanecem no histórico. Registre a forma usada para devolver o valor ao cliente.</p></div><div class="field"><label>Forma da devolução</label><select id="cancelRefundMethod" required><option value="">Selecione</option><option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="debit">Débito</option><option value="credit">Crédito</option><option value="transfer">Transferência</option><option value="other">Outro / sem valor a devolver</option></select></div><div class="field"><label>Motivo do cancelamento</label><textarea id="cancelReason" minlength="3" required></textarea></div><button class="danger-btn finance-wide" type="submit">Confirmar cancelamento e registrar estorno</button></form>`);
-  $('#cancelCompletedForm').onsubmit=async e=>{e.preventDefault();const btn=e.target.querySelector('[type=submit]');if(btn.disabled)return;btn.disabled=true;try{await rpc('barberium_staff_cancel_completed_appointment',{p_appointment_id:id,p_reason:$('#cancelReason').value.trim(),p_refund_method:$('#cancelRefundMethod').value});toast('Atendimento cancelado. Estorno, estoque e comissões atualizados.');closeModal();await loadAgenda();await openAppointmentDetail(id)}catch(err){toast(friendlyError(err));btn.disabled=false}};
- }catch(e){$('#modalBody').textContent=friendlyError(e)}
-}
+// Etapa 7d: cancelar concluído mora em equipe/status-do-atendimento.js (a versão antiga daqui nunca rodava).
 
 
 // v12.5 — lembretes de WhatsApp assistidos pelo administrador.

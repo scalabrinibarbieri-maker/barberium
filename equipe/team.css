@@ -41,3 +41,11 @@
 .login-view{justify-content:flex-start!important}
 .login-view .back-link{margin-bottom:16px!important}
 .login-view .login-brand{margin:8px 0 22px!important}
+
+/* Etapa 7d: abas da agenda e cancelamentos (antes injetado pela v12.8). */
+#agendaStatusTabs{margin:14px 0 4px}
+#agendaStatusTabs button{min-width:120px}
+.v128-cancel-help{margin:-4px 0 8px;color:#98a79e;font-size:.83rem;line-height:1.45}
+.v128-booking-error-note{margin:0 0 12px;padding:12px 14px;border:1px solid rgba(214,174,91,.35);border-radius:14px;background:rgba(214,174,91,.08)}
+.v128-booking-error-note strong{display:block;margin-bottom:3px;color:#d6ae5b}
+.v128-booking-error-note p{margin:0;color:#b9c5bd;font-size:.86rem}

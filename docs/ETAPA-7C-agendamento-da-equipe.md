@@ -55,3 +55,12 @@ Banco local reconstruído do zero com as 99 migrations do repositório e os dado
 
 1. **Site:** "Rollback" no Cloudflare para o deploy anterior.
 2. **Repositório:** subir de volta, da versão `19582d8`, `equipe/team.js`, `equipe/barberium-v12.17.js`, `equipe/index.html` e `deploy/arquivos-do-site.txt`, mais o `equipe/barberium-v12.13.js` apagado. Todos estão no histórico do Git.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7c.zip` | A main (`30ff44c`) ficou idêntica à branch da etapa, e o `barberium-v12.13.js` saiu do repositório |
+| Publicar no teste e em produção | Verdes, inclusive o teste novo do formulário no site de teste. O banco não mudou (99 migrations) |
+| Site real | Versão `30ff44c`. Os 41 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main. O deploy de produção não tem mais o `barberium-v12.13.js` |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |
