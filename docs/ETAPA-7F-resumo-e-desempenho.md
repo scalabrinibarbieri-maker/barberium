@@ -58,3 +58,12 @@ Banco local reconstruído com todas as migrations e os dados fictícios, restaur
    - e apagar os dois módulos novos.
 
    Todos estão no histórico do Git.
+
+## Validação (23/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7f.zip` | A main (`3d97773`) ficou idêntica à branch da etapa, e os dois arquivos apagados saíram do repositório |
+| Publicar no teste e em produção | Verdes. O banco não mudou (100 migrations; a última continua `20261022300000`) |
+| Site real | Versão `3d97773`. Os 41 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main. A Área da Equipe tem o botão "Horários livres" e o rótulo "Serviços + produtos" no HTML e não chama mais a v12.10 nem a v12.33 |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |

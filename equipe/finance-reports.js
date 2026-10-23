@@ -6,6 +6,9 @@ const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format((Number(n)||0)/100);
 const dateBR=v=>v?new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T12:00:00`)):'—';
 const dateTimeBR=v=>v?new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v)):'—';
+// Mês de hoje em Brasília (etapa 7g). Antes era o mês de Londres: na noite do último dia do mês,
+// o relatório abria no mês seguinte.
+const mesDeHoje=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit'}).format(new Date());
 
 // Login e chamadas ao banco: shared/api.js (etapa 5).
 const api=criarCliente();
@@ -14,7 +17,7 @@ async function rpc(name,payload={}){return api.rpc(name,payload)}
 function toast(msg){const e=$('#toast');if(!e)return;e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2800)}
 function openModal(eyebrow,title,html){const back=$('#modalBackdrop');if(!back)return;$('#modalEyebrow').textContent=eyebrow||'';$('#modalTitle').textContent=title||'';$('#modalBody').innerHTML=html;back.classList.remove('hidden');back.setAttribute('aria-hidden','false')}
 
-function monthRange(month){const m=/^\d{4}-\d{2}$/.test(month||'')?month:new Date().toISOString().slice(0,7);const [y,mo]=m.split('-').map(Number);const end=new Date(y,mo,0).getDate();return [`${m}-01`,`${m}-${String(end).padStart(2,'0')}`]}
+function monthRange(month){const m=/^\d{4}-\d{2}$/.test(month||'')?month:mesDeHoje();const [y,mo]=m.split('-').map(Number);const end=new Date(y,mo,0).getDate();return [`${m}-01`,`${m}-${String(end).padStart(2,'0')}`]}
 function paymentMethodLabel(v){return({pix:'Pix',cash:'Dinheiro',debit:'Débito',credit:'Crédito',transfer:'Transferência',other:'Outro',pending_cancelled:'Pendência cancelada'})[v]||v||'—'}
 function statusLabel(v){return({paid:'Paga',predicted:'Prevista',open:'Em aberto',partial:'Parcial',settled:'Paga',cancelled:'Cancelada'})[v]||v||'—'}
 function refundStatusLabel(v){return({paid:'Recebido',refunded:'Reembolsado',partial_refund:'Reembolso parcial'})[v]||v||'Recebido'}
@@ -28,7 +31,7 @@ function currentUnitOptions(){const src=$('#financeUnit');if(!src||!src.options.
 function ensureButton(){if($('#financeReportButton'))return;const settings=$('#financeSettingsButton');if(!settings)return;const wrap=document.createElement('div');wrap.className='client-toolbar';wrap.style.marginTop='12px';const btn=document.createElement('button');btn.id='financeReportButton';btn.className='gold-btn';btn.type='button';btn.textContent='Gerar relatório';settings.parentNode.insertBefore(wrap,settings);wrap.appendChild(btn);wrap.appendChild(settings);settings.classList.remove('finance-wide')}
 
 function openFinanceReport(){
-  const month=$('#financeMonth')?.value||new Date().toISOString().slice(0,7);const [start,end]=monthRange(month);const currentUnit=$('#financeUnit')?.value||'';const basis=$('#financeBasis')?.value||'cash';
+  const month=$('#financeMonth')?.value||mesDeHoje();const [start,end]=monthRange(month);const currentUnit=$('#financeUnit')?.value||'';const basis=$('#financeBasis')?.value||'cash';
   openModal('RELATÓRIO FINANCEIRO','Gerar relatório',`<form id="financeReportForm" class="form-grid">
     <div class="field"><label>Data inicial</label><input id="reportStart" type="date" value="${start}" required></div>
     <div class="field"><label>Data final</label><input id="reportEnd" type="date" value="${end}" required></div>

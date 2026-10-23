@@ -66,16 +66,5 @@ begin
   perform pg_temp.igual(r ->> 'open_cents', '8250', 'Minhas comissões: "em aberto" soma tudo que está aberto, de qualquer dia (R$ 82,50)');
 end $$;
 
--- Funções que usam a data do servidor (UTC) em vez da data de Brasília.
--- Entre 21h e meia-noite de Brasília, o servidor já está no dia seguinte.
-do $$
-declare v_lista text; v_n int;
-begin
-  select count(*), string_agg(p.proname, ', ' order by p.proname) into v_n, v_lista
-  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname in ('public', 'barberium') and p.prokind = 'f'
-    and (p.prosrc ~* '\mcurrent_date\M' or coalesce(pg_get_expr(p.proargdefaults, 0), '') ~* 'current_date');
-  perform pg_temp.vai_mudar(v_n = 18,
-    format('%s funções usam current_date (data UTC do servidor); a etapa 7g troca pela data no fuso da barbearia', v_n),
-    v_lista);
-end $$;
+-- A conferência das funções que usavam a data de Londres (current_date em UTC) mudou para o
+-- arquivo 12 (etapa 7g): agora todas trabalham no fuso da barbearia.
