@@ -64,3 +64,12 @@ Banco local reconstruído com todas as migrations e os dados fictícios, restaur
    - e apagar os três módulos novos.
 
    Todos estão no histórico do Git.
+
+## Validação (23/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7e.zip` | A main (`60b2be1`) ficou idêntica à branch da etapa, e os dois arquivos apagados saíram do repositório |
+| Publicar no teste e em produção | Verdes. O banco não mudou (100 migrations; a última continua `20261022300000`) |
+| Site real | Versão `60b2be1`. Os 41 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main. As páginas não chamam mais a v12.9 nem a v12.17 |
+| Navegador, sem login | Painel, Área da Equipe (com as abas "Planos" e "Contratos ativos") e site do cliente abrem sem erro de JavaScript |

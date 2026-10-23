@@ -49,7 +49,6 @@ assets/vinicius-nunes.webp
 
 # Área da Equipe
 equipe/balances-v12.39.js
-equipe/barberium-v12.10.js
 equipe/barberium-v12.12.js   # sem uso
 equipe/desktop-v12.16.css
 equipe/finance-reports.js
@@ -57,7 +56,6 @@ equipe/index.html
 equipe/settings.css
 equipe/settings.js
 equipe/area-do-cliente.js
-equipe/staff-tools-v12.33.js
 equipe/team.css
 equipe/team.js
 equipe/comanda.js
@@ -65,6 +63,8 @@ equipe/status-do-atendimento.js
 equipe/contratos.js
 equipe/plano-na-comanda.js
 equipe/campos-numericos.js
+equipe/desempenho.js
+equipe/horarios-livres.js
 equipe/convite.js
 equipe/convite-barbeiros.js
 

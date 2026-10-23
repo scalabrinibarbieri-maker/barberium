@@ -57,3 +57,16 @@
 .v129-contract-customer{font:600 18px Georgia,"Times New Roman",serif;margin:0}
 .v129-contract-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .v129-contract-actions>*{flex:1 1 140px}
+
+/* Agenda → Horários livres (etapa 7f; antes injetado pela v12.33) */
+.v1233-free-list{display:grid;gap:14px}
+.v1233-free-pro{border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:15px;background:rgba(255,255,255,.025)}
+.v1233-free-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.v1233-free-head h3{margin:0;font-size:1rem}
+.v1233-free-head small{display:block;margin-top:4px;color:#98a79e}
+.v1233-free-count{flex:0 0 auto;border:1px solid rgba(214,174,91,.30);color:#d6ae5b;border-radius:999px;padding:5px 9px;font-size:.75rem}
+.v1233-free-ranges{display:grid;gap:8px}
+.v1233-free-range{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:13px;padding:11px 12px;background:rgba(214,174,91,.07);border:1px solid rgba(214,174,91,.16)}
+.v1233-free-range strong{font-size:1rem}
+.v1233-free-range span{color:#98a79e;font-size:.82rem}
+.v1233-free-empty{color:#98a79e;font-size:.9rem;padding:8px 0}
