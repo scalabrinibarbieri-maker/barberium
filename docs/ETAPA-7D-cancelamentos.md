@@ -78,3 +78,12 @@ Banco local reconstruído do zero com as 99 migrations do repositório e os dado
    - e apagar `equipe/status-do-atendimento.js`.
 
    Todos estão no histórico do Git.
+
+## Validação (22/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7d.zip` | A main (`e448df2`) ficou idêntica à branch da etapa, e os dois arquivos apagados saíram do repositório |
+| Publicar no teste e em produção | Verdes. O banco não mudou (99 migrations; a última continua `20261022200000`) |
+| Site real | Versão `e448df2`. Os 41 arquivos de páginas, scripts e estilos no ar estão idênticos aos montados a partir da main (o `versao.json` só escreve a hora em outro formato). As páginas não chamam mais os dois arquivos apagados |
+| Navegador, sem login | Painel, Área da Equipe (com as abas "Agenda" e "Cancelados") e site do cliente abrem sem erro de JavaScript |
