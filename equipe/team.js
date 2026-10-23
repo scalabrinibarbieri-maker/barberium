@@ -4,6 +4,9 @@ import { tenantPronto } from '../shared/tenant.js?v=1';
 import { abrirConviteDoBarbeiro } from './convite-barbeiros.js?v=1';
 import { notaDeEngano, podeCancelarAgora, abrirCancelamento, cancelarComoBarbeiro, abrirCancelamentoConcluido } from './status-do-atendimento.js?v=1';
 import { estadoDaComanda, extrasValidos, precoDosExtras, sanearExtras, caixaServicosHtml, passageiroHtml, desenharExtras, ligarExtras, ligarPassageiro } from './comanda.js?v=1';
+import { ligarContratos, mostrarPlanos, abrirAjusteDoCliente } from './contratos.js?v=1';
+import { desenharFichaDoPlano } from './plano-na-comanda.js?v=1';
+import { corrigirCentavos } from './campos-numericos.js?v=1';
 const TZ='America/Sao_Paulo';
 
 const $=(s,r=document)=>r.querySelector(s);
@@ -499,7 +502,7 @@ function wirePaymentLines(root,dueCents){
 async function openCompleteAppointment(id){
   openModal('CONCLUIR ATENDIMENTO','Pagamento','<div class="loading">Preparando pagamento…</div>');
   try{
-    const [d,f,products]=await Promise.all([rpc('barberium_staff_appointment_detail',{p_appointment_id:id}),rpc('barberium_staff_appointment_finance',{p_appointment_id:id}),rpc('barberium_staff_appointment_products',{p_appointment_id:id})]);await loadPaymentOptions();
+    const [d,f,products,planoCtx]=await Promise.all([rpc('barberium_staff_appointment_detail',{p_appointment_id:id}),rpc('barberium_staff_appointment_finance',{p_appointment_id:id}),rpc('barberium_staff_appointment_products',{p_appointment_id:id}),rpc('barberium_staff_checkout_membership_context',{p_appointment_id:id}).catch(e=>{console.error('Barberium plano na comanda:',e);return null})]);await loadPaymentOptions();
     const total=Number(d.total_price_cents||f.total_price_cents||0),covered=Number(f.membership_covered_cents||0),due=Math.max(0,total-covered)+(products.status==='draft'?Number(products.total_cents||0):0);let lineCounter=0;
     const uses=(f.uses||[]).length?`<div class="detail-note"><small>PLANO / PACOTE</small><p>${(f.uses||[]).map(u=>`${esc(u.plan)} • ${esc(u.service)}: ${moneyCents(u.coverage_cents)}`).join('<br>')}</p></div>`:'';
     const pendingAllowed=isManager()||can('leave_payment_pending');
@@ -509,6 +512,8 @@ async function openCompleteAppointment(id){
       ${pendingAllowed&&due>0?`<h3 class="section-mini-title">Pagamento pendente</h3><div class="form-grid"><div class="field"><label>Valor que ficará pendente</label><input id="pendingAmount" inputmode="decimal" value="0,00"></div><div class="field"><label>Vencimento (opcional)</label><input id="pendingDueDate" type="date"></div><div class="field"><label>Observação</label><textarea id="pendingNote" placeholder="Ex.: acertar na próxima visita"></textarea></div></div>`:''}
       <div id="paymentBalance" class="payment-total"></div><button id="finishAppointmentPayment" class="gold-btn finance-wide" type="button">Concluir atendimento</button>`);
     const root=$('#modalBody');wirePaymentLines(root,due);
+    // Ficha de plano no topo (antes v12.20); depois de usar ou tirar a ficha, abre o pagamento de novo.
+    desenharFichaDoPlano(root,id,planoCtx,f,{rpc,toast,reabrir:()=>{$('#modalCard').scrollTop=0;openCompleteAppointment(id)}});
     $('#addPaymentLine')?.addEventListener('click',()=>{lineCounter++;$('#paymentLines').insertAdjacentHTML('beforeend',paymentLineHtml(lineCounter,0));wirePaymentLines(root,due)});
     $('#finishAppointmentPayment').onclick=async()=>{
       const payments=$$('[data-payment-line]',root).map(line=>{const method=$('[data-pay-method]',line).value;return{method,amount_cents:moneyToCents($('[data-pay-amount]',line).value),provider_id:$('[data-pay-provider]',line)?.value||null,installments:method==='credit'?Number($('[data-pay-installments]',line)?.value||1):1,tendered_cents:method==='cash'?moneyToCents($('[data-pay-tender]',line)?.value):null}}).filter(x=>x.amount_cents>0);
@@ -520,7 +525,7 @@ async function openCompleteAppointment(id){
   }catch(e){$('#modalBody').innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
 }
 
-function switchFinanceTab(tab){currentFinanceTab=tab;$$('[data-finance-tab]').forEach(b=>b.classList.toggle('active',b.dataset.financeTab===tab));['overview','cash','expenses','commissions','plans'].forEach(x=>$(`#finance${x[0].toUpperCase()+x.slice(1)}Tab`)?.classList.toggle('hidden',x!==tab));if(tab==='overview')loadFinanceOverview();if(tab==='cash')loadCashStatus();if(tab==='expenses')loadExpenses();if(tab==='commissions')loadCommissions();if(tab==='plans')loadMembershipPlans()}
+function switchFinanceTab(tab){currentFinanceTab=tab;$$('[data-finance-tab]').forEach(b=>b.classList.toggle('active',b.dataset.financeTab===tab));['overview','cash','expenses','commissions','plans'].forEach(x=>$(`#finance${x[0].toUpperCase()+x.slice(1)}Tab`)?.classList.toggle('hidden',x!==tab));if(tab==='overview')loadFinanceOverview();if(tab==='cash')loadCashStatus();if(tab==='expenses')loadExpenses();if(tab==='commissions')loadCommissions();if(tab==='plans'){loadMembershipPlans();mostrarPlanos()}}
 async function loadFinance(){
   $('#financeTitle').textContent=isManager()?'Financeiro':'Minhas comissões';$('#financeScope').textContent=isManager()?'Caixa, faturamento, despesas, comissões e planos.':'Acompanhe somente suas comissões e acertos.';
   $('#financeAdminControls').classList.toggle('hidden',!isManager());
@@ -650,6 +655,7 @@ function openPlanEditor(p=null){
   $('#planCycle').onchange=syncPlanCycleEditor;$('#planFirstCycle').onchange=syncPlanCycleEditor;
   syncPlanTypeEditor();syncPlanCycleEditor();
   $('#planForm').onsubmit=e=>saveMembershipPlan(e,p);
+  $('#planForm').addEventListener('focusout',e=>{if(e.target.matches?.('[data-plan-commission-service],#planHourlyRate'))corrigirCentavos(e.target)});
 }
 function syncPlanTypeEditor(){
   const type=$('#planType')?.value||'subscription';
@@ -666,6 +672,8 @@ function renderPlanBenefitEditor(){
 
 async function saveMembershipPlan(e,p){
   e.preventDefault();
+  // Reais da comissão de planos: "25.50" vale R$ 25,50 (antes v12.22).
+  if($('#planCommissionType')?.value==='attendance')$$('[data-plan-commission-service]').forEach(corrigirCentavos);else if($('#planCommissionType')?.value==='hour')corrigirCentavos($('#planHourlyRate'));
   const type=$('#planType').value;
   const benefits=$$('[data-benefit-index]').map((box,i)=>({service_id:$('[data-ben-service]',box).value,unlimited:$('[data-ben-unlimited]',box).checked,quantity:Number($('[data-ben-qty]',box).value||1),extra_discount_percent:Number($('[data-ben-discount]',box).value.replace(',','.'))||0,min_days_between:$('[data-ben-min-days]',box).value?Number($('[data-ben-min-days]',box).value):null,max_per_week:$('[data-ben-week]',box).value?Number($('[data-ben-week]',box).value):null,max_per_month:$('[data-ben-month]',box).value?Number($('[data-ben-month]',box).value):null,rules:{},sort_order:i}));
   const ctype=$('#planCommissionType').value;const commission={type:ctype};
@@ -718,7 +726,7 @@ async function loadClientMemberships(customerId){
     rows.forEach(m=>Object.assign(m,stateMap[m.id]||{}));
     root.innerHTML=rows.length?rows.map(m=>membershipAdminCard(m)).join(''):'<div class="empty">Cliente sem assinatura ou pacote.</div>';
     $$('[data-membership-pay]').forEach(b=>b.onclick=()=>openMembershipPayment(rows.find(x=>x.id===b.dataset.membershipPay)));
-    $$('[data-package-adjust]').forEach(b=>b.onclick=()=>openPackageCreditAdjustment(rows.find(x=>x.id===b.dataset.packageAdjust)));
+    $$('[data-package-adjust]').forEach(b=>b.onclick=()=>abrirAjusteDoCliente(b.dataset.packageAdjust));
     $$('[data-package-cancel]').forEach(b=>b.onclick=()=>openPackageCancellation(rows.find(x=>x.id===b.dataset.packageCancel),customerId));
   }catch(e){root.innerHTML=`<div class="empty">${esc(friendlyError(e))}</div>`}
 }
@@ -728,12 +736,7 @@ function membershipAdminCard(m){
   const state=m.plan_type==='subscription'?`${m.paused_until?`<span>Pausada até ${brDateOnly(m.paused_until)}</span>`:''}${m.renewal_blocked?`<span>Cancelamento programado${m.cancel_effective_on?` para ${brDateOnly(m.cancel_effective_on)}`:''}</span>`:''}`:'';
   return `<article class="membership-client-card"><div class="plan-head"><div><span class="plan-tag">${m.plan_type==='subscription'?'Assinatura':'Pacote'} • ${financeStatusLabel(m.status)}</span><h3>${esc(m.name)}</h3><p>${moneyCents(m.price_cents)}${m.started_at?` • desde ${dateTimeBR(m.started_at)}`:''}</p></div></div>${state?`<div class="plan-meta">${state}</div>`:''}<div class="credit-grid">${allocation||`<div><small>${m.plan_type==='subscription'?'Benefícios':'Créditos'}</small><strong>Aguardando pagamento integral</strong></div>`}</div><div class="action-row">${pendingPay?`<button class="gold-btn" data-membership-pay="${m.id}" type="button">Confirmar pagamento integral</button>`:''}${m.plan_type==='package'&&m.status==='active'?`<button class="soft-btn" data-package-adjust="${m.id}" type="button">Ajustar créditos</button><button class="danger-btn" data-package-cancel="${m.id}" type="button">Cancelar pacote</button>`:''}</div></article>`;
 }
-function openPackageCreditAdjustment(m){
-  const finite=(m.credits||[]).filter(c=>!c.unlimited);
-  if(!finite.length){toast('Este pacote não possui créditos finitos para ajustar.');return}
-  openModal('PACOTE',`Ajustar créditos • ${m.name}`,`<form id="packageCreditForm" class="form-grid"><div class="field"><label>Benefício</label><select id="packageCreditBucket">${finite.map(c=>`<option value="${c.bucket_id}">${esc(c.service)} • ${c.available} disponíveis</option>`).join('')}</select></div><div class="field"><label>Ajuste</label><input id="packageCreditDelta" type="number" step="1" placeholder="Ex.: 1 ou -1" required></div><div class="field"><label>Motivo obrigatório</label><textarea id="packageCreditReason" required></textarea></div><button class="gold-btn" type="submit">Registrar ajuste</button></form>`);
-  $('#packageCreditForm').onsubmit=async e=>{e.preventDefault();const delta=Number($('#packageCreditDelta').value);if(!Number.isInteger(delta)||delta===0){toast('Informe uma quantidade inteira diferente de zero.');return}try{await rpc('barberium_staff_adjust_package_credit',{p_membership_id:m.id,p_bucket_id:$('#packageCreditBucket').value,p_delta:delta,p_reason:$('#packageCreditReason').value.trim()});toast('Créditos ajustados e registrados no histórico.');closeModal();loadClientMemberships(m.customer_id||window.__currentClientId)}catch(err){toast(friendlyError(err))}};
-}
+// "Ajustar créditos" do pacote: equipe/contratos.js (o mesmo da aba Contratos ativos, antes v12.9).
 function openPackageCancellation(m,customerId){
   const policy=m.rules?.refund_mode||'nonrefundable';
   const labels={nonrefundable:'Sem reembolso',proportional:'Reembolso proporcional ao saldo não usado',manual:'Reembolso definido pelo ADM',no_after_use:'Cancelamento somente antes do primeiro uso'};
@@ -810,6 +813,7 @@ function switchPanel(panel){currentPanel=panel;$('#productsPanel').classList.tog
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#loginButton');btn.disabled=true;btn.textContent='Entrando…';$('#loginError').textContent='';try{await login($('#email').value.trim(),$('#password').value);await showDashboard()}catch(err){$('#loginError').textContent=err.message}finally{btn.disabled=false;btn.textContent='Entrar'}});
 $('#togglePassword').onclick=()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';$('#togglePassword').textContent=p.type==='password'?'Ver':'Ocultar'};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!isManager()&&detalheAberto?.no?.isConnected&&detalheAberto.d.status==='confirmed')barberCancelButton(detalheAberto.d)});
+ligarContratos({rpc,openModal,closeModal,toast,painelVisivel:()=>!$('#financePanel').classList.contains('hidden')});
 $$('[data-v128-agenda-mode]').forEach(b=>b.onclick=()=>{agendaMode=b.dataset.v128AgendaMode;$$('[data-v128-agenda-mode]').forEach(x=>x.classList.toggle('active',x===b));if(currentAgenda)renderAgenda(currentAgenda);else agendaHead()});
 $('#logoutButton').onclick=logout;$('#prevDay').onclick=()=>moveDate(-1);$('#nextDay').onclick=()=>moveDate(1);$('#todayButton').onclick=()=>{currentDate=isoDate(new Date());renderDate();loadAgenda()};$('#dateButton').onclick=()=>{if($('#dateInput').showPicker)$('#dateInput').showPicker();else $('#dateInput').click()};$('#dateInput').onchange=()=>{if($('#dateInput').value){currentDate=$('#dateInput').value;renderDate();loadAgenda()}};
 $('#newWalkInButton').onclick=()=>openBookingModal('walk-in');

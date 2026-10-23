@@ -49,3 +49,11 @@
 .v128-booking-error-note{margin:0 0 12px;padding:12px 14px;border:1px solid rgba(214,174,91,.35);border-radius:14px;background:rgba(214,174,91,.08)}
 .v128-booking-error-note strong{display:block;margin-bottom:3px;color:#d6ae5b}
 .v128-booking-error-note p{margin:0;color:#b9c5bd;font-size:.86rem}
+
+/* Planos → Contratos ativos (etapa 7e; antes injetado pela v12.9) */
+#v129PlanTabs{margin:0 0 14px}
+#v129ContractsTab .client-search{margin:12px 0}
+.v129-contract-summary{display:grid;gap:8px}
+.v129-contract-customer{font:600 18px Georgia,"Times New Roman",serif;margin:0}
+.v129-contract-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.v129-contract-actions>*{flex:1 1 140px}

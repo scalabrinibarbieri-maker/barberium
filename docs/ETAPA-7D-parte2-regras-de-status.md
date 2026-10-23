@@ -87,3 +87,13 @@ Tudo numa migration, `20261022300000_regras_de_status.sql`:
 
 1. **Banco:** rodar `docs/etapa7d2_rollback.sql` no SQL Editor. Nenhum dado muda, e o site não precisa voltar.
 2. **Repositório:** apagar a migration `20261022300000_regras_de_status.sql`.
+
+## Validação (23/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7d2.zip` | A main (`b94dc26`) ficou idêntica à branch da etapa |
+| Publicar no teste e em produção | Verdes. Na produção: 100 migrations, a última é `20261022300000 regras_de_status`, e a trava está na tabela de atendimentos |
+| Banco real (só leitura) | As 12 funções (8 trocadas e 4 novas) estão idênticas às do banco local com a migration. A regra responde certo: editar concluído é recusado e confirmado pode; barbeiro não cancela concluído; concluído → confirmado fora do mapa |
+| Site real | Versão `b94dc26`, 41 arquivos idênticos aos montados a partir da main (o site não mudou nesta parte) |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |

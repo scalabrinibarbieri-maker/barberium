@@ -226,9 +226,22 @@
         </section>
 
         <section id="financePlansTab" class="finance-tab-panel hidden">
-          <div class="client-toolbar"><button id="newPlanButton" class="gold-btn" type="button">+ Novo plano</button><button id="planRequestsButton" class="soft-btn" type="button">Solicitações</button></div>
-          <p class="campaign-help">Assinaturas e pacotes mantêm versões históricas: mudanças passam a valer apenas para novas compras ou para o próximo ciclo.</p>
-          <div id="membershipPlanList" class="finance-list"><div class="loading">Carregando planos…</div></div>
+          <div id="v129PlanTabs" class="client-subtabs">
+            <button class="active" data-v129-plan-mode="catalog" type="button">Planos</button>
+            <button data-v129-plan-mode="contracts" type="button">Contratos ativos</button>
+          </div>
+          <section id="v129PlanCatalogTab">
+            <div class="client-toolbar"><button id="newPlanButton" class="gold-btn" type="button">+ Novo plano</button><button id="planRequestsButton" class="soft-btn" type="button">Solicitações</button></div>
+            <p class="campaign-help">Assinaturas e pacotes mantêm versões históricas: mudanças passam a valer apenas para novas compras ou para o próximo ciclo.</p>
+            <div id="membershipPlanList" class="finance-list"><div class="loading">Carregando planos…</div></div>
+          </section>
+          <section id="v129ContractsTab" class="hidden">
+            <div class="field client-search">
+              <label>Buscar contrato</label>
+              <input id="v129ContractSearch" placeholder="Cliente, plano ou WhatsApp">
+            </div>
+            <div id="v129ContractsList" class="finance-list"><div class="loading">Carregando contratos…</div></div>
+          </section>
         </section>
       </section>
 
@@ -291,9 +304,7 @@
   <script type="module" src="./team.js?v=12.7"></script>
   <script type="module" src="./finance-reports.js?v=12.8.1"></script>
   <script type="module" src="./settings.js?v=12.7.1"></script>
-  <script type="module" src="./barberium-v12.9.js?v=12.9"></script>
   <script type="module" src="./barberium-v12.10.js?v=12.10"></script>
-  <script type="module" src="./barberium-v12.17.js?v=12.17"></script>
   <script type="module" src="./staff-tools-v12.33.js?v=12.33"></script>
   <script type="module" src="./balances-v12.39.js?v=12.39"></script>
   <script src="../shared/atualizacao.js?v=1" defer></script>
