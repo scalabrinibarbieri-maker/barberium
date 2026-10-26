@@ -48,7 +48,6 @@ assets/sobrancelha.webp
 assets/vinicius-nunes.webp
 
 # Área da Equipe
-equipe/balances-v12.39.js
 equipe/barberium-v12.12.js   # sem uso
 equipe/desktop-v12.16.css
 equipe/finance-reports.js
@@ -65,6 +64,7 @@ equipe/plano-na-comanda.js
 equipe/campos-numericos.js
 equipe/desempenho.js
 equipe/horarios-livres.js
+equipe/saldos.js
 equipe/convite.js
 equipe/convite-barbeiros.js
 

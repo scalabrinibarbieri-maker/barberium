@@ -75,3 +75,14 @@ Também, na noite do último dia do mês, o Relatório podia abrir no mês segui
 1. **Banco:** rodar `docs/etapa7g1_rollback.sql` no SQL Editor. Nenhum dado muda.
 2. **Repositório:** apagar a migration `20261023100000_datas_no_fuso_da_barbearia.sql`.
 3. **Site:** subir de volta `equipe/finance-reports.js` da versão `3d97773`.
+
+## Validação (26/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7g1.zip` | A main (`ab89c06`) ficou idêntica à branch da etapa |
+| Publicar no teste | Verde em 23/10. O banco de teste ficou com 101 migrations, e os testes no navegador rodaram às 20:06 |
+| Publicar em produção | Rodado depois, em 26/10 (a primeira rodada não tinha sido iniciada). Banco real com 101 migrations; a última é `20261023100000 datas_no_fuso_da_barbearia` |
+| Banco real (só leitura) | As 17 funções (16 alteradas e a nova) estão idênticas às do banco local com a migration. Numa transação só de leitura, `usar_fuso_da_barbearia` põe a chamada em `America/Sao_Paulo` e o "hoje" da chamada é o dia de Brasília |
+| Site real | Versão `ab89c06`, 41 arquivos idênticos aos montados a partir da main |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |

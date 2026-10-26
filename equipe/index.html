@@ -197,12 +197,45 @@
         </div>
 
         <div id="financeTabs" class="finance-tabs">
+          <button id="v1239BalancesTab" type="button">Saldos</button>
           <button class="active" data-finance-tab="overview" type="button">Visão</button>
           <button data-finance-tab="cash" type="button">Caixa</button>
           <button data-finance-tab="expenses" type="button">Despesas</button>
           <button data-finance-tab="commissions" type="button">Comissões</button>
           <button data-finance-tab="plans" type="button">Planos</button>
         </div>
+        <section id="financeBalancesTab" class="finance-tab-panel hidden">
+          <div class="v1239-panel">
+            <div class="v1239-filters">
+              <div class="field">
+                <label>De</label>
+                <input id="v1239Start" type="date">
+              </div>
+              <div class="field">
+                <label>Até</label>
+                <input id="v1239End" type="date">
+              </div>
+              <div id="v1239UnitWrap" class="field v1239-unit hidden">
+                <label>Unidade</label>
+                <select id="v1239Unit"></select>
+              </div>
+              <div class="v1239-presets">
+                <button data-v1239-preset="today" type="button">Hoje</button>
+                <button data-v1239-preset="yesterday" type="button">Ontem</button>
+                <button data-v1239-preset="7days" type="button">7 dias</button>
+                <button data-v1239-preset="month" type="button">Este mês</button>
+              </div>
+            </div>
+            <div class="v1239-period">
+              <div>
+                <small>Período selecionado</small>
+                <strong id="v1239PeriodLabel">Hoje</strong>
+              </div>
+              <span id="v1239ScopeLabel"></span>
+            </div>
+            <div id="v1239Content"><div class="loading">Carregando saldos…</div></div>
+          </div>
+        </section>
 
         <section id="financeOverviewTab" class="finance-tab-panel">
           <div id="financeSummary" class="finance-summary"><div class="loading">Carregando financeiro…</div></div>
@@ -305,7 +338,6 @@
   <script type="module" src="./team.js?v=12.7"></script>
   <script type="module" src="./finance-reports.js?v=12.8.1"></script>
   <script type="module" src="./settings.js?v=12.7.1"></script>
-  <script type="module" src="./balances-v12.39.js?v=12.39"></script>
   <script src="../shared/atualizacao.js?v=1" defer></script>
 </body>
 </html>
