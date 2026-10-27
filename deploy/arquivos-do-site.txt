@@ -16,7 +16,9 @@ barberium.svg
 app.js
 push.js
 membership.js
-barberium-client-v12.24.js
+cliente/marca.js
+cliente/capa.js
+cliente/abertura.css
 client-profile-v12.32.js
 professional-motion-v12.35.js
 service-cta-v12.38.js

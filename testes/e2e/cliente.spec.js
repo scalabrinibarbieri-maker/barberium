@@ -8,8 +8,8 @@ test('cliente agenda, vê em "Meus horários" e cancela', async ({ page }) => {
   const erros = [];
   page.on('pageerror', (e) => erros.push(e.message));
 
-  // Espera o catálogo carregar: tocar em "Agendar" antes disso deixa a lista de serviços vazia
-  // (defeito conhecido do site do cliente, anotado para a etapa 7h).
+  // Espera a página carregar. (Até a etapa 7h, tocar em "Agendar" antes do catálogo deixava a
+  // lista de serviços vazia; agora o site espera o catálogo: ver abertura.spec.js.)
   await page.goto('/', { waitUntil: 'networkidle' });
   await expect(page.getByText('AMBIENTE DE TESTE')).toBeVisible();
   await expect(page.locator('meta[name="barberium-versao"]'), 'página com a versão da publicação (etapa 4)').toHaveAttribute('content', /^[0-9a-f]{7}$/);

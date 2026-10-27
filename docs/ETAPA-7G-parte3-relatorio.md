@@ -108,3 +108,13 @@ Ao todo, 18.084 comparações, inclusive as mensagens de erro.
 1. **Banco:** rodar `docs/etapa7g3_rollback.sql` no SQL Editor. Ele recria as duas camadas (só para o `service_role`, como antes) e o Relatório de antes. Nenhum dado muda.
 2. **Repositório:** apagar a migration `20261026100000_relatorio_numa_funcao.sql` e o teste `supabase/testes/13_relatorio.sql`.
 3. **Site:** nada a fazer.
+
+## Validação (27/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7g3.zip` | A main (`6204752`) ficou idêntica à branch da etapa |
+| Publicar no teste e Publicar em produção | Os dois sites estão na versão `6204752` |
+| Banco real e banco de teste (só leitura) | 102 migrations; a última é `20261026100000 relatorio_numa_funcao` (na produção, aplicada pelo pipeline). Só existe `barberium_staff_finance_report`, idêntica à do banco reconstruído com a migration, inclusive nas permissões; as duas camadas antigas não existem mais |
+| Site real e site de teste | 42 arquivos idênticos aos montados a partir da main. O `versao.json` só muda no formato da hora |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript |
