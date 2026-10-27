@@ -82,3 +82,13 @@ Banco local igual ao da produção (101 migrations), com atendimentos, produtos 
    - `deploy/arquivos-do-site.txt`.
 2. **Repositório:** apagar `equipe/saldos.js` e `testes/e2e/saldos.spec.js`.
 3. **Banco:** nada a fazer.
+
+## Validação (26/10)
+
+| O quê | Resultado |
+| --- | --- |
+| Pacote `pacote-etapa7g2.zip` | A main (`04b644d`) ficou idêntica à branch da etapa |
+| Publicar no teste e Publicar em produção | Os dois sites estão na versão `04b644d` |
+| Site real e site de teste | 42 arquivos idênticos aos montados a partir da main. O `versao.json` só muda no formato da hora |
+| Navegador, sem login | Painel, Área da Equipe e site do cliente abrem sem erro de JavaScript. Na Área da Equipe, as abas do Financeiro são Saldos, Visão, Caixa, Despesas, Comissões e Planos, o painel de Saldos vem no HTML e o `balances-v12.39.js` não é mais pedido |
+| Banco | Sem mudança nesta parte |
